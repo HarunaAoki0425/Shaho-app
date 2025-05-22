@@ -1,0 +1,32 @@
+<div class="kenpo-container">
+  <div class="kenpo-title">健康保険料率一覧</div>
+  <div class="kenpo-header-row">
+    <div class="kenpo-left-group">
+      <div class="kenpo-year-box">
+        <select class="kenpo-year-select" [(ngModel)]="selectedYear" (change)="onYearChange()">
+          <option *ngFor="let y of years" [value]="y">{{ y }}年度</option>
+        </select>
+      </div>
+    </div>
+    <button class="kenpo-add-btn">追加</button>
+  </div>
+  <table class="kenpo-table">
+    <thead>
+      <tr>
+        <th>都道府県</th><th class="rate-col">料率</th>
+        <th>都道府県</th><th class="rate-col">料率</th>
+        <th>都道府県</th><th class="rate-col">料率</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]">
+        <ng-container *ngFor="let col of columns; let colIdx = index">
+          <td *ngIf="col[i]">{{ col[i].prefecture }}</td>
+          <td *ngIf="col[i]" [class.rate-col]="colIdx < 2">{{ truncateRate(col[i].health_insurance) | number:'1.2-2' }}％</td>
+          <td *ngIf="!col[i]"></td>
+          <td *ngIf="!col[i]" [class.rate-col]="colIdx < 2"></td>
+        </ng-container>
+      </tr>
+    </tbody>
+  </table>
+</div> 

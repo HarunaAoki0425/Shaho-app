@@ -1,0 +1,43 @@
+
+<form class="login-form" (ngSubmit)="login()">
+  <h2>ログイン</h2>
+  <div class="form-row">
+    <label for="email">メールアドレス</label>
+    <input type="email" id="email" name="email" [(ngModel)]="email" required>
+  </div>
+  <div class="form-row">
+    <label for="password">パスワード</label>
+    <input type="password" id="password" name="password" [(ngModel)]="password" required>
+  </div>
+  <div *ngIf="loginError" class="error-message">{{ loginError }}</div>
+  <button type="submit">ログイン</button>
+  <button type="button" class="register-open-btn" (click)="showRegister = true">新規登録</button>
+</form>
+<div *ngIf="loginSuccess" class="success-message">{{ loginSuccess }}</div>
+
+<div class="register-modal" *ngIf="showRegister">
+  <div class="register-modal-content">
+    <button class="register-close-btn" (click)="showRegister = false">×</button>
+    <form class="register-form" (ngSubmit)="register()">
+      <h2>新規登録</h2>
+      <div class="form-row">
+        <label for="register-name">ユーザー名</label>
+        <input type="text" id="register-name" name="register-name" [(ngModel)]="registerName" required>
+      </div>
+      <div class="form-row">
+        <label for="register-email">メールアドレス</label>
+        <input type="email" id="register-email" name="register-email" [(ngModel)]="registerEmail" required>
+      </div>
+      <div class="form-row">
+        <label for="register-password">パスワード</label>
+        <input type="password" id="register-password" name="register-password" [(ngModel)]="registerPassword" required>
+      </div>
+      <div class="form-row">
+        <label for="register-password-confirm">パスワード（確認）</label>
+        <input type="password" id="register-password-confirm" name="register-password-confirm" [(ngModel)]="registerPasswordConfirm" required>
+      </div>
+      <div *ngIf="registerError" class="error-message">{{ registerError }}</div>
+      <button type="submit">登録</button>
+    </form>
+  </div>
+</div>

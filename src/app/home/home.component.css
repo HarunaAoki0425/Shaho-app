@@ -1,0 +1,133 @@
+.home-btn-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  row-gap: 10px;
+  column-gap: 10px;
+  width: auto;
+  max-width: 720px;
+  min-height: 0;
+  align-items: end;
+  justify-items: center;
+  place-items: center;
+  padding: 0 2vw;
+  box-sizing: border-box;
+  margin:0 auto;
+}
+
+.home-btn {
+  width: 100%;
+  max-width: 300px;
+  min-height: 130px;
+  font-size: 1.18rem;
+  font-weight: 700;
+  color: #1976d2;
+  background: #fff;
+  border: none;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(25, 118, 210, 0.10);
+  cursor: pointer;
+  transition: box-shadow 0.2s, color 0.2s, background 0.2s, transform 0.1s;
+  outline: none;
+  padding: 24px 0 24px 0;
+  letter-spacing: 0.02em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  text-decoration: none;
+}
+
+.home-btn:visited,
+.home-btn:hover,
+.home-btn:active {
+  text-decoration: none;
+}
+
+.home-btn-icon {
+  font-size: 2.2rem;
+  margin-top: 8px;
+  color: #90caf9;
+  transition: color 0.2s;
+  overflow: visible;
+}
+
+.home-btn:hover {
+  background: #f5f7fa;
+  color: #1565c0;
+  box-shadow: 0 8px 28px rgba(25, 118, 210, 0.15);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.home-btn:hover .home-btn-icon {
+  color: #1976d2;
+}
+
+@media (max-width: 900px) {
+  .home-btn-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+    row-gap: 8px;
+    column-gap: 0;
+    padding: 0 2vw;
+    max-width: 400px;
+    margin-top: 32px;
+  }
+  .home-btn {
+    min-height: 80px;
+    font-size: 1.05rem;
+    padding: 14px 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-btn-container {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+    row-gap: 6px;
+    column-gap: 0;
+    padding: 0 1vw;
+    max-width: 98vw;
+    margin-top: 18px;
+  }
+  .home-btn {
+    min-height: 48px;
+    font-size: 0.97rem;
+    padding: 8px 0;
+  }
+}
+
+.home-header {
+  margin-top: 72px;
+  margin-bottom: 30px;
+  font-size: 1.18rem;
+  font-weight: 600;
+  color: #1976d2;
+  text-align: center;
+  letter-spacing: 0.04em;
+  background: #fff;
+  border: 1.5px solid #90caf9;
+  border-radius: 14px;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
+  padding: 18px 0 14px 0;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+@media (max-width: 900px) {
+  .home-header {
+    margin-top: 64px;
+    margin-bottom: 14px;
+    font-size: 1.05rem;
+  }
+}
+
+@media (max-width: 600px) {
+  .home-header {
+    margin-top: 54px;
+    margin-bottom: 10px;
+    font-size: 0.97rem;
+  }
+}
