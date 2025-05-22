@@ -16,7 +16,7 @@ const insuranceRates = JSON.parse(fs.readFileSync('nenkin_standardMonthlySarary.
 async function importData() {
   const batch = db.batch();
   insuranceRates.forEach((item, index) => {
-    const docRef = db.collection('nenkin_standardMonthlySarary').doc(`${item.grade}`);
+    const docRef = db.collection('nenkin_standardMonthlySarary').doc(`${item.nenkinGrade}`);
     batch.set(docRef, item);
   });
 
