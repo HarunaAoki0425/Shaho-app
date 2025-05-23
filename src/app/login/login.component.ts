@@ -75,7 +75,7 @@ export class LoginComponent {
         await updateProfile(userCredential.user, { displayName: this.registerName });
       }
       // Firestoreにユーザー情報を保存
-      await addDoc(collection(this.firestore, 'users'), {
+      await setDoc(doc(this.firestore, 'users', userCredential.user.uid), {
         userName: this.registerName,
         'e-mail': this.registerEmail
       });

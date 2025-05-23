@@ -1,1 +1,120 @@
-<p>company-setting works!</p>
+<div class="container">
+  <form class="company-form" *ngIf="!isLoading && showForm">
+    <div class="save-company-btn-outer">
+      <button type="button" class="save-company-btn" (click)="saveCompany()">保存</button>
+    </div>
+    <div class="company-name-row">
+      <label>会社名
+        <span class="required-mark">※</span>
+      </label>
+      <input type="text" name="companyName" [(ngModel)]="companyName" required />
+    </div>
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <ng-container *ngFor="let office of offices; let i = index">
+      <fieldset class="office-info-group">
+        <legend>事業所情報 {{ offices.length > 1 ? (i + 1) : '' }}</legend>
+        <button *ngIf="i > 0" type="button" class="remove-office-btn" (click)="removeOffice(i)" aria-label="事業所を削除">✖</button>
+        <div>
+          <label>
+            事業所名
+            <span *ngIf="i === 0" class="required-mark">※</span>
+          </label>
+          <input type="text" [(ngModel)]="office.officeName" name="officeName{{i}}" [required]="i === 0" />
+        </div>
+        <div>
+          <label>
+            事業所都道府県
+            <span *ngIf="i === 0" class="required-mark">※</span>
+          </label>
+          <select [(ngModel)]="office.officePrefecture" name="officePrefecture{{i}}" [required]="i === 0">
+            <option value="" disabled selected>選択してください</option>
+            <option *ngFor="let pref of prefectures" [value]="pref">{{ pref }}</option>
+          </select>
+        </div>
+        <div>
+          <label>
+            事業所従業員数
+            <span *ngIf="i === 0" class="required-mark">※</span>
+          </label>
+          <input type="number" [(ngModel)]="office.employeeCount" name="employeeCount{{i}}" [required]="i === 0" />
+        </div>
+        <div>
+          <label>
+            正社員の週の所定労働時間
+            <span *ngIf="i === 0" class="required-mark">※</span>
+          </label>
+          <input type="number" [(ngModel)]="office.weeklyHours" name="weeklyHours{{i}}" [required]="i === 0" />
+        </div>
+        <div>
+          <label>
+            正社員の月の所定労働日数
+            <span *ngIf="i === 0" class="required-mark">※</span>
+          </label>
+          <input type="number" [(ngModel)]="office.monthlyDays" name="monthlyDays{{i}}" [required]="i === 0" />
+        </div>
+      </fieldset>
+    </ng-container>
+
+    <button type="button" class="add-office-btn" (click)="addOffice()">事業所を追加</button>
+  </form>
+
+  <!-- 会社名と事業所情報の表示欄（companiesがある場合のみ表示） -->
+  <div class="company-info-view" *ngIf="!isLoading && !showForm">
+    <h2>会社名</h2>
+    <div class="company-name-placeholder">{{ companyNameView }}</div>
+    <h3>事業所情報</h3>
+    <div class="offices-placeholder">
+      <div class="office-info-placeholder" *ngFor="let office of officesView">
+        <div><strong>事業所名:</strong> {{ office.officeName }}</div>
+        <div><strong>都道府県:</strong> {{ office.officePrefecture }}</div>
+        <div><strong>従業員数:</strong> {{ office.employeeCount }}</div>
+        <div><strong>週の所定労働時間:</strong> {{ office.weeklyHours }}</div>
+        <div><strong>月の所定労働日数:</strong> {{ office.monthlyDays }}</div>
+        <div class="office-card-actions">
+          <button type="button" class="office-edit-btn">編集</button>
+          <button type="button" class="office-delete-btn" (click)="deleteOffice(office)">削除</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="add-office-view-btn-outer">
+    <button type="button" class="add-office-view-btn" (click)="openOfficeDialog()">事業所追加</button>
+  </div>
+
+  <!-- 事業所追加ポップアップフォーム -->
+  <div class="office-dialog-backdrop" *ngIf="showOfficeDialog">
+    <div class="office-dialog">
+      <h3>事業所情報の追加</h3>
+      <form (submit)="$event.preventDefault()">
+        <div class="dialog-row">
+          <label>事業所名</label>
+          <input type="text" [(ngModel)]="officeForm.officeName" name="dialogOfficeName" required />
+        </div>
+        <div class="dialog-row">
+          <label>都道府県</label>
+          <select [(ngModel)]="officeForm.officePrefecture" name="dialogOfficePrefecture" required>
+            <option value="" disabled selected>選択してください</option>
+            <option *ngFor="let pref of prefectures" [value]="pref">{{ pref }}</option>
+          </select>
+        </div>
+        <div class="dialog-row">
+          <label>従業員数</label>
+          <input type="number" [(ngModel)]="officeForm.employeeCount" name="dialogEmployeeCount" required />
+        </div>
+        <div class="dialog-row">
+          <label>週の所定労働時間</label>
+          <input type="number" [(ngModel)]="officeForm.weeklyHours" name="dialogWeeklyHours" required />
+        </div>
+        <div class="dialog-row">
+          <label>月の所定労働日数</label>
+          <input type="number" [(ngModel)]="officeForm.monthlyDays" name="dialogMonthlyDays" required />
+        </div>
+        <div class="dialog-btn-row">
+          <button type="button" (click)="saveOfficeDialog()" class="dialog-save-btn">保存</button>
+          <button type="button" (click)="closeOfficeDialog()" class="dialog-cancel-btn">キャンセル</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

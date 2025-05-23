@@ -131,3 +131,10 @@
     font-size: 0.97rem;
   }
 }
+
+.home-header-alert {
+  border: 2px solid #e53935;
+  background: #fff6f6;
+  color: #b71c1c;
+  border-radius: 8px;
+}

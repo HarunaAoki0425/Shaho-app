@@ -1,12 +1,14 @@
 <app-header></app-header>
-<div class="home-header">通知</div>
+<div class="home-header" [ngClass]="{'home-header-alert': notificationMessage}">
+  {{ notificationMessage ? notificationMessage : '通知はありません' }}
+</div>
 <div class="home-btn-container">
   <a class="home-btn" routerLink="/employee-list">
     従業員一覧
     <mat-icon class="home-btn-icon">people</mat-icon>
   </a>
   <a class="home-btn" routerLink="/employee-add">
-    従業員追加
+    従業員登録
     <mat-icon class="home-btn-icon">person_add</mat-icon>
   </a>
   <a class="home-btn" routerLink="/admin-setting">
@@ -14,7 +16,7 @@
     <mat-icon class="home-btn-icon">admin_panel_settings</mat-icon>
   </a>
   <a class="home-btn" routerLink="/company-setting">
-    事業所設定
+    会社・事業所情報
     <mat-icon class="home-btn-icon">business</mat-icon>
   </a>
 </div>

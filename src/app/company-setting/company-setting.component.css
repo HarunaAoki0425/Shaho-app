@@ -1,0 +1,484 @@
+body, .container {
+  font-size: 1.13rem;
+}
+
+.container {
+  margin-top: 80px;
+  max-width: 1200px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.company-form {
+  max-width: 640px;
+  min-width: 340px;
+  margin: 56px auto 56px auto;
+  padding: 48px 40px 36px 40px;
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 6px 32px rgba(25, 118, 210, 0.10), 0 1.5px 6px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+  position: relative;
+  font-size: 1.13rem;
+}
+
+.company-form > div {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.company-form label {
+  font-weight: 600;
+  color: #1a237e;
+  margin-bottom: 4px;
+  font-size: 1.18rem;
+  letter-spacing: 0.01em;
+  position: relative;
+  display: inline-block;
+  padding-right: 0.8em;
+}
+
+.company-form input[type="text"],
+.company-form input[type="number"],
+.company-form select {
+  width: 100%;
+  padding: 12px 16px;
+  border: 1.7px solid #b0bec5;
+  border-radius: 8px;
+  font-size: 1.13rem;
+  background: #f4f8fb;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+.company-form input[type="text"]:focus,
+.company-form input[type="number"]:focus,
+.company-form select:focus {
+  border-color: #1976d2;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2.5px #1976d230;
+}
+
+.office-info-group {
+  border: 1.7px solid #e3eaf3;
+  border-radius: 12px;
+  padding: 28px 24px 18px 24px;
+  margin-top: 12px;
+  background: #f7fafd;
+  margin-bottom: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 1.5px 8px rgba(25, 118, 210, 0.04);
+  position: relative;
+}
+
+.office-info-group legend {
+  font-size: 1.16rem;
+  font-weight: 700;
+  color: #1976d2;
+  padding: 0 14px;
+  letter-spacing: 0.05em;
+  margin-bottom: 8px;
+  background: #f7fafd;
+  border-radius: 6px;
+}
+
+.add-office-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 16px 0;
+  background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+  color: #fff;
+  font-size: 1.15rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  box-shadow: 0 2.5px 12px rgba(25, 118, 210, 0.10);
+  letter-spacing: 0.04em;
+}
+.add-office-btn:hover {
+  background: linear-gradient(90deg, #1256a3 60%, #1976d2 100%);
+  box-shadow: 0 6px 24px rgba(25, 118, 210, 0.18);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.remove-office-btn {
+  position: absolute;
+  top: 14px;
+  right: 18px;
+  background: #fff;
+  color: #d32f2f;
+  border: 1.5px solid #e57373;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 1.5px 6px rgba(211,47,47,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.18s, color 0.18s, border-color 0.18s, transform 0.12s;
+  z-index: 2;
+}
+.remove-office-btn:hover {
+  background: #ffeaea;
+  color: #b71c1c;
+  border-color: #d32f2f;
+  transform: scale(1.08);
+}
+
+@media (max-width: 700px) {
+  .company-form {
+    max-width: 98vw;
+    padding: 18px 4vw 18px 4vw;
+  }
+  .office-info-group {
+    padding: 16px 6vw 12px 6vw;
+  }
+}
+
+.company-name-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  position: relative;
+}
+.company-name-row label {
+  flex: 0 0 auto;
+  margin-top: 8px;
+  position: relative;
+  display: inline-block;
+}
+.company-name-row input[type="text"] {
+  flex: 1 1 0;
+  min-width: 0;
+}
+.save-company-btn-outer {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 20;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: flex-start;
+  background: none;
+  box-shadow: none;
+}
+.save-company-btn {
+  margin-left: auto;
+  background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+  color: #fff;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 7px;
+  padding: 0 22px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  letter-spacing: 0.04em;
+  height: 40px;
+  line-height: 40px;
+  align-self: flex-start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.save-company-btn:hover {
+  background: linear-gradient(90deg, #1256a3 60%, #1976d2 100%);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.13);
+  transform: translateY(-2px) scale(1.03);
+}
+
+@media (max-width: 700px) {
+  .save-company-btn-outer {
+    right: 4vw;
+    top: 10px;
+  }
+}
+
+.required-label {
+  color: #e53935;
+  background: #fff0f0;
+  font-size: 0.92em;
+  font-weight: bold;
+  border-radius: 4px;
+  padding: 1px 7px 1px 7px;
+  margin-left: 8px;
+  vertical-align: middle;
+  letter-spacing: 0.08em;
+  border: 1px solid #ffd6d6;
+  position: relative;
+  top: -2px;
+  box-shadow: 0 1px 2px #ffd6d6a0;
+}
+.required-mark {
+  color: #e53935;
+  font-size: 0.95em;
+  font-weight: bold;
+  position: absolute;
+  top: -0.4em;
+  right: 0;
+  margin: 0;
+  padding: 0;
+  vertical-align: top;
+  line-height: 1;
+  pointer-events: none;
+  user-select: none;
+}
+.company-name-row input.ng-invalid.ng-touched {
+  border-color: #e53935;
+  background: #fff6f6;
+}
+.error-message {
+  color: #e53935;
+  font-size: 1.02rem;
+  margin: 6px 0 0 0;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.company-info-view {
+  margin-top: 32px;
+  padding: 20px 24px 24px 24px;
+  background: #f8fafc;
+  border-radius: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+  font-size: 1.13rem;
+}
+
+.company-info-view h2 {
+  font-size: 1.45rem;
+  margin-bottom: 4px;
+  color: #333;
+  margin-top: 0;
+}
+
+.company-name-placeholder {
+  font-size: 1.18rem;
+  padding: 6px 0 12px 0;
+  border-bottom: 1px solid #e0e0e0;
+  margin-bottom: 12px;
+  color: #444;
+}
+
+.company-info-view h3 {
+  font-size: 1.22rem;
+  margin-bottom: 10px;
+  color: #444;
+}
+
+.offices-placeholder {
+  padding: 10px 0 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.office-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 8px;
+  margin-bottom: 0;
+}
+
+.office-info-placeholder {
+  position: relative;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  margin-bottom: 0;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  flex: 1 1 320px;
+  min-width: 280px;
+  max-width: 360px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+}
+
+.office-info-placeholder div {
+  margin-bottom: 8px;
+  font-size: 1.13rem;
+}
+
+.office-info-placeholder strong {
+  color: #1976d2;
+  min-width: 120px;
+  display: inline-block;
+  font-size: 1.13rem;
+}
+
+.office-edit-btn, .office-delete-btn {
+  font-size: 0.98rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  padding: 4px 14px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.office-edit-btn {
+  background: #e3f2fd;
+  color: #1976d2;
+}
+.office-edit-btn:hover {
+  background: #bbdefb;
+  color: #0d47a1;
+}
+.office-delete-btn {
+  background: #ffebee;
+  color: #d32f2f;
+}
+.office-delete-btn:hover {
+  background: #ffcdd2;
+  color: #b71c1c;
+}
+
+@media (max-width: 900px) {
+  .offices-placeholder {
+    gap: 16px;
+  }
+  .office-info-placeholder {
+    min-width: 180px;
+    max-width: 100%;
+  }
+}
+
+.add-office-view-btn-outer {
+  margin-top: 24px;
+  display: flex;
+  justify-content: flex-end;
+  padding-right: 32px;
+  padding-bottom: 24px;
+}
+
+.add-office-view-btn {
+  background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+  color: #fff;
+  font-size: 1.13rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 32px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  letter-spacing: 0.04em;
+}
+.add-office-view-btn:hover {
+  background: linear-gradient(90deg, #1256a3 60%, #1976d2 100%);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.13);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.office-dialog-backdrop {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.18);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.office-dialog {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 6px 32px rgba(25, 118, 210, 0.18), 0 1.5px 6px rgba(0,0,0,0.08);
+  padding: 32px 32px 24px 32px;
+  min-width: 320px;
+  max-width: 96vw;
+  width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+.office-dialog h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.22rem;
+  color: #1976d2;
+  text-align: center;
+}
+.dialog-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.dialog-row label {
+  font-weight: 600;
+  color: #1a237e;
+  font-size: 1.08rem;
+}
+.dialog-row input,
+.dialog-row select {
+  font-size: 1.13rem;
+  padding: 8px 12px;
+  border: 1.5px solid #b0bec5;
+  border-radius: 7px;
+  background: #f4f8fb;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+}
+.dialog-row input:focus,
+.dialog-row select:focus {
+  border-color: #1976d2;
+  background: #fff;
+  outline: none;
+  box-shadow: 0 0 0 2px #1976d230;
+}
+.dialog-btn-row {
+  display: flex;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-top: 18px;
+}
+.dialog-save-btn {
+  background: linear-gradient(90deg, #1976d2 60%, #42a5f5 100%);
+  color: #fff;
+  font-size: 1.13rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 7px;
+  padding: 8px 28px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.10);
+  transition: background 0.18s, box-shadow 0.18s, transform 0.12s;
+  letter-spacing: 0.04em;
+}
+.dialog-save-btn:hover {
+  background: linear-gradient(90deg, #1256a3 60%, #1976d2 100%);
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.13);
+  transform: translateY(-2px) scale(1.03);
+}
+.dialog-cancel-btn {
+  background: #e0e0e0;
+  color: #333;
+  font-size: 1.13rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 7px;
+  padding: 8px 18px;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s;
+}
+.dialog-cancel-btn:hover {
+  background: #bdbdbd;
+  color: #222;
+}
