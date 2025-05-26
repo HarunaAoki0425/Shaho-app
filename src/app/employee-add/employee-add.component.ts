@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
-import { Firestore, collection, getDocs, query, where } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, query, where, addDoc, serverTimestamp } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-employee-add',
@@ -45,11 +45,27 @@ export class EmployeeAddComponent implements OnInit {
   temporaryDispatch: string = '';
   socialSecurityAgreement: string = '';
   nationality: string = '';
+  selectedCompanyId: string = '';
+  lastName: string = '';
+  firstName: string = '';
+  joinDate: string = '';
+  leaveDate: string = '';
+  gender: string = '';
+  kenpoStandardMonthlySalaries: any[] = [];
+  nenkinStandardMonthlySalaries: any[] = [];
+  combinedStdSalaryKenpo: string | number | null = null;
+  combinedStdSalaryNenkin: string | number | null = null;
+  apportionedStdSalaryKenpo: string | number | null = null;
+  apportionedStdSalaryNenkin: string | number | null = null;
+  kenpoSalaryError: string = '';
+  nenkinSalaryError: string = '';
+  combinedKenpoSalaryError: string = '';
+  combinedNenkinSalaryError: string = '';
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
 
-  ngOnInit() {
+  async ngOnInit() {
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         this.currentUser = user;
@@ -57,6 +73,15 @@ export class EmployeeAddComponent implements OnInit {
         await this.loadUserOffices();
       }
     });
+    // 標準報酬月額（健康保険・厚生年金）マスタ取得
+    const kenpoCol = collection(this.firestore, 'kenpo_standardMonthlySarary');
+    const nenkinCol = collection(this.firestore, 'nenkin_standardMonthlySarary');
+    const kenpoSnap = await getDocs(kenpoCol);
+    const nenkinSnap = await getDocs(nenkinCol);
+    this.kenpoStandardMonthlySalaries = kenpoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => Number((a as any).grade ?? 0) - Number((b as any).grade ?? 0));
+    this.nenkinStandardMonthlySalaries = nenkinSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }))
+      .sort((a, b) => Number((a as any).nenkinGrade ?? 0) - Number((b as any).nenkinGrade ?? 0));
   }
 
   async loadUserOffices() {
@@ -174,6 +199,10 @@ export class EmployeeAddComponent implements OnInit {
         case 'combinedSalary': this.combinedSalary = null; break;
         case 'combinedStdSalary': this.combinedStdSalary = null; break;
         case 'apportionedStdSalary': this.apportionedStdSalary = null; break;
+        case 'combinedStdSalaryKenpo': this.combinedStdSalaryKenpo = null; break;
+        case 'combinedStdSalaryNenkin': this.combinedStdSalaryNenkin = null; break;
+        case 'apportionedStdSalaryKenpo': this.apportionedStdSalaryKenpo = null; break;
+        case 'apportionedStdSalaryNenkin': this.apportionedStdSalaryNenkin = null; break;
       }
       return;
     }
@@ -199,6 +228,18 @@ export class EmployeeAddComponent implements OnInit {
         break;
       case 'apportionedStdSalary':
         this.apportionedStdSalary = isNaN(num) ? '' : num;
+        break;
+      case 'combinedStdSalaryKenpo':
+        this.combinedStdSalaryKenpo = isNaN(num) ? '' : num;
+        break;
+      case 'combinedStdSalaryNenkin':
+        this.combinedStdSalaryNenkin = isNaN(num) ? '' : num;
+        break;
+      case 'apportionedStdSalaryKenpo':
+        this.apportionedStdSalaryKenpo = isNaN(num) ? '' : num;
+        break;
+      case 'apportionedStdSalaryNenkin':
+        this.apportionedStdSalaryNenkin = isNaN(num) ? '' : num;
         break;
     }
   }
@@ -238,5 +279,323 @@ export class EmployeeAddComponent implements OnInit {
     const inKind = typeof this.salaryInKind === 'number' ? this.salaryInKind : Number((this.salaryInKind || '').toString().replace(/,/g, ''));
     const total = (isNaN(cash) ? 0 : cash) + (isNaN(inKind) ? 0 : inKind);
     return total;
+  }
+
+  onWorkDaysInput(event: any) {
+    let value = event.target.value;
+    if (value.startsWith('.')) value = '0' + value;
+    if (value === '' || value === null) {
+      this.workDays = null;
+      return;
+    }
+    const num = Number(value);
+    if (/^(?:0|[1-9]|[1-2][0-9]|3[01])(?:\.\d*)?$/.test(value) && num >= 0 && num <= 31) {
+      this.workDays = value;
+    } else {
+      event.target.value = this.workDays ?? '';
+    }
+  }
+
+  onWorkHoursInput(event: any) {
+    let value = event.target.value;
+    if (value.startsWith('.')) value = '0' + value;
+    if (value === '' || value === null) {
+      this.workHours = null;
+      return;
+    }
+    const num = Number(value);
+    if (/^(?:0|[1-9]|[1-9][0-9]|100)(?:\.\d*)?$/.test(value) && num >= 0 && num <= 100) {
+      this.workHours = value;
+    } else {
+      event.target.value = this.workHours ?? '';
+    }
+  }
+
+  onSalaryInput(event: any, field: 'salaryCash' | 'salaryInKind' | 'stdSalaryHealth' | 'stdSalaryPension' | 'combinedSalary' | 'combinedStdSalary' | 'apportionedStdSalary') {
+    const value = event.target.value.replace(/,/g, '');
+    if (value === '' || value === null) {
+      this[field] = null;
+      return;
+    }
+    const num = Number(value);
+    if (/^\d{1,10}$|^10000000000$/.test(value) && Number.isInteger(num) && num >= 1 && num <= 10000000000) {
+      this[field] = num;
+    } else {
+      // 不正な値は無視して元の値を維持
+      event.target.value = this[field] === null ? '' : this.formatWithComma(this[field]);
+    }
+  }
+
+  onRelationInput(event: any, i: number) {
+    const value = event.target.value;
+    // 日本語（ひらがな・カタカナ・漢字・全角スペース）のみ許可
+    const jp = value.replace(/[^\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FFF\uFF66-\uFF9F\u3000]/g, '');
+    this.dependentRelations[i] = jp;
+    event.target.value = jp;
+  }
+
+  async onRegister() {
+    // 必須項目バリデーション
+    if (!this.lastName || !this.firstName) {
+      alert('氏名（姓・名）は必須です');
+      return;
+    }
+    if (!this.gender) {
+      alert('性別は必須です');
+      return;
+    }
+    if (!this.birthdate) {
+      alert('生年月日は必須です');
+      return;
+    }
+    if (!this.employmentType || this.employmentType === '' || this.employmentType === '選択してください') {
+      alert('雇用形態は必須です');
+      return;
+    }
+    if (this.employmentType === 'その他' && (!this.otherEmploymentType || this.otherEmploymentType.trim() === '')) {
+      alert('雇用形態「その他」の内容を入力してください');
+      return;
+    }
+    if (!this.selectedOfficeId || this.selectedOfficeId === '' || this.selectedOfficeId === '選択してください') {
+      alert('所属事業所は必須です');
+      return;
+    }
+    if (this.workDays === null || String(this.workDays) === '' || isNaN(Number(this.workDays))) {
+      alert('所定労働日数は必須です');
+      return;
+    }
+    if (this.workHours === null || String(this.workHours) === '' || isNaN(Number(this.workHours))) {
+      alert('所定労働時間は必須です');
+      return;
+    }
+    if ((this.salaryCash === null || this.salaryCash === '' || isNaN(Number(this.salaryCash))) && (this.salaryInKind === null || this.salaryInKind === '' || isNaN(Number(this.salaryInKind)))) {
+      alert('報酬月額（通貨・現物）のいずれかは必須です');
+      return;
+    }
+    if (!this.joinDate) {
+      alert('資格取得年月日は必須です');
+      return;
+    }
+    if (!this.isStudent || this.isStudent === '' || this.isStudent === '選択してください') {
+      alert('学生区分は必須です');
+      return;
+    }
+    if (!this.multiOffice || this.multiOffice === '' || this.multiOffice === '選択してください') {
+      alert('二以上事業所勤務区分は必須です');
+      return;
+    }
+    if (!this.dependentStatus || this.dependentStatus === '' || this.dependentStatus === '選択してください') {
+      alert('被扶養者の有無は必須です');
+      return;
+    }
+    if (this.dependentStatus === '被扶養者あり') {
+      if (!this.dependentRelations || this.dependentRelations.length === 0 || this.dependentRelations.some(r => !r || r.trim() === '')) {
+        alert('被扶養者がある場合は続柄をすべて入力してください');
+        return;
+      }
+    }
+    if (!this.dispatchedAbroad || this.dispatchedAbroad === '' || this.dispatchedAbroad === '選択してください') {
+      alert('外国派遣労働者区分は必須です');
+      return;
+    }
+    if (this.dispatchedAbroad && this.dispatchedAbroad !== '該当しない') {
+      if (!this.socialSecurityAgreement || this.socialSecurityAgreement === '' || this.socialSecurityAgreement === '選択してください') {
+        alert('外国派遣労働者区分が「あり」の場合は社会保障協定国に該当するか選択してください');
+        return;
+      }
+      if (this.socialSecurityAgreement === '該当する') {
+        if (!this.temporaryDispatch || this.temporaryDispatch === '' || this.temporaryDispatch === '選択してください') {
+          alert('社会保障協定国が該当する場合は一時派遣区分を選択してください');
+          return;
+        }
+      }
+    }
+    if (this.employmentPeriodType === '有期') {
+      if (!this.employmentPeriodStart) {
+        alert('雇用契約期間が有期の場合、開始年月日は必須です');
+        return;
+      }
+      if (!this.employmentPeriodEnd) {
+        alert('雇用契約期間が有期の場合、終了年月日は必須です');
+        return;
+      }
+    }
+    if (this.multiOffice === '二以上事業所勤務') {
+      if (!this.selectedOfficeType || this.selectedOfficeType === '' || this.selectedOfficeType === '選択してください') {
+        alert('二以上事業所勤務該当時は「選択事業所／非選択事業所」を選択してください');
+        return;
+      }
+      if (this.combinedSalary === null || this.combinedSalary === '' || isNaN(Number(this.combinedSalary))) {
+        alert('二以上事業所勤務該当時は「合算報酬月額」を入力してください');
+        return;
+      }
+      if (this.combinedStdSalaryKenpo === null || this.combinedStdSalaryKenpo === '' || isNaN(Number(this.combinedStdSalaryKenpo))) {
+        alert('二以上事業所勤務該当時は「合算標準報酬月額（健康保険・介護保険）」を入力してください');
+        return;
+      }
+      if (this.combinedStdSalaryNenkin === null || this.combinedStdSalaryNenkin === '' || isNaN(Number(this.combinedStdSalaryNenkin))) {
+        alert('二以上事業所勤務該当時は「合算標準報酬月額（厚生年金）」を入力してください');
+        return;
+      }
+      if (this.apportionedStdSalaryKenpo === null || this.apportionedStdSalaryKenpo === '' || isNaN(Number(this.apportionedStdSalaryKenpo))) {
+        alert('二以上事業所勤務該当時は「按分済み標準報酬月額（健康保険・介護保険）」を入力してください');
+        return;
+      }
+      if (this.apportionedStdSalaryNenkin === null || this.apportionedStdSalaryNenkin === '' || isNaN(Number(this.apportionedStdSalaryNenkin))) {
+        alert('二以上事業所勤務該当時は「按分済み標準報酬月額（厚生年金）」を入力してください');
+        return;
+      }
+    }
+    // 会社IDの取得
+    const companyId = this.selectedCompanyId || (this.companyList.length === 1 ? this.companyList[0].id : null);
+    if (!companyId) {
+      alert('会社が選択されていません');
+      return;
+    }
+    // 管理番号の採番
+    const employeesCol = collection(this.firestore, 'companies', companyId, 'employees');
+    const snapshot = await getDocs(employeesCol);
+    const managementNumber = snapshot.size + 1;
+
+    // 金額はカンマ除去して数値化
+    const parseNumber = (val: any) => {
+      if (val === null || val === undefined || val === '') return null;
+      const num = Number(val.toString().replace(/,/g, ''));
+      return isNaN(num) ? null : num;
+    };
+    // true/false変換
+    const toBool = (val: string) => val === '該当する' || val === '被扶養者あり';
+
+    // Firestoreに保存するデータ
+    const data = {
+      lastName: this.lastName,
+      firstName: this.firstName,
+      gender: this.gender,
+      birthdate: this.birthdate,
+      age: this.age,
+      nationality: this.nationality,
+      officeName: this.officeList.find(o => o.id === this.selectedOfficeId)?.officeName || '',
+      officesId: this.selectedOfficeId,
+      employmentType: this.employmentType === 'その他' ? this.otherEmploymentType : this.employmentType,
+      employmentPeriodType: this.employmentPeriodType,
+      employmentPeriodStart: this.employmentPeriodStart,
+      employmentPeriodEnd: this.employmentPeriodEnd,
+      workDays: String(this.workDays) === '' ? null : Number(this.workDays),
+      workHours: String(this.workHours) === '' ? null : Number(this.workHours),
+      salaryCash: parseNumber(this.salaryCash),
+      salaryInKind: parseNumber(this.salaryInKind),
+      salaryTotal: parseNumber(this.salaryTotal),
+      stdSalaryHealth: this.stdSalaryHealth === '' ? null : parseNumber(this.stdSalaryHealth),
+      stdSalaryPension: this.stdSalaryPension === '' ? null : parseNumber(this.stdSalaryPension),
+      joinDate: this.joinDate,
+      leaveDate: this.leaveDate,
+      isStudent: this.isStudent,
+      multiOffice: this.multiOffice,
+      selectedOfficeType: this.selectedOfficeType,
+      combinedSalary: parseNumber(this.combinedSalary),
+      combinedStdSalaryKenpo: this.combinedStdSalaryKenpo === '' ? null : parseNumber(this.combinedStdSalaryKenpo),
+      combinedStdSalaryNenkin: this.combinedStdSalaryNenkin === '' ? null : parseNumber(this.combinedStdSalaryNenkin),
+      apportionedStdSalaryKenpo: this.apportionedStdSalaryKenpo === '' ? null : parseNumber(this.apportionedStdSalaryKenpo),
+      apportionedStdSalaryNenkin: this.apportionedStdSalaryNenkin === '' ? null : parseNumber(this.apportionedStdSalaryNenkin),
+      dependentStatus: this.dependentStatus,
+      dependentCount: this.dependentRelations.filter(r => r && r.trim()).length,
+      dependentRelations: this.dependentRelations.filter(r => r && r.trim()),
+      dispatchedAbroad: this.dispatchedAbroad,
+      socialSecurityAgreement: toBool(this.socialSecurityAgreement),
+      temporaryDispatch: toBool(this.temporaryDispatch),
+      createdBy: this.currentUser?.uid || '',
+      createdAt: serverTimestamp(),
+      updatedBy: this.currentUser?.uid || '',
+      updatedAt: serverTimestamp(),
+      managementNumber,
+      companiesId: companyId,
+    };
+
+    console.log('Preparing to save employee data to Firestore');
+    try {
+      // Firestore保存処理
+      console.log('Saving employee data:', data);
+      await addDoc(employeesCol, data);
+      console.log('Employee data saved successfully');
+      // 完了メッセージやリセット処理などは必要に応じて追加
+    } catch (error) {
+      console.error('Failed to save employee data:', error);
+      // 既存のエラー時処理 ...
+    }
+  }
+
+  onStdSalaryHealthChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    const selected = this.kenpoStandardMonthlySalaries.find(item => item.standardMonthlySalary == value);
+    if (selected && this.salaryTotal != null) {
+      const salary = Number(this.salaryTotal);
+      const start = selected.monthlyRangeStart == null ? 0 : selected.monthlyRangeStart;
+      const end = selected.monthlyRangeEnd == null ? Infinity : selected.monthlyRangeEnd;
+      if (salary >= start && salary < end) {
+        console.log('報酬月額（合計）は標準報酬月額（健康保険・介護保険）の範囲内です');
+        this.kenpoSalaryError = '';
+      } else {
+        console.log('報酬月額（合計）は標準報酬月額（健康保険・介護保険）の範囲外です');
+        this.kenpoSalaryError = '報酬月額（合計）が標準報酬月額（健康保険・介護保険）の範囲外です';
+      }
+    } else {
+      this.kenpoSalaryError = '';
+    }
+  }
+
+  onStdSalaryPensionChange(event: Event) {
+    const value = (event.target as HTMLSelectElement).value;
+    const selected = this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === value);
+    if (selected && this.salaryTotal != null) {
+      console.log('選択等級のnenkinStart:', selected.nenkinStart, 'nenkinEnd:', selected.nenkinEnd);
+      const salary = Number(this.salaryTotal);
+      const start = selected.nenkinStart == null ? 0 : selected.nenkinStart;
+      const end = selected.nenkinEnd == null ? Infinity : selected.nenkinEnd;
+      if (salary >= start && salary < end) {
+        console.log('報酬月額（合計）は標準報酬月額（厚生年金）の範囲内です');
+        this.nenkinSalaryError = '';
+      } else {
+        console.log('報酬月額（合計）は標準報酬月額（厚生年金）の範囲外です');
+        this.nenkinSalaryError = '報酬月額（合計）が標準報酬月額（厚生年金）の範囲外です';
+      }
+    } else {
+      this.nenkinSalaryError = '';
+    }
+  }
+
+  checkCombinedKenpoSalaryRange() {
+    const salary = Number(this.combinedSalary);
+    const selected = this.kenpoStandardMonthlySalaries.find(item => String(item.standardMonthlySalary) === String(this.combinedStdSalaryKenpo));
+    if (selected && !isNaN(salary)) {
+      const start = selected.monthlyRangeStart == null ? 0 : selected.monthlyRangeStart;
+      const end = selected.monthlyRangeEnd == null ? Infinity : selected.monthlyRangeEnd;
+      if (salary >= start && salary < end) {
+        this.combinedKenpoSalaryError = '';
+      } else {
+        this.combinedKenpoSalaryError = '合算報酬月額（通貨＋現物）が合算標準報酬月額（健康保険・介護保険）の範囲外です';
+      }
+    } else {
+      this.combinedKenpoSalaryError = '';
+    }
+  }
+
+  checkCombinedNenkinSalaryRange() {
+    const salary = Number(this.combinedSalary);
+    const selected = this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === String(this.combinedStdSalaryNenkin));
+    if (selected && !isNaN(salary)) {
+      const start = selected.nenkinStart == null ? 0 : selected.nenkinStart;
+      const end = selected.nenkinEnd == null ? Infinity : selected.nenkinEnd;
+      if (salary >= start && salary < end) {
+        this.combinedNenkinSalaryError = '';
+      } else {
+        this.combinedNenkinSalaryError = '合算報酬月額（通貨＋現物）が合算標準報酬月額（厚生年金）の範囲外です';
+      }
+    } else {
+      this.combinedNenkinSalaryError = '';
+    }
+  }
+
+  onJoinDateChange(event: any) {
+    // デバッグ出力削除済み
   }
 }

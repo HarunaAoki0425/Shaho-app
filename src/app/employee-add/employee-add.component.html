@@ -1,9 +1,25 @@
 <div class="container">
   <h2 class="employee-add-title">従業員登録</h2>
   <form class="employee-form">
-    <div>
+    <div class="name-row">
       <label>氏名</label>
-      <input type="text" name="name">
+      <div class="name-input-group">
+        <input type="text" name="lastName" [(ngModel)]="lastName" placeholder="姓" class="name-input">
+        <div class="name-divider"></div>
+        <input type="text" name="firstName" [(ngModel)]="firstName" placeholder="名" class="name-input">
+      </div>
+    </div>
+    <div class="gender-row">
+      <label>性別</label>
+      <div class="gender-input-group">
+        <label class="gender-label">
+          <input type="radio" name="gender" [(ngModel)]="gender" value="男" class="gender-radio">男
+        </label>
+        <div class="gender-divider"></div>
+        <label class="gender-label">
+          <input type="radio" name="gender" [(ngModel)]="gender" value="女" class="gender-radio">女
+        </label>
+      </div>
     </div>
     <div class="birthdate-row">
       <label>生年月日</label>
@@ -11,6 +27,14 @@
         <input type="date" name="birthdate" [(ngModel)]="birthdate" (change)="onBirthdateChange($event)" class="birthdate-input">
         <span *ngIf="age !== null" class="age-display-inline">年齢: {{ age }}歳</span>
       </div>
+    </div>
+    <div>
+      <label>学生区分</label>
+      <select name="isStudent" [(ngModel)]="isStudent">
+        <option value="" disabled selected>選択してください</option>
+        <option value="学生">学生</option>
+        <option value="学生ではない">学生ではない</option>
+      </select>
     </div>
     <div>
       <label>国籍</label>
@@ -245,15 +269,15 @@
     </div>
     <div>
       <label>所定労働日数（月）</label>
-      <input type="number" name="workDays" [(ngModel)]="workDays">
+      <input type="text" name="workDays" [value]="workDays === null ? '' : workDays" (input)="onWorkDaysInput($event)">
     </div>
     <div>
       <label>所定労働時間（週）</label>
-      <input type="number" name="workHours" [(ngModel)]="workHours">
+      <input type="text" name="workHours" [value]="workHours === null ? '' : workHours" (input)="onWorkHoursInput($event)">
     </div>
     <div>
       <label>報酬月額（通貨）</label>
-      <input type="text" name="salaryCash" [value]="formatWithComma(salaryCash)" (input)="onCommaInput($event, 'salaryCash')" autocomplete="off">
+      <input type="text" name="salaryCash" [value]="formatWithComma(salaryCash)" (input)="onSalaryInput($event, 'salaryCash')" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
     </div>
     <div>
       <label style="display: flex; align-items: center; gap: 6px;">
@@ -262,64 +286,38 @@
           <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
         </button>
       </label>
-      <input type="text" name="salaryInKind" [value]="formatWithComma(salaryInKind)" (input)="onCommaInput($event, 'salaryInKind')" autocomplete="off">
+      <input type="text" name="salaryInKind" [value]="formatWithComma(salaryInKind)" (input)="onSalaryInput($event, 'salaryInKind')" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
       <div class="salary-total-row">
         <span>報酬月額（合計）: <strong>{{ formatWithComma(salaryTotal) }}</strong> 円</span>
       </div>
     </div>
     <div>
-      <label>標準報酬月額（健康保険）※未通知の場合は入力不要</label>
-      <input type="text" name="stdSalaryHealth" [value]="formatWithComma(stdSalaryHealth)" (input)="onCommaInput($event, 'stdSalaryHealth')" autocomplete="off">
+      <label>標準報酬月額（健康保険・介護保険）※未通知の場合は入力不要</label>
+      <select name="stdSalaryHealth" [(ngModel)]="stdSalaryHealth" (change)="onStdSalaryHealthChange($event)">
+        <option value="" disabled selected>選択してください</option>
+        <option *ngFor="let item of kenpoStandardMonthlySalaries" [value]="item.standardMonthlySalary">
+          {{item.grade}}級：{{item.standardMonthlySalary | number}}円
+        </option>
+      </select>
+      <div *ngIf="kenpoSalaryError" class="error-message">{{ kenpoSalaryError }}</div>
     </div>
     <div>
       <label>標準報酬月額（厚生年金）※未通知の場合は入力不要</label>
-      <input type="text" name="stdSalaryPension" [value]="formatWithComma(stdSalaryPension)" (input)="onCommaInput($event, 'stdSalaryPension')" autocomplete="off">
+      <select name="stdSalaryPension" [(ngModel)]="stdSalaryPension" (change)="onStdSalaryPensionChange($event)">
+        <option value="" disabled selected>選択してください</option>
+        <option *ngFor="let item of nenkinStandardMonthlySalaries" [value]="item.nenkinGrade">
+          {{item.nenkinGrade ?? ''}}級：{{item.nenkinMonthly != null ? (item.nenkinMonthly | number) : ''}}円
+        </option>
+      </select>
+      <div *ngIf="nenkinSalaryError" class="error-message">{{ nenkinSalaryError }}</div>
     </div>
     <div>
       <label>資格取得年月日（入社日）</label>
-      <input type="date" name="joinDate">
+      <input type="date" name="joinDate" [(ngModel)]="joinDate" (change)="onJoinDateChange($event)">
     </div>
     <div>
       <label>資格喪失年月日（退職日）</label>
       <input type="date" name="leaveDate">
-    </div>
-    <div>
-      <label>学生区分</label>
-      <select name="isStudent" [(ngModel)]="isStudent">
-        <option value="" disabled selected>選択してください</option>
-        <option value="学生">学生</option>
-        <option value="学生ではない">学生ではない</option>
-      </select>
-    </div>
-    <div>
-      <label>二以上事業所勤務区分</label>
-      <select name="multiOffice" [(ngModel)]="multiOffice">
-        <option value="" disabled selected>選択してください</option>
-        <option value="二以上事業所勤務">二以上事業所勤務</option>
-        <option value="該当しない">該当しない</option>
-      </select>
-      <div *ngIf="multiOffice === '二以上事業所勤務'" class="multi-office-extra">
-        <div>
-          <label>選択事業所／非選択事業所</label>
-          <select name="selectedOfficeType" [(ngModel)]="selectedOfficeType">
-            <option value="" disabled selected>選択してください</option>
-            <option value="選択事業所">選択事業所</option>
-            <option value="非選択事業所">非選択事業所</option>
-          </select>
-        </div>
-        <div>
-          <label>合算報酬月額</label>
-          <input type="text" name="combinedSalary" [value]="formatWithComma(combinedSalary)" (input)="onCommaInput($event, 'combinedSalary')" autocomplete="off">
-        </div>
-        <div>
-          <label>合算標準報酬月額</label>
-          <input type="text" name="combinedStdSalary" [value]="formatWithComma(combinedStdSalary)" (input)="onCommaInput($event, 'combinedStdSalary')" autocomplete="off">
-        </div>
-        <div>
-          <label>按分済み標準報酬月額</label>
-          <input type="text" name="apportionedStdSalary" [value]="formatWithComma(apportionedStdSalary)" (input)="onCommaInput($event, 'apportionedStdSalary')" autocomplete="off">
-        </div>
-      </div>
     </div>
     <div>
       <label>被扶養者の有無</label>
@@ -369,9 +367,76 @@
         </div>
       </div>
     </div>
+    <div>
+      <label>二以上事業所勤務区分</label>
+      <select name="multiOffice" [(ngModel)]="multiOffice">
+        <option value="" disabled selected>選択してください</option>
+        <option value="二以上事業所勤務">二以上事業所勤務</option>
+        <option value="該当しない">該当しない</option>
+      </select>
+      <div *ngIf="multiOffice === '二以上事業所勤務'" class="multi-office-fields">
+        <div class="multi-office-row">
+          <div>
+            <label>選択事業所／非選択事業所</label>
+            <select name="selectedOfficeType" [(ngModel)]="selectedOfficeType">
+              <option value="" disabled selected>選択してください</option>
+              <option value="選択事業所">選択事業所</option>
+              <option value="非選択事業所">非選択事業所</option>
+            </select>
+          </div>
+          <div>
+            <label>合算報酬月額<br>（通貨+現物）</label>
+            <input type="text" name="combinedSalary" [value]="formatWithComma(combinedSalary)" (input)="onSalaryInput($event, 'combinedSalary'); checkCombinedKenpoSalaryRange(); checkCombinedNenkinSalaryRange()" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+          </div>
+        </div>
+        <div class="multi-office-row">
+          <div>
+            <label>合算標準報酬月額<br>（健康保険・介護保険）</label>
+            <select name="combinedStdSalaryKenpo" [(ngModel)]="combinedStdSalaryKenpo" (change)="checkCombinedKenpoSalaryRange()">
+              <option value="" disabled selected>選択してください</option>
+              <option *ngFor="let item of kenpoStandardMonthlySalaries" [value]="item.standardMonthlySalary">
+                {{item.grade}}級：{{item.standardMonthlySalary | number}}円
+              </option>
+            </select>
+            <div *ngIf="combinedKenpoSalaryError" class="error-message">{{ combinedKenpoSalaryError }}</div>
+          </div>
+          <div>
+            <label>合算標準報酬月額<br>（厚生年金）</label>
+            <select name="combinedStdSalaryNenkin" [(ngModel)]="combinedStdSalaryNenkin" (change)="checkCombinedNenkinSalaryRange()">
+              <option value="" disabled selected>選択してください</option>
+              <option *ngFor="let item of nenkinStandardMonthlySalaries" [value]="item.nenkinGrade">
+                {{item.nenkinGrade ?? ''}}級：{{item.nenkinMonthly != null ? (item.nenkinMonthly | number) : ''}}円
+              </option>
+            </select>
+            <div *ngIf="combinedNenkinSalaryError" class="error-message">{{ combinedNenkinSalaryError }}</div>
+          </div>
+        </div>
+        <div class="multi-office-row">
+          <div>
+            <label>按分済み標準報酬月額<br>（健康保険・介護保険）</label>
+            <select name="apportionedStdSalaryKenpo" [(ngModel)]="apportionedStdSalaryKenpo">
+              <option value="" disabled selected>選択してください</option>
+              <option *ngFor="let item of kenpoStandardMonthlySalaries" [value]="item.standardMonthlySalary">
+                {{item.grade}}級：{{item.standardMonthlySalary | number}}円
+              </option>
+            </select>
+          </div>
+          <div>
+            <label>按分済み標準報酬月額<br>（厚生年金）</label>
+            <select name="apportionedStdSalaryNenkin" [(ngModel)]="apportionedStdSalaryNenkin">
+              <option value="" disabled selected>選択してください</option>
+              <option *ngFor="let item of nenkinStandardMonthlySalaries" [value]="item.nenkinGrade">
+                {{item.nenkinGrade ?? ''}}級：{{item.nenkinMonthly != null ? (item.nenkinMonthly | number) : ''}}円
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="multi-office-note">※標準報酬月額は未通知の場合は入力不要</div>
+      </div>
+    </div>
   </form>
   <div style="display: flex; justify-content: flex-end; margin-top: 32px;">
-    <button type="button" class="save-btn">登録</button>
+    <button type="button" class="save-btn" (click)="onRegister()" [disabled]="kenpoSalaryError || nenkinSalaryError || combinedKenpoSalaryError || combinedNenkinSalaryError">登録</button>
   </div>
   <div *ngIf="showInfoPopup" class="info-popup-backdrop">
     <div class="info-popup">
