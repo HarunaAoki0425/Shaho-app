@@ -1,1 +1,14 @@
 /* You can add global styles to this file, and also import other style files */
+
+/* ヘッダー用ツールチップのカスタムスタイル */
+.header-tooltip {
+  background: #1976d2 !important;
+  color: #fff !important;
+  font-weight: bold;
+  font-size: 1.05rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.18);
+  padding: 8px 16px;
+  letter-spacing: 0.03em;
+  text-align: center;
+}

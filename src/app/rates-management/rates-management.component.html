@@ -1,0 +1,34 @@
+<div class="admin-container" style="margin-top: 80px;">
+  <div class="nendo-display">
+    {{ currentNendo }}年度
+  </div>
+  <table class="office-table">
+    <thead>
+      <tr>
+        <th>事業所名</th>
+        <th>都道府県</th>
+        <th>健康保険料率</th>
+        <th>介護保険料率</th>
+        <th>厚生年金保険料率</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let office of offices">
+        <td>{{ office.officeName }}</td>
+        <td>{{ office.officePrefecture }}</td>
+        <td>
+          {{ getHealthInsuranceRate(office.officePrefecture) ?? '' }}％
+        </td>
+        <td>
+          {{ getCareInsuranceRate(office.officePrefecture) ?? '' }}％
+        </td>
+        <td>
+          {{ getPensionInsuranceRate(office.officePrefecture) ?? '' }}％
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <div class="kenpo-link-center">
+    <a routerLink="/kenpo-rates" class="kenpo-link-btn">全国健康保険料率一覧</a>
+  </div>
+</div>

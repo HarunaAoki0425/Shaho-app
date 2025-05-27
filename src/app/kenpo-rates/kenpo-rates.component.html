@@ -22,7 +22,7 @@
       <tr *ngFor="let i of [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15]">
         <ng-container *ngFor="let col of columns; let colIdx = index">
           <td *ngIf="col[i]">{{ col[i].prefecture }}</td>
-          <td *ngIf="col[i]" [class.rate-col]="colIdx < 2">{{ truncateRate(col[i].health_insurance) | number:'1.2-2' }}％</td>
+          <td *ngIf="col[i]" [class.rate-col]="colIdx < 2">{{ getHealthInsuranceRate100x(col[i].health_insurance) }}％</td>
           <td *ngIf="!col[i]"></td>
           <td *ngIf="!col[i]" [class.rate-col]="colIdx < 2"></td>
         </ng-container>

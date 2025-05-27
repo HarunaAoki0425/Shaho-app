@@ -2,6 +2,7 @@ import { Component, OnInit, inject, runInInjectionContext, Injector } from '@ang
 import { CommonModule } from '@angular/common';
 import { Firestore, collection, getDocs, query, where } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
+import Decimal from 'decimal.js';
 
 @Component({
   selector: 'app-kenpo-rates',
@@ -68,7 +69,15 @@ export class KenpoRatesComponent implements OnInit {
     ];
   }
 
-  truncateRate(rate: number): number {
-    return Math.round(rate * 10000) / 100;
+  /**
+   * health_insuranceをdecimal.jsで100倍して返す
+   */
+  getHealthInsuranceRate100x(rate: any): string {
+    if (rate == null || rate === '') return '';
+    try {
+      return new Decimal(rate).times(100).toString();
+    } catch {
+      return '';
+    }
   }
 } 

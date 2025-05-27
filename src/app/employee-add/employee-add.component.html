@@ -38,7 +38,7 @@
     </div>
     <div>
       <label>国籍</label>
-      <select name="nationality" class="nationality-select">
+      <select name="nationality" class="nationality-select" [(ngModel)]="nationality">
         <option value="" disabled selected>選択してください</option>
         <option value="日本">日本</option>
         <option value="アフガニスタン">アフガニスタン</option>
@@ -305,7 +305,7 @@
       <label>標準報酬月額（厚生年金）※未通知の場合は入力不要</label>
       <select name="stdSalaryPension" [(ngModel)]="stdSalaryPension" (change)="onStdSalaryPensionChange($event)">
         <option value="" disabled selected>選択してください</option>
-        <option *ngFor="let item of nenkinStandardMonthlySalaries" [value]="item.nenkinGrade">
+        <option *ngFor="let item of nenkinStandardMonthlySalaries" [value]="item.nenkinMonthly">
           {{item.nenkinGrade ?? ''}}級：{{item.nenkinMonthly != null ? (item.nenkinMonthly | number) : ''}}円
         </option>
       </select>
@@ -409,26 +409,6 @@
               </option>
             </select>
             <div *ngIf="combinedNenkinSalaryError" class="error-message">{{ combinedNenkinSalaryError }}</div>
-          </div>
-        </div>
-        <div class="multi-office-row">
-          <div>
-            <label>按分済み標準報酬月額<br>（健康保険・介護保険）</label>
-            <select name="apportionedStdSalaryKenpo" [(ngModel)]="apportionedStdSalaryKenpo">
-              <option value="" disabled selected>選択してください</option>
-              <option *ngFor="let item of kenpoStandardMonthlySalaries" [value]="item.standardMonthlySalary">
-                {{item.grade}}級：{{item.standardMonthlySalary | number}}円
-              </option>
-            </select>
-          </div>
-          <div>
-            <label>按分済み標準報酬月額<br>（厚生年金）</label>
-            <select name="apportionedStdSalaryNenkin" [(ngModel)]="apportionedStdSalaryNenkin">
-              <option value="" disabled selected>選択してください</option>
-              <option *ngFor="let item of nenkinStandardMonthlySalaries" [value]="item.nenkinGrade">
-                {{item.nenkinGrade ?? ''}}級：{{item.nenkinMonthly != null ? (item.nenkinMonthly | number) : ''}}円
-              </option>
-            </select>
           </div>
         </div>
         <div class="multi-office-note">※標準報酬月額は未通知の場合は入力不要</div>

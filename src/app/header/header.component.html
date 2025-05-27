@@ -1,10 +1,11 @@
 <header class="app-header">
   <a routerLink="/home" class="header-title">社会保険管理</a>
   <nav class="header-nav">
-    <a routerLink="/employee-list" class="header-link">従業員一覧</a>
-    <a routerLink="/employee-add" class="header-link">従業員登録</a>
-    <a routerLink="/admin-setting" class="header-link">管理者設定</a>
-    <a routerLink="/company-setting" class="header-link">会社・事業所情報</a>
+    <a routerLink="/employee-list" class="header-link" matTooltip="従業員一覧" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">people</mat-icon></a>
+    <a routerLink="/employee-add" class="header-link" matTooltip="従業員登録" matTooltipClass="header-tooltip"> <mat-icon class="home-btn-icon">person_add</mat-icon></a>
+    <a routerLink="/admin-setting" class="header-link" matTooltip="管理者設定" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">admin_panel_settings</mat-icon></a>
+    <a routerLink="/company-setting" class="header-link" matTooltip="会社・事業所情報" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">business</mat-icon></a>
+    <a routerLink="/rates-management" class="header-link" matTooltip="保険料率管理" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">percent</mat-icon></a>
   </nav>
   <button class="logout-btn" (click)="logout()" aria-label="ログアウト">
     <mat-icon>logout</mat-icon>

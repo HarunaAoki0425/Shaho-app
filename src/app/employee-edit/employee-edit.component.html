@@ -1,0 +1,216 @@
+<div class="container">
+  <h2 class="employee-add-title">従業員登録</h2>
+  <form class="employee-form">
+    <div class="name-row">
+      <label>氏名</label>
+      <div class="name-input-group">
+        <input type="text" name="lastName" placeholder="姓" class="name-input" disabled>
+        <div class="name-divider"></div>
+        <input type="text" name="firstName" placeholder="名" class="name-input" disabled>
+      </div>
+    </div>
+    <div class="gender-row">
+      <label>性別</label>
+      <div class="gender-input-group">
+        <label class="gender-label">
+          <input type="radio" name="gender" value="男" class="gender-radio" disabled>男
+        </label>
+        <div class="gender-divider"></div>
+        <label class="gender-label">
+          <input type="radio" name="gender" value="女" class="gender-radio" disabled>女
+        </label>
+      </div>
+    </div>
+    <div class="birthdate-row">
+      <label>生年月日</label>
+      <div class="birthdate-inline">
+        <input type="date" name="birthdate" class="birthdate-input" disabled>
+        <span class="age-display-inline">年齢: </span>
+      </div>
+    </div>
+    <div>
+      <label>学生区分</label>
+      <select name="isStudent" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <option value="学生">学生</option>
+        <option value="学生ではない">学生ではない</option>
+      </select>
+    </div>
+    <div>
+      <label>国籍</label>
+      <select name="nationality" class="nationality-select" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <!-- 国籍のoptionは省略 -->
+      </select>
+    </div>
+    <div>
+      <label>所属事業所</label>
+      <select name="office" disabled>
+        <option value="" disabled selected>選択してください</option>
+      </select>
+    </div>
+    <div>
+      <label>雇用形態</label>
+      <select name="employmentType" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <option value="正社員">正社員</option>
+        <option value="契約社員">契約社員</option>
+        <option value="パート・アルバイト">パート・アルバイト</option>
+        <option value="その他">その他</option>
+      </select>
+      <input type="text" name="otherEmploymentType" placeholder="雇用形態を入力してください" disabled>
+    </div>
+    <div>
+      <label>雇用契約期間</label>
+      <select name="employmentPeriodType" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <option value="無期">無期</option>
+        <option value="有期">有期</option>
+      </select>
+      <div class="employment-period-range">
+        <label>開始年月日</label>
+        <input type="date" name="employmentPeriodStart" disabled>
+        <label>終了年月日</label>
+        <input type="date" name="employmentPeriodEnd" disabled>
+      </div>
+    </div>
+    <div>
+      <label>所定労働日数（月）</label>
+      <input type="text" name="workDays" disabled>
+    </div>
+    <div>
+      <label>所定労働時間（週）</label>
+      <input type="text" name="workHours" disabled>
+    </div>
+    <div>
+      <label>報酬月額（通貨）</label>
+      <input type="text" name="salaryCash" autocomplete="off" inputmode="numeric" pattern="[0-9]*" disabled>
+    </div>
+    <div>
+      <label style="display: flex; align-items: center; gap: 6px;">
+        報酬月額（現物）
+        <button type="button" class="info-btn" aria-label="インフォメーション" disabled>
+          <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
+        </button>
+      </label>
+      <input type="text" name="salaryInKind" autocomplete="off" inputmode="numeric" pattern="[0-9]*" disabled>
+      <div class="salary-total-row">
+        <span>報酬月額（合計）: <strong></strong> 円</span>
+      </div>
+    </div>
+    <div>
+      <label>標準報酬月額（健康保険・介護保険）※未通知の場合は入力不要</label>
+      <select name="stdSalaryHealth" disabled>
+        <option value="" disabled selected>選択してください</option>
+      </select>
+      <div class="error-message"></div>
+    </div>
+    <div>
+      <label>標準報酬月額（厚生年金）※未通知の場合は入力不要</label>
+      <select name="stdSalaryPension" disabled>
+        <option value="" disabled selected>選択してください</option>
+      </select>
+      <div class="error-message"></div>
+    </div>
+    <div>
+      <label>資格取得年月日（入社日）</label>
+      <input type="date" name="joinDate" disabled>
+    </div>
+    <div>
+      <label>資格喪失年月日（退職日）</label>
+      <input type="date" name="leaveDate" disabled>
+    </div>
+    <div>
+      <label>被扶養者の有無</label>
+      <select name="dependentStatus" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <option value="被扶養者あり">被扶養者あり</option>
+        <option value="被扶養者なし">被扶養者なし</option>
+      </select>
+      <div class="dependent-relations">
+        <div class="relation-row">
+          <label>続柄</label>
+          <input type="text" name="dependentRelation0" disabled>
+          <button type="button" disabled>削除</button>
+        </div>
+        <button type="button" disabled>＋追加</button>
+      </div>
+    </div>
+    <div>
+      <label>外国派遣労働者区分</label>
+      <select name="dispatchedAbroad" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <option value="日本から外国への派遣労働者">日本から外国への派遣労働者</option>
+        <option value="外国から日本への派遣労働者">外国から日本への派遣労働者</option>
+        <option value="該当しない">該当しない</option>
+      </select>
+      <div class="multi-office-extra">
+        <div>
+          <label style="display: flex; align-items: center; gap: 6px;">
+            社会保障協定国
+            <button type="button" class="info-btn" aria-label="インフォメーション" disabled>
+              <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
+            </button>
+          </label>
+          <select name="socialSecurityAgreement" disabled>
+            <option value="" disabled selected>選択してください</option>
+            <option value="該当する">該当する</option>
+            <option value="該当しない">該当しない</option>
+          </select>
+        </div>
+        <div>
+          <label>一時派遣（5年以内）</label>
+          <select name="temporaryDispatch" disabled>
+            <option value="" disabled selected>選択してください</option>
+            <option value="該当する">該当する</option>
+            <option value="該当しない">該当しない</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div>
+      <label>二以上事業所勤務区分</label>
+      <select name="multiOffice" disabled>
+        <option value="" disabled selected>選択してください</option>
+        <option value="二以上事業所勤務">二以上事業所勤務</option>
+        <option value="該当しない">該当しない</option>
+      </select>
+      <div class="multi-office-fields">
+        <div class="multi-office-row">
+          <div>
+            <label>選択事業所／非選択事業所</label>
+            <select name="selectedOfficeType" disabled>
+              <option value="" disabled selected>選択してください</option>
+              <option value="選択事業所">選択事業所</option>
+              <option value="非選択事業所">非選択事業所</option>
+            </select>
+          </div>
+          <div>
+            <label>合算報酬月額<br>（通貨+現物）</label>
+            <input type="text" name="combinedSalary" autocomplete="off" inputmode="numeric" pattern="[0-9]*" disabled>
+          </div>
+        </div>
+        <div class="multi-office-row">
+          <div>
+            <label>合算標準報酬月額<br>（健康保険・介護保険）</label>
+            <select name="combinedStdSalaryKenpo" disabled>
+              <option value="" disabled selected>選択してください</option>
+            </select>
+            <div class="error-message"></div>
+          </div>
+          <div>
+            <label>合算標準報酬月額<br>（厚生年金）</label>
+            <select name="combinedStdSalaryNenkin" disabled>
+              <option value="" disabled selected>選択してください</option>
+            </select>
+            <div class="error-message"></div>
+          </div>
+        </div>
+        <div class="multi-office-note">※標準報酬月額は未通知の場合は入力不要</div>
+      </div>
+    </div>
+  </form>
+  <div style="display: flex; justify-content: flex-end; margin-top: 32px;">
+    <button type="button" class="save-btn" disabled>登録</button>
+  </div>
+</div>

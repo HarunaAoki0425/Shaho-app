@@ -1,1 +1,52 @@
-<p>employee-list works!</p>
+<div class="container">
+  <h2 class="employee-list-title">従業員一覧</h2>
+  <div class="filter-row">
+    <label style="margin-left: 18px;">事業所：</label>
+    <select [(ngModel)]="selectedOfficeName">
+      <option value="">すべて</option>
+      <option *ngFor="let name of officeNames" [value]="name">{{ name }}</option>
+    </select>
+    <label>雇用形態：</label>
+    <select [(ngModel)]="selectedEmploymentType">
+      <option value="">すべて</option>
+      <option value="正社員">正社員</option>
+      <option value="契約社員">契約社員</option>
+      <option value="パート・アルバイト">パート・アルバイト</option>
+      <option value="その他">その他</option>
+    </select>
+  </div>
+  <table class="employee-list-table">
+    <thead>
+      <tr>
+        <th (click)="toggleSort('managementNumber')" class="th-join-date" style="cursor:pointer; user-select:none;">
+          管理番号
+          <span class="sort-arrows">
+            <span class="arrow-up" [class.active]="sortKey === 'managementNumber' && sortDirection === 'asc'">▲</span>
+            <span class="arrow-down" [class.active]="sortKey === 'managementNumber' && sortDirection === 'desc'">▼</span>
+          </span>
+        </th>
+        <th>氏名</th>
+        <th>雇用形態</th>
+        <th>社会保険加入中</th>
+        <th>事業所</th>
+        <th (click)="toggleSort('joinDate')" class="th-join-date" style="cursor:pointer; user-select:none;">
+          入社日
+          <span class="sort-arrows">
+            <span class="arrow-up" [class.active]="sortKey === 'joinDate' && sortDirection === 'asc'">▲</span>
+            <span class="arrow-down" [class.active]="sortKey === 'joinDate' && sortDirection === 'desc'">▼</span>
+          </span>
+        </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let emp of filteredEmployees">
+        <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.managementNumber }}</td>
+        <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.lastName }} {{ emp.firstName }}</td>
+        <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.employmentType }}</td>
+        <td (click)="goToDetail(emp)" style="cursor:pointer;"></td>
+        <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.officeName }}</td>
+        <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.joinDate }}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

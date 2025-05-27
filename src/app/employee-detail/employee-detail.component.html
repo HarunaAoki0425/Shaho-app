@@ -1,0 +1,123 @@
+<div class="employee-detail-layout">
+  <div class="employee-detail-left">
+    <div *ngIf="employee">
+      <h2 style="display: flex; align-items: center; gap: 12px;">
+        従業員詳細
+        <button type="button" class="edit-btn" [routerLink]="['/employee-edit', employeeId]">編集</button>
+        <button type="button" class="delete-btn">削除</button>
+      </h2>
+      <div *ngIf="hasUnnotified" class="unnotified-warning">
+        ※未通知の標準報酬月額は暫定値です※<br>
+        通知を受け取り次第、正式な標準報酬月額を入力してください。保険料は通知内容に基づき再計算されます。
+      </div>
+      <div class="employee-detail-grid">
+        <ng-container *ngFor="let field of displayFields">
+          <!-- 標準報酬月額（健康保険・介護保険）未通知表示 -->
+          <ng-container *ngIf="field.key === 'stdSalaryHealth'">
+            <div *ngIf="(!employee.stdSalaryHealth || employee.stdSalaryHealth === '' || employee.stdSalaryHealth === null) && (!employee.stdSalaryHealthGrade || employee.stdSalaryHealthGrade === '' || employee.stdSalaryHealthGrade === null)" class="employee-detail-item unnotified">
+              <div class="employee-detail-label">標準報酬月額（健康保険・介護保険）<br>※未通知</div>
+              <div class="employee-detail-value">
+                <ng-container *ngIf="autoStdSalaryHealth && autoStdSalaryHealthGrade">
+                  <span>自動判定: {{ autoStdSalaryHealth | number:'1.0-0' }}円（等級: {{ autoStdSalaryHealthGrade }}）</span>
+                </ng-container>
+              </div>
+            </div>
+            <div *ngIf="employee.stdSalaryHealth && employee.stdSalaryHealthGrade" class="employee-detail-item">
+              <div class="employee-detail-label">{{ field.label }}</div>
+              <div class="employee-detail-value">{{ employee.stdSalaryHealth | number:'1.0-0' }}円（等級：{{ employee.stdSalaryHealthGrade }}）</div>
+            </div>
+          </ng-container>
+          <!-- 標準報酬月額（厚生年金）未通知表示 -->
+          <ng-container *ngIf="field.key === 'stdSalaryPension'">
+            <div *ngIf="(!employee.stdSalaryPension || employee.stdSalaryPension === '' || employee.stdSalaryPension === null) && (!employee.stdSalaryPensionGrade || employee.stdSalaryPensionGrade === '' || employee.stdSalaryPensionGrade === null)" class="employee-detail-item unnotified">
+              <div class="employee-detail-label">標準報酬月額（厚生年金）<br>※未通知</div>
+              <div class="employee-detail-value">
+                <ng-container *ngIf="autoStdSalaryPension && autoStdSalaryPensionGrade">
+                  <span>自動判定: {{ autoStdSalaryPension | number:'1.0-0' }}円（等級: {{ autoStdSalaryPensionGrade }}）</span>
+                </ng-container>
+              </div>
+            </div>
+            <div *ngIf="employee.stdSalaryPension && employee.stdSalaryPensionGrade" class="employee-detail-item">
+              <div class="employee-detail-label">{{ field.label }}</div>
+              <div class="employee-detail-value">{{ employee.stdSalaryPension | number:'1.0-0' }}円（等級：{{ employee.stdSalaryPensionGrade }}）</div>
+            </div>
+          </ng-container>
+          <!-- 合算標準報酬月額（健康保険・介護保険）未通知表示（「二以上事業所勤務区分」が該当ありの場合のみ） -->
+          <ng-container *ngIf="field.key === 'combinedStdSalaryKenpo' && employee.multiOffice === '二以上事業所勤務'">
+            <div *ngIf="(!employee.combinedStdSalaryKenpo || employee.combinedStdSalaryKenpo === '' || employee.combinedStdSalaryKenpo === null) && (!employee.combinedStdSalaryKenpoGrade || employee.combinedStdSalaryKenpoGrade === '' || employee.combinedStdSalaryKenpoGrade === null)" class="employee-detail-item unnotified">
+              <div class="employee-detail-label">合算標準報酬月額<br>（健康保険・介護保険）※未通知</div>
+              <div class="employee-detail-value">
+                <ng-container *ngIf="autoCombinedStdSalaryKenpo && autoCombinedStdSalaryKenpoGrade">
+                  <span>自動判定: {{ autoCombinedStdSalaryKenpo | number:'1.0-0' }}円（等級: {{ autoCombinedStdSalaryKenpoGrade }}）</span>
+                </ng-container>
+              </div>
+            </div>
+            <div *ngIf="employee.combinedStdSalaryKenpo && employee.combinedStdSalaryKenpoGrade" class="employee-detail-item">
+              <div class="employee-detail-label">{{ field.label }}</div>
+              <div class="employee-detail-value">{{ employee.combinedStdSalaryKenpo | number:'1.0-0' }}円（等級：{{ employee.combinedStdSalaryKenpoGrade }}）</div>
+            </div>
+          </ng-container>
+          <!-- 合算標準報酬月額（厚生年金）未通知表示（「二以上事業所勤務区分」が該当ありの場合のみ） -->
+          <ng-container *ngIf="field.key === 'combinedStdSalaryNenkin' && employee.multiOffice === '二以上事業所勤務'">
+            <div *ngIf="(!employee.combinedStdSalaryNenkin || employee.combinedStdSalaryNenkin === '' || employee.combinedStdSalaryNenkin === null) && (!employee.combinedStdSalaryNenkinGrade || employee.combinedStdSalaryNenkinGrade === '' || employee.combinedStdSalaryNenkinGrade === null)" class="employee-detail-item unnotified">
+              <div class="employee-detail-label">合算標準報酬月額（厚生年金）<br>※未通知</div>
+              <div class="employee-detail-value">
+                <ng-container *ngIf="autoCombinedStdSalaryNenkin && autoCombinedStdSalaryNenkinGrade">
+                  <span>自動判定: {{ autoCombinedStdSalaryNenkin | number:'1.0-0' }}円（等級: {{ autoCombinedStdSalaryNenkinGrade }}）</span>
+                </ng-container>
+              </div>
+            </div>
+            <div *ngIf="employee.combinedStdSalaryNenkin && employee.combinedStdSalaryNenkinGrade" class="employee-detail-item">
+              <div class="employee-detail-label">{{ field.label }}</div>
+              <div class="employee-detail-value">{{ employee.combinedStdSalaryNenkin | number:'1.0-0' }}円（等級：{{ employee.combinedStdSalaryNenkinGrade }}）</div>
+            </div>
+          </ng-container>
+          <!-- その他の項目は従来通り表示 -->
+          <ng-container *ngIf="field.key !== 'stdSalaryHealth' && field.key !== 'stdSalaryPension' && field.key !== 'combinedStdSalaryKenpo' && field.key !== 'combinedStdSalaryNenkin'">
+            <div class="employee-detail-item" *ngIf="employee[field.key] !== null && employee[field.key] !== undefined && employee[field.key] !== '' && !(field.key === 'dependentRelations' && (!employee.dependentRelations || employee.dependentRelations.length === 0))">
+              <div class="employee-detail-label">{{ field.label }}</div>
+              <div class="employee-detail-value">
+                <!-- 氏名は姓＋名を連結表示 -->
+                <ng-container *ngIf="field.key === 'lastName'">
+                  {{ employee.lastName || '' }} {{ employee.firstName || '' }}
+                </ng-container>
+                <!-- 被扶養者続柄は配列ならカンマ区切りで表示 -->
+                <ng-container *ngIf="field.key === 'dependentRelations' && employee.dependentRelations">
+                  {{ employee.dependentRelations.join ? employee.dependentRelations.join('、') : employee.dependentRelations }}
+                </ng-container>
+                <!-- その他の項目 -->
+                <ng-container *ngIf="field.key !== 'lastName' && field.key !== 'dependentRelations'">
+                  <!-- 金額フィールドは3桁カンマ区切りで表示 -->
+                  <ng-container *ngIf="['combinedStdSalaryKenpo', 'combinedStdSalaryNenkin', 'salaryCash', 'salaryInKind', 'salaryTotal', 'combinedSalary'].includes(field.key)">
+                    {{ employee[field.key] | number:'1.0-0' }}円
+                  </ng-container>
+                  <!-- その他はそのまま表示 -->
+                  <ng-container *ngIf="!['combinedStdSalaryKenpo', 'combinedStdSalaryNenkin', 'salaryCash', 'salaryInKind', 'salaryTotal', 'combinedSalary', 'combinedStdSalaryKenpoGrade', 'combinedStdSalaryNenkinGrade'].includes(field.key)">
+                    <ng-container *ngIf="field.key === 'employmentType'; else normalField">
+                      {{ displayEmploymentType }}
+                    </ng-container>
+                    <ng-template #normalField>
+                      {{ employee[field.key] }}
+                    </ng-template>
+                  </ng-container>
+                </ng-container>
+              </div>
+            </div>
+          </ng-container>
+          <ng-container *ngIf="field.key === 'age'">
+            <div class="employee-detail-item">
+              <div class="employee-detail-label">{{ field.label }}</div>
+              <div class="employee-detail-value">{{ currentAge !== null ? currentAge : '' }}</div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+    </div>
+    <div *ngIf="!employee">
+      <p>従業員データを取得中...</p>
+    </div>
+  </div>
+  <div class="employee-detail-right">
+    <!-- 右側のコンテナ：今は空、必要に応じて内容を追加 -->
+  </div>
+</div>

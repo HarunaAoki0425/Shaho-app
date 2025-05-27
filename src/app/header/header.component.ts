@@ -2,11 +2,16 @@ import { Component } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { Auth, signOut } from '@angular/fire/auth';
 import { MatIconModule } from '@angular/material/icon';
+import { MatTooltipModule } from '@angular/material/tooltip';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterModule, MatIconModule],
+  imports: [
+    RouterModule,
+    MatIconModule,
+    MatTooltipModule
+  ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.css']
 })

@@ -36,7 +36,6 @@ export class EmployeeAddComponent implements OnInit {
   selectedOfficeType: string = '';
   combinedSalary: string | number | null = null;
   combinedStdSalary: string | number | null = null;
-  apportionedStdSalary: string | number | null = null;
   dependentStatus: string = '';
   dependentRelations: string[] = [''];
   showInfoPopup: boolean = false;
@@ -55,8 +54,6 @@ export class EmployeeAddComponent implements OnInit {
   nenkinStandardMonthlySalaries: any[] = [];
   combinedStdSalaryKenpo: string | number | null = null;
   combinedStdSalaryNenkin: string | number | null = null;
-  apportionedStdSalaryKenpo: string | number | null = null;
-  apportionedStdSalaryNenkin: string | number | null = null;
   kenpoSalaryError: string = '';
   nenkinSalaryError: string = '';
   combinedKenpoSalaryError: string = '';
@@ -198,11 +195,6 @@ export class EmployeeAddComponent implements OnInit {
         case 'stdSalaryPension': this.stdSalaryPension = null; break;
         case 'combinedSalary': this.combinedSalary = null; break;
         case 'combinedStdSalary': this.combinedStdSalary = null; break;
-        case 'apportionedStdSalary': this.apportionedStdSalary = null; break;
-        case 'combinedStdSalaryKenpo': this.combinedStdSalaryKenpo = null; break;
-        case 'combinedStdSalaryNenkin': this.combinedStdSalaryNenkin = null; break;
-        case 'apportionedStdSalaryKenpo': this.apportionedStdSalaryKenpo = null; break;
-        case 'apportionedStdSalaryNenkin': this.apportionedStdSalaryNenkin = null; break;
       }
       return;
     }
@@ -225,21 +217,6 @@ export class EmployeeAddComponent implements OnInit {
         break;
       case 'combinedStdSalary':
         this.combinedStdSalary = isNaN(num) ? '' : num;
-        break;
-      case 'apportionedStdSalary':
-        this.apportionedStdSalary = isNaN(num) ? '' : num;
-        break;
-      case 'combinedStdSalaryKenpo':
-        this.combinedStdSalaryKenpo = isNaN(num) ? '' : num;
-        break;
-      case 'combinedStdSalaryNenkin':
-        this.combinedStdSalaryNenkin = isNaN(num) ? '' : num;
-        break;
-      case 'apportionedStdSalaryKenpo':
-        this.apportionedStdSalaryKenpo = isNaN(num) ? '' : num;
-        break;
-      case 'apportionedStdSalaryNenkin':
-        this.apportionedStdSalaryNenkin = isNaN(num) ? '' : num;
         break;
     }
   }
@@ -311,7 +288,7 @@ export class EmployeeAddComponent implements OnInit {
     }
   }
 
-  onSalaryInput(event: any, field: 'salaryCash' | 'salaryInKind' | 'stdSalaryHealth' | 'stdSalaryPension' | 'combinedSalary' | 'combinedStdSalary' | 'apportionedStdSalary') {
+  onSalaryInput(event: any, field: 'salaryCash' | 'salaryInKind' | 'stdSalaryHealth' | 'stdSalaryPension' | 'combinedSalary' | 'combinedStdSalary') {
     const value = event.target.value.replace(/,/g, '');
     if (value === '' || value === null) {
       this[field] = null;
@@ -429,22 +406,6 @@ export class EmployeeAddComponent implements OnInit {
         alert('二以上事業所勤務該当時は「合算報酬月額」を入力してください');
         return;
       }
-      if (this.combinedStdSalaryKenpo === null || this.combinedStdSalaryKenpo === '' || isNaN(Number(this.combinedStdSalaryKenpo))) {
-        alert('二以上事業所勤務該当時は「合算標準報酬月額（健康保険・介護保険）」を入力してください');
-        return;
-      }
-      if (this.combinedStdSalaryNenkin === null || this.combinedStdSalaryNenkin === '' || isNaN(Number(this.combinedStdSalaryNenkin))) {
-        alert('二以上事業所勤務該当時は「合算標準報酬月額（厚生年金）」を入力してください');
-        return;
-      }
-      if (this.apportionedStdSalaryKenpo === null || this.apportionedStdSalaryKenpo === '' || isNaN(Number(this.apportionedStdSalaryKenpo))) {
-        alert('二以上事業所勤務該当時は「按分済み標準報酬月額（健康保険・介護保険）」を入力してください');
-        return;
-      }
-      if (this.apportionedStdSalaryNenkin === null || this.apportionedStdSalaryNenkin === '' || isNaN(Number(this.apportionedStdSalaryNenkin))) {
-        alert('二以上事業所勤務該当時は「按分済み標準報酬月額（厚生年金）」を入力してください');
-        return;
-      }
     }
     // 会社IDの取得
     const companyId = this.selectedCompanyId || (this.companyList.length === 1 ? this.companyList[0].id : null);
@@ -455,7 +416,14 @@ export class EmployeeAddComponent implements OnInit {
     // 管理番号の採番
     const employeesCol = collection(this.firestore, 'companies', companyId, 'employees');
     const snapshot = await getDocs(employeesCol);
-    const managementNumber = snapshot.size + 1;
+    let maxManagementNumber = 0;
+    snapshot.forEach(doc => {
+      const num = Number(doc.data()['managementNumber']);
+      if (!isNaN(num) && num > maxManagementNumber) {
+        maxManagementNumber = num;
+      }
+    });
+    const managementNumber = maxManagementNumber + 1;
 
     // 金額はカンマ除去して数値化
     const parseNumber = (val: any) => {
@@ -476,17 +444,20 @@ export class EmployeeAddComponent implements OnInit {
       nationality: this.nationality,
       officeName: this.officeList.find(o => o.id === this.selectedOfficeId)?.officeName || '',
       officesId: this.selectedOfficeId,
-      employmentType: this.employmentType === 'その他' ? this.otherEmploymentType : this.employmentType,
+      employmentType: this.employmentType,
+      employmentTypeOther: this.employmentType === 'その他' ? this.otherEmploymentType : '',
       employmentPeriodType: this.employmentPeriodType,
       employmentPeriodStart: this.employmentPeriodStart,
       employmentPeriodEnd: this.employmentPeriodEnd,
       workDays: String(this.workDays) === '' ? null : Number(this.workDays),
       workHours: String(this.workHours) === '' ? null : Number(this.workHours),
-      salaryCash: parseNumber(this.salaryCash),
-      salaryInKind: parseNumber(this.salaryInKind),
+      salaryCash: (this.salaryCash === null || this.salaryCash === '' || isNaN(Number(this.salaryCash))) ? 0 : parseNumber(this.salaryCash),
+      salaryInKind: (this.salaryInKind === null || this.salaryInKind === '' || isNaN(Number(this.salaryInKind))) ? 0 : parseNumber(this.salaryInKind),
       salaryTotal: parseNumber(this.salaryTotal),
       stdSalaryHealth: this.stdSalaryHealth === '' ? null : parseNumber(this.stdSalaryHealth),
+      stdSalaryHealthGrade: this.kenpoStandardMonthlySalaries.find(item => String(item.standardMonthlySalary) === String(this.stdSalaryHealth))?.grade ?? null,
       stdSalaryPension: this.stdSalaryPension === '' ? null : parseNumber(this.stdSalaryPension),
+      stdSalaryPensionGrade: this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === String(this.stdSalaryPension))?.nenkinGrade ?? null,
       joinDate: this.joinDate,
       leaveDate: this.leaveDate,
       isStudent: this.isStudent,
@@ -494,15 +465,19 @@ export class EmployeeAddComponent implements OnInit {
       selectedOfficeType: this.selectedOfficeType,
       combinedSalary: parseNumber(this.combinedSalary),
       combinedStdSalaryKenpo: this.combinedStdSalaryKenpo === '' ? null : parseNumber(this.combinedStdSalaryKenpo),
-      combinedStdSalaryNenkin: this.combinedStdSalaryNenkin === '' ? null : parseNumber(this.combinedStdSalaryNenkin),
-      apportionedStdSalaryKenpo: this.apportionedStdSalaryKenpo === '' ? null : parseNumber(this.apportionedStdSalaryKenpo),
-      apportionedStdSalaryNenkin: this.apportionedStdSalaryNenkin === '' ? null : parseNumber(this.apportionedStdSalaryNenkin),
+      combinedStdSalaryKenpoGrade: this.kenpoStandardMonthlySalaries.find(item => String(item.standardMonthlySalary) === String(this.combinedStdSalaryKenpo))?.grade ?? null,
+      combinedStdSalaryNenkin: this.combinedStdSalaryNenkin === '' ? null : (() => {
+        // 等級（grade）から金額（nenkinMonthly）を取得
+        const nenkin = this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === String(this.combinedStdSalaryNenkin));
+        return nenkin ? nenkin.nenkinMonthly : null;
+      })(),
+      combinedStdSalaryNenkinGrade: this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === String(this.combinedStdSalaryNenkin))?.nenkinGrade ?? null,
       dependentStatus: this.dependentStatus,
       dependentCount: this.dependentRelations.filter(r => r && r.trim()).length,
       dependentRelations: this.dependentRelations.filter(r => r && r.trim()),
       dispatchedAbroad: this.dispatchedAbroad,
-      socialSecurityAgreement: toBool(this.socialSecurityAgreement),
-      temporaryDispatch: toBool(this.temporaryDispatch),
+      socialSecurityAgreement: this.socialSecurityAgreement,
+      temporaryDispatch: this.temporaryDispatch,
       createdBy: this.currentUser?.uid || '',
       createdAt: serverTimestamp(),
       updatedBy: this.currentUser?.uid || '',
@@ -529,8 +504,9 @@ export class EmployeeAddComponent implements OnInit {
     const selected = this.kenpoStandardMonthlySalaries.find(item => item.standardMonthlySalary == value);
     if (selected && this.salaryTotal != null) {
       const salary = Number(this.salaryTotal);
-      const start = selected.monthlyRangeStart == null ? 0 : selected.monthlyRangeStart;
-      const end = selected.monthlyRangeEnd == null ? Infinity : selected.monthlyRangeEnd;
+      // 上限・下限がnull/空欄なら限度なし
+      const start = (selected.monthlyRangeStart === null || selected.monthlyRangeStart === undefined || selected.monthlyRangeStart === '') ? 0 : selected.monthlyRangeStart;
+      const end = (selected.monthlyRangeEnd === null || selected.monthlyRangeEnd === undefined || selected.monthlyRangeEnd === '') ? Infinity : selected.monthlyRangeEnd;
       if (salary >= start && salary < end) {
         console.log('報酬月額（合計）は標準報酬月額（健康保険・介護保険）の範囲内です');
         this.kenpoSalaryError = '';
@@ -549,8 +525,9 @@ export class EmployeeAddComponent implements OnInit {
     if (selected && this.salaryTotal != null) {
       console.log('選択等級のnenkinStart:', selected.nenkinStart, 'nenkinEnd:', selected.nenkinEnd);
       const salary = Number(this.salaryTotal);
-      const start = selected.nenkinStart == null ? 0 : selected.nenkinStart;
-      const end = selected.nenkinEnd == null ? Infinity : selected.nenkinEnd;
+      // 上限・下限がnull/空欄なら限度なし
+      const start = (selected.nenkinStart === null || selected.nenkinStart === undefined || selected.nenkinStart === '') ? 0 : selected.nenkinStart;
+      const end = (selected.nenkinEnd === null || selected.nenkinEnd === undefined || selected.nenkinEnd === '') ? Infinity : selected.nenkinEnd;
       if (salary >= start && salary < end) {
         console.log('報酬月額（合計）は標準報酬月額（厚生年金）の範囲内です');
         this.nenkinSalaryError = '';
@@ -567,8 +544,9 @@ export class EmployeeAddComponent implements OnInit {
     const salary = Number(this.combinedSalary);
     const selected = this.kenpoStandardMonthlySalaries.find(item => String(item.standardMonthlySalary) === String(this.combinedStdSalaryKenpo));
     if (selected && !isNaN(salary)) {
-      const start = selected.monthlyRangeStart == null ? 0 : selected.monthlyRangeStart;
-      const end = selected.monthlyRangeEnd == null ? Infinity : selected.monthlyRangeEnd;
+      // 上限・下限がnull/空欄なら限度なし
+      const start = (selected.monthlyRangeStart === null || selected.monthlyRangeStart === undefined || selected.monthlyRangeStart === '') ? 0 : selected.monthlyRangeStart;
+      const end = (selected.monthlyRangeEnd === null || selected.monthlyRangeEnd === undefined || selected.monthlyRangeEnd === '') ? Infinity : selected.monthlyRangeEnd;
       if (salary >= start && salary < end) {
         this.combinedKenpoSalaryError = '';
       } else {
@@ -583,8 +561,9 @@ export class EmployeeAddComponent implements OnInit {
     const salary = Number(this.combinedSalary);
     const selected = this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === String(this.combinedStdSalaryNenkin));
     if (selected && !isNaN(salary)) {
-      const start = selected.nenkinStart == null ? 0 : selected.nenkinStart;
-      const end = selected.nenkinEnd == null ? Infinity : selected.nenkinEnd;
+      // 上限・下限がnull/空欄なら限度なし
+      const start = (selected.nenkinStart === null || selected.nenkinStart === undefined || selected.nenkinStart === '') ? 0 : selected.nenkinStart;
+      const end = (selected.nenkinEnd === null || selected.nenkinEnd === undefined || selected.nenkinEnd === '') ? Infinity : selected.nenkinEnd;
       if (salary >= start && salary < end) {
         this.combinedNenkinSalaryError = '';
       } else {
