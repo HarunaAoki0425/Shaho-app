@@ -1,0 +1,17 @@
+<div class="calculate-container">
+  <div *ngIf="employeeData">
+    <div>健康保険（全額）: {{ stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceAmount }}円</div>
+    <div>健康保険（会社負担）: {{ stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountCompany }}円</div>
+    <div>健康保険（従業員負担）: {{ stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountEmployee }}円</div>
+    <div>介護保険（全額）: {{ stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％＝{{ careInsuranceAmount }}円</div>
+    <div>介護保険（会社負担）: {{ stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountCompany }}円</div>
+    <div>介護保険（従業員負担）: {{ stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountEmployee }}円</div>
+    <div>厚生年金（全額）: {{ stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％＝{{ pensionInsuranceAmount }}円</div>
+    <div>厚生年金（会社負担）: {{ stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountCompany }}円</div>
+    <div>厚生年金（従業員負担）: {{ stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountEmployee }}円</div>
+    <div>全額合計: {{ totalInsuranceAmount }}円</div>
+    <div>会社負担合計: {{ totalInsuranceAmountCompany }}円</div>
+    <div>従業員負担合計: {{ totalInsuranceAmountEmployee }}円</div>
+  </div>
+  <button type="button" class="save-calc-btn" (click)="onSaveCalc()">計算結果を保存</button>
+</div>

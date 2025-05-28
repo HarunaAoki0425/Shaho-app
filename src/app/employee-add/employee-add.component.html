@@ -275,9 +275,14 @@
       <label>所定労働時間（週）</label>
       <input type="text" name="workHours" [value]="workHours === null ? '' : workHours" (input)="onWorkHoursInput($event)">
     </div>
-    <div>
-      <label>報酬月額（通貨）</label>
-      <input type="text" name="salaryCash" [value]="formatWithComma(salaryCash)" (input)="onSalaryInput($event, 'salaryCash')" autocomplete="off" inputmode="numeric" pattern="[0-9]*">
+    <div class="form-row">
+      <label style="display: flex; align-items: center; gap: 6px;">
+        報酬月額（通貨）
+        <button type="button" class="info-btn" (click)="openSalaryCashInfoPopup()" aria-label="報酬月額（通貨）の説明">
+          <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
+        </button>
+      </label>
+      <input id="salaryCash" name="salaryCash" type="text" [value]="formatWithComma(salaryCash)" (input)="onSalaryInput($event, 'salaryCash')" autocomplete="off" />
     </div>
     <div>
       <label style="display: flex; align-items: center; gap: 6px;">
@@ -440,6 +445,18 @@
         詳細は<a href="https://www.nenkin.go.jp/service/shaho-kyotei/shikumi/nijukanyuboshi/index.html" target="_blank">日本年金機構の公式情報</a>をご参照ください。
       </div>
       <button type="button" class="info-popup-close" (click)="closeAgreementInfoPopup()">閉じる</button>
+    </div>
+  </div>
+  <div *ngIf="showSalaryCashInfoPopup" class="info-popup-backdrop">
+    <div class="info-popup">
+      <div class="info-popup-content">
+        標準報酬の対象となる報酬は、基本給のほか、役付手当、<br>
+        勤務地手当、家族手当、通勤手当、住宅手当、残業手当等、<br>
+        労働の対償として事業所から現金又で支給されるものを指します。<br>
+        なお、年4回以上の支給される賞与についても<br>
+        標準報酬月額の対象となる報酬に含まれます。
+      </div>
+      <button type="button" class="info-popup-close" (click)="closeSalaryCashInfoPopup()">閉じる</button>
     </div>
   </div>
 </div>

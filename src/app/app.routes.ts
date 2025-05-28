@@ -16,4 +16,5 @@ export const routes: Routes = [
   { path: 'employee-detail/:id', loadComponent: () => import('./employee-detail/employee-detail.component').then(m => m.EmployeeDetailComponent) },
   { path: 'employee-edit/:id', loadComponent: () => import('./employee-edit/employee-edit.component').then(m => m.EmployeeEditComponent) },
   { path: 'rates-management', loadComponent: () => import('./rates-management/rates-management.component').then(m => m.RatesManagementComponent) },
+  { path: 'calculate/:id', loadComponent: () => import('./calculate/calculate.component').then(m => m.CalculateComponent) },
 ];

@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { Firestore, collection, getDocs, query, where, addDoc, serverTimestamp } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-employee-add',
@@ -58,9 +59,11 @@ export class EmployeeAddComponent implements OnInit {
   nenkinSalaryError: string = '';
   combinedKenpoSalaryError: string = '';
   combinedNenkinSalaryError: string = '';
+  showSalaryCashInfoPopup: boolean = false;
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private router = inject(Router);
 
   async ngOnInit() {
     onAuthStateChanged(this.auth, async (user) => {
@@ -407,6 +410,9 @@ export class EmployeeAddComponent implements OnInit {
         return;
       }
     }
+    if (!window.confirm('従業員情報を登録しますか？')) {
+      return;
+    }
     // 会社IDの取得
     const companyId = this.selectedCompanyId || (this.companyList.length === 1 ? this.companyList[0].id : null);
     if (!companyId) {
@@ -457,7 +463,7 @@ export class EmployeeAddComponent implements OnInit {
       stdSalaryHealth: this.stdSalaryHealth === '' ? null : parseNumber(this.stdSalaryHealth),
       stdSalaryHealthGrade: this.kenpoStandardMonthlySalaries.find(item => String(item.standardMonthlySalary) === String(this.stdSalaryHealth))?.grade ?? null,
       stdSalaryPension: this.stdSalaryPension === '' ? null : parseNumber(this.stdSalaryPension),
-      stdSalaryPensionGrade: this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinGrade) === String(this.stdSalaryPension))?.nenkinGrade ?? null,
+      stdSalaryPensionGrade: this.nenkinStandardMonthlySalaries.find(item => String(item.nenkinMonthly) === String(this.stdSalaryPension))?.nenkinGrade ?? null,
       joinDate: this.joinDate,
       leaveDate: this.leaveDate,
       isStudent: this.isStudent,
@@ -490,9 +496,10 @@ export class EmployeeAddComponent implements OnInit {
     try {
       // Firestore保存処理
       console.log('Saving employee data:', data);
-      await addDoc(employeesCol, data);
+      const docRef = await addDoc(employeesCol, data);
       console.log('Employee data saved successfully');
-      // 完了メッセージやリセット処理などは必要に応じて追加
+      // calculate画面に遷移
+      this.router.navigate(['/calculate', docRef.id]);
     } catch (error) {
       console.error('Failed to save employee data:', error);
       // 既存のエラー時処理 ...
@@ -576,5 +583,13 @@ export class EmployeeAddComponent implements OnInit {
 
   onJoinDateChange(event: any) {
     // デバッグ出力削除済み
+  }
+
+  openSalaryCashInfoPopup() {
+    this.showSalaryCashInfoPopup = true;
+  }
+
+  closeSalaryCashInfoPopup() {
+    this.showSalaryCashInfoPopup = false;
   }
 }

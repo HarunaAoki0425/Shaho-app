@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Firestore, collection, getDocs, updateDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -27,12 +27,12 @@ export class EmployeeDetailComponent implements OnInit {
   private auth = inject(Auth);
   private route = inject(ActivatedRoute);
   private firestore = inject(Firestore);
+  private router = inject(Router);
   displayFields = [
     { key: 'managementNumber', label: '管理番号' },
     { key: 'lastName', label: '氏名' },
     { key: 'gender', label: '性別' },
     { key: 'birthdate', label: '生年月日' },
-    { key: 'age', label: '年齢' },
     { key: 'nationality', label: '国籍' },
     { key: 'officeName', label: '事業所' },
     { key: 'employmentType', label: '雇用形態' },
@@ -216,5 +216,9 @@ export class EmployeeDetailComponent implements OnInit {
       combinedNenkin = this.employee.combinedStdSalaryNenkin === null || this.employee.combinedStdSalaryNenkin === '' || this.employee.combinedStdSalaryNenkin === undefined;
     }
     return stdHealth || stdPension || combinedKenpo || combinedNenkin;
+  }
+
+  onRecalc() {
+    this.router.navigate(['/calculate', this.employeeId]);
   }
 }
