@@ -245,14 +245,8 @@ div[ngif] {
 
 .detail-header {
   width: 100%;
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
   padding-top: 2.5rem;
   margin-bottom: 0.5rem;
-  background: transparent;
-  z-index: 2;
 }
 
 .detail-header-left,
@@ -262,5 +256,251 @@ div[ngif] {
   align-items: flex-start;
   flex: 1;
   text-align: left;
+}
+
+.detail-main-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  margin-top: 2.5rem;
+}
+.detail-row {
+  display: flex;
+  width: 100%;
+  gap: 24px;
+}
+.detail-row-top .detail-container {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 120px;
+}
+.detail-row-bottom .detail-container {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 120px;
+}
+.detail-container {
+  position: relative;
+  padding-top: 1.2rem;
+  padding-left: 1.2rem;
+  padding-right: 1.2rem;
+  padding-bottom: 1.2rem;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1976d2;
+}
+
+.container-title {
+  display: block;
+  font-size: 1.08rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 0.5em;
+  text-align: left;
+  border-bottom: 1px solid #e0e6ef;
+  padding-bottom: 0.2em;
+  width: 100%;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 0.3em;
+  font-size: 0.98rem;
+}
+.info-label {
+  width: 13em;
+  color: #7b8a9b;
+  font-weight: 500;
+  margin-right: 0.7em;
+  font-size: 0.97em;
+}
+.info-value {
+  flex: 1;
+  color: #222;
+  font-weight: 600;
+  font-size: 1em;
+}
+
+.monthly-income-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px 16px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+.monthly-income-cell {
+  height: 48px;
+  background: #f4f8fb;
+  border: 1.5px solid #d0e3f9;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  color: #7b8a9b;
+  min-width: 0;
+}
+
+.monthly-income-grid-horizontal {
+  display: table;
+  table-layout: fixed;
+  width: 100%;
+  margin-top: 12px;
+  margin-bottom: 8px;
+  border-collapse: collapse;
+  background: #fff;
+}
+.monthly-income-grid-horizontal .monthly-income-cell {
+  display: table-cell;
+  min-width: 0;
+  width: 7.5%; /* 100/13=7.7, 12セルなら8.3%だが余白考慮で7.5% */
+  height: 38px;
+  border: 1px solid #d0e3f9;
+  background: #fcfdff;
+  border-radius: 0;
+  text-align: center;
+  font-size: 0.98rem;
+  color: #1976d2;
+  vertical-align: middle;
+  padding: 0;
+}
+
+.monthly-income-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+.monthly-income-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  table-layout: fixed;
+  font-size: 0.98rem;
+}
+.monthly-income-table th,
+.monthly-income-table td {
+  border: 1px solid #d0e3f9;
+  text-align: center;
+  height: 38px;
+  min-width: 40px;
+  padding: 0;
+  background: #fcfdff;
+  color: #1976d2;
+}
+.monthly-income-table th {
+  font-weight: 600;
+  background: #f4f8fb;
+}
+.monthly-income-table .vertical-label {
+  width: 90px;
+  min-width: 70px;
+  background: #f4f8fb;
+  color: #1976d2;
+  font-weight: 700;
+}
+
+.monthly-income-input {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: 38px;
+  text-align: right;
+  border: none;
+  border-radius: 0;
+  background: #fcfdff;
+  font-size: 0.97rem;
+  color: #222;
+  padding: 0 6px;
+  box-sizing: border-box;
+}
+
+.monthly-income-save-btn {
+  padding: 3px 8px;
+  font-size: 1.1rem;
+  background: none;
+  color: #1976d2;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-left: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.monthly-income-save-btn:hover {
+  background: #e3f0fc;
+}
+.monthly-income-save-btn.saved .material-icons {
+  color: #43a047;
+}
+.material-icons {
+  font-size: 1.3em;
+  color: #1976d2;
+  vertical-align: middle;
+}
+
+.monthly-income-total-cell {
+  text-align: right;
+}
+
+.monthly-income-save-row {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 12px;
+  margin-bottom: 8px;
+}
+.monthly-income-save-label {
+  margin-left: 2px;
+  font-size: 0.97rem;
+  color: #1976d2;
+}
+
+.calc-insurance-btn {
+  margin-bottom: 1em;
+  padding: 7px 22px;
+  font-size: 1.02rem;
+  background: #1976d2;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background 0.2s;
+}
+.calc-insurance-btn:hover {
+  background: #1565c0;
+}
+
+.detail-container-5 .info-label {
+  width: 19em;
+}
+
+.monthly-income-copy-btn {
+  padding: 3px 8px;
+  font-size: 1.1rem;
+  background: none;
+  color: #1976d2;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+  margin-right: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.monthly-income-copy-btn:hover {
+  background: #e3f0fc;
 }
 

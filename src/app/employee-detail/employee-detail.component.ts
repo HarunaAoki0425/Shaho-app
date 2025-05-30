@@ -1,14 +1,15 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Firestore, collection, getDocs, updateDoc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, updateDoc, doc, addDoc, query, where, setDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-employee-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule],
+  imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './employee-detail.component.html',
   styleUrl: './employee-detail.component.css'
 })
@@ -24,6 +25,13 @@ export class EmployeeDetailComponent implements OnInit {
   autoCombinedStdSalaryNenkin: number | null = null;
   autoCombinedStdSalaryNenkinGrade: string | null = null;
   currentAge: number | null = null;
+  fixedWages: string[] = Array(12).fill('');
+  nonFixedWages: string[] = Array(12).fill('');
+  savedFixedWages: string[] = Array(12).fill('');
+  savedNonFixedWages: string[] = Array(12).fill('');
+  isSaved: boolean[] = Array(12).fill(false);
+  isEditing: boolean[] = Array(12).fill(false);
+  justSaved: boolean[] = Array(12).fill(false);
   private auth = inject(Auth);
   private route = inject(ActivatedRoute);
   private firestore = inject(Firestore);
@@ -61,7 +69,20 @@ export class EmployeeDetailComponent implements OnInit {
     { key: 'temporaryDispatch', label: '一時派遣（5年以内）' }
   ];
   public employeeId: string | null = null;
+  public currentNendo: string = '';
+  months = ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月'];
+  public standardsList: any[] = [];
+
   async ngOnInit() {
+    // 年度（4月始まり）を自動計算
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    if (month >= 4) {
+      this.currentNendo = `${year}年度`;
+    } else {
+      this.currentNendo = `${year - 1}年度`;
+    }
     onAuthStateChanged(this.auth, (user) => {
       this.currentUser = user;
     });
@@ -77,6 +98,7 @@ export class EmployeeDetailComponent implements OnInit {
         const empDoc = employeesSnap.docs.find(doc => doc.id === id);
         if (empDoc) {
           this.employee = empDoc.data();
+          this.employee.companyId = companyDoc.id;
           // 年齢再計算
           if (this.employee.birthdate) {
             const today = new Date();
@@ -105,90 +127,28 @@ export class EmployeeDetailComponent implements OnInit {
           } else {
             this.currentAge = null;
           }
-          // ここから追加: 標準報酬月額（健康保険・介護保険）が空欄/nullの場合、等級をkenpo_standardMonthlySararyから取得
-          if ((this.employee.stdSalaryHealth === null || this.employee.stdSalaryHealth === '' || this.employee.stdSalaryHealth === undefined)
-            && this.employee.salaryTotal !== null && this.employee.salaryTotal !== '' && this.employee.salaryTotal !== undefined) {
-            const kenpoCol = collection(this.firestore, 'kenpo_standardMonthlySarary');
-            const kenpoSnap = await getDocs(kenpoCol);
-            const salaryTotal = Number(this.employee.salaryTotal);
-            const found = kenpoSnap.docs.map(doc => doc.data()).find((row: any) => {
-              const rangeStart = row.monthlyRangeStart === null || row.monthlyRangeStart === '' || row.monthlyRangeStart === undefined ? -Infinity : Number(row.monthlyRangeStart);
-              const rangeEnd = row.monthlyRangeEnd === null || row.monthlyRangeEnd === '' || row.monthlyRangeEnd === undefined ? Infinity : Number(row.monthlyRangeEnd);
-              return salaryTotal >= rangeStart && salaryTotal < rangeEnd;
-            });
-            if (found) {
-              this.autoStdSalaryHealth = found['standardMonthlySalary'] ?? null;
-              this.autoStdSalaryHealthGrade = found['grade'] ?? null;
-              console.log('標準報酬月額（健康保険・介護保険）自動判定:', found['standardMonthlySalary'], '等級:', found['grade']);
-            } else {
-              this.autoStdSalaryHealth = null;
-              this.autoStdSalaryHealthGrade = null;
-              console.log('該当する標準報酬月額（健康保険・介護保険）の等級が見つかりませんでした');
+
+          // ここでmonthlySarary取得
+          const employeeDocRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+          const monthlySararyCol = collection(employeeDocRef, 'monthlySarary');
+          const q = query(monthlySararyCol, where('nendo', '==', this.currentNendo));
+          const snap = await getDocs(q);
+          snap.forEach(docSnap => {
+            const data = docSnap.data();
+            const idx = this.months.indexOf(data['month']);
+            if (idx !== -1) {
+              this.fixedWages[idx] = this.formatWithComma(String(data['fixedWages'] ?? ''));
+              this.nonFixedWages[idx] = this.formatWithComma(String(data['nonFixedWages'] ?? ''));
+              this.savedFixedWages[idx] = this.fixedWages[idx];
+              this.savedNonFixedWages[idx] = this.nonFixedWages[idx];
+              this.isSaved[idx] = true;
             }
-          }
-          // 標準報酬月額（厚生年金）が空欄/nullの場合、等級をnenkin_standardMonthlySararyから取得
-          if ((this.employee.stdSalaryPension === null || this.employee.stdSalaryPension === '' || this.employee.stdSalaryPension === undefined)
-            && this.employee.salaryTotal !== null && this.employee.salaryTotal !== '' && this.employee.salaryTotal !== undefined) {
-            const nenkinCol = collection(this.firestore, 'nenkin_standardMonthlySarary');
-            const nenkinSnap = await getDocs(nenkinCol);
-            const salaryTotal = Number(this.employee.salaryTotal);
-            const found = nenkinSnap.docs.map(doc => doc.data()).find((row: any) => {
-              const rangeStart = row.nenkinStart === null || row.nenkinStart === '' || row.nenkinStart === undefined ? -Infinity : Number(row.nenkinStart);
-              const rangeEnd = row.nenkinEnd === null || row.nenkinEnd === '' || row.nenkinEnd === undefined ? Infinity : Number(row.nenkinEnd);
-              return salaryTotal >= rangeStart && salaryTotal < rangeEnd;
-            });
-            if (found) {
-              this.autoStdSalaryPension = found['nenkinMonthly'] ?? null;
-              this.autoStdSalaryPensionGrade = found['nenkinGrade'] ?? null;
-              console.log('標準報酬月額（厚生年金）自動判定:', found['nenkinMonthly'], '等級:', found['nenkinGrade']);
-            } else {
-              this.autoStdSalaryPension = null;
-              this.autoStdSalaryPensionGrade = null;
-              console.log('該当する標準報酬月額（厚生年金）の等級が見つかりませんでした');
-            }
-          }
-          // 合算標準報酬月額（健康保険・介護保険）が空欄/nullの場合、等級をkenpo_standardMonthlySararyから取得
-          if ((this.employee.combinedStdSalaryKenpo === null || this.employee.combinedStdSalaryKenpo === '' || this.employee.combinedStdSalaryKenpo === undefined)
-            && this.employee.combinedSalary !== null && this.employee.combinedSalary !== '' && this.employee.combinedSalary !== undefined) {
-            const kenpoCol = collection(this.firestore, 'kenpo_standardMonthlySarary');
-            const kenpoSnap = await getDocs(kenpoCol);
-            const combinedSalary = Number(this.employee.combinedSalary);
-            const found = kenpoSnap.docs.map(doc => doc.data()).find((row: any) => {
-              const rangeStart = row.monthlyRangeStart === null || row.monthlyRangeStart === '' || row.monthlyRangeStart === undefined ? -Infinity : Number(row.monthlyRangeStart);
-              const rangeEnd = row.monthlyRangeEnd === null || row.monthlyRangeEnd === '' || row.monthlyRangeEnd === undefined ? Infinity : Number(row.monthlyRangeEnd);
-              return combinedSalary >= rangeStart && combinedSalary < rangeEnd;
-            });
-            if (found) {
-              this.autoCombinedStdSalaryKenpo = found['standardMonthlySalary'] ?? null;
-              this.autoCombinedStdSalaryKenpoGrade = found['grade'] ?? null;
-              console.log('合算標準報酬月額（健康保険・介護保険）自動判定:', found['standardMonthlySalary'], '等級:', found['grade']);
-            } else {
-              this.autoCombinedStdSalaryKenpo = null;
-              this.autoCombinedStdSalaryKenpoGrade = null;
-              console.log('該当する合算標準報酬月額（健康保険・介護保険）の等級が見つかりませんでした');
-            }
-          }
-          // 合算標準報酬月額（厚生年金）が空欄/nullの場合、等級をnenkin_standardMonthlySararyから取得
-          if ((this.employee.combinedStdSalaryNenkin === null || this.employee.combinedStdSalaryNenkin === '' || this.employee.combinedStdSalaryNenkin === undefined)
-            && this.employee.combinedSalary !== null && this.employee.combinedSalary !== '' && this.employee.combinedSalary !== undefined) {
-            const nenkinCol = collection(this.firestore, 'nenkin_standardMonthlySarary');
-            const nenkinSnap = await getDocs(nenkinCol);
-            const combinedSalary = Number(this.employee.combinedSalary);
-            const found = nenkinSnap.docs.map(doc => doc.data()).find((row: any) => {
-              const rangeStart = row.nenkinStart === null || row.nenkinStart === '' || row.nenkinStart === undefined ? -Infinity : Number(row.nenkinStart);
-              const rangeEnd = row.nenkinEnd === null || row.nenkinEnd === '' || row.nenkinEnd === undefined ? Infinity : Number(row.nenkinEnd);
-              return combinedSalary >= rangeStart && combinedSalary < rangeEnd;
-            });
-            if (found) {
-              this.autoCombinedStdSalaryNenkin = found['nenkinMonthly'] ?? null;
-              this.autoCombinedStdSalaryNenkinGrade = found['nenkinGrade'] ?? null;
-              console.log('合算標準報酬月額（厚生年金）自動判定:', found['nenkinMonthly'], '等級:', found['nenkinGrade']);
-            } else {
-              this.autoCombinedStdSalaryNenkin = null;
-              this.autoCombinedStdSalaryNenkinGrade = null;
-              console.log('該当する合算標準報酬月額（厚生年金）の等級が見つかりませんでした');
-            }
-          }
+          });
+          // standardsサブコレクション取得
+          const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+          const standardsSnap = await getDocs(standardsCol);
+          this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          console.log('standardsList:', this.standardsList);
           return;
         }
       }
@@ -220,5 +180,86 @@ export class EmployeeDetailComponent implements OnInit {
 
   onRecalc() {
     this.router.navigate(['/calculate', this.employeeId]);
+  }
+
+  formatWithComma(value: string): string {
+    if (!value) return '';
+    // 数値以外の文字を除去
+    const num = value.replace(/[^\d]/g, '');
+    if (!num) return '';
+    return Number(num).toLocaleString();
+  }
+
+  getMonthlyTotal(i: number): string {
+    const fixed = Number((this.fixedWages[i] || '').replace(/,/g, '')) || 0;
+    const nonFixed = Number((this.nonFixedWages[i] || '').replace(/,/g, '')) || 0;
+    if (!fixed && !nonFixed) return '';
+    return (fixed + nonFixed).toLocaleString();
+  }
+
+  async saveMonthlySalary(i: number) {
+    if (!this.employeeId) return;
+    const fixed = Number((this.fixedWages[i] || '').replace(/,/g, '')) || 0;
+    const nonFixed = Number((this.nonFixedWages[i] || '').replace(/,/g, '')) || 0;
+    const total = fixed + nonFixed;
+    const month = this.months[i];
+    const data = {
+      nendo: this.currentNendo,
+      month,
+      fixedWages: fixed,
+      nonFixedWages: nonFixed,
+      total,
+      employeeId: this.employeeId
+    };
+    const employeeDocRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    const monthlySararyCol = collection(employeeDocRef, 'monthlySarary');
+    // 既存ドキュメントを検索
+    const q = query(monthlySararyCol, where('nendo', '==', this.currentNendo), where('month', '==', month));
+    const snap = await getDocs(q);
+    if (!snap.empty) {
+      // 既存があれば上書き
+      const docRef = snap.docs[0].ref;
+      await setDoc(docRef, data, { merge: true });
+    } else {
+      // なければ新規作成
+      await addDoc(monthlySararyCol, data);
+    }
+    this.isSaved[i] = true;
+    this.savedFixedWages[i] = this.fixedWages[i];
+    this.savedNonFixedWages[i] = this.nonFixedWages[i];
+    this.justSaved[i] = true;
+    window.location.reload();
+  }
+
+  onBlur(i: number, type: 'fixed' | 'nonFixed') {
+    this.isEditing[i] = false;
+    // 保存ボタンが表示されている間は値を戻さない
+    if (!this.isSaved[i] || this.isEditing[i] || this.fixedWages[i] !== this.savedFixedWages[i] || this.nonFixedWages[i] !== this.savedNonFixedWages[i]) {
+      return;
+    }
+    if (this.justSaved[i]) {
+      this.justSaved[i] = false;
+      return;
+    }
+    if (this.isSaved[i]) {
+      if (type === 'fixed') {
+        this.fixedWages[i] = this.savedFixedWages[i];
+      } else {
+        this.nonFixedWages[i] = this.savedNonFixedWages[i];
+      }
+    }
+  }
+
+  copyWages(i: number) {
+    if (i > 0) {
+      this.fixedWages[i] = this.fixedWages[i-1];
+      this.nonFixedWages[i] = this.nonFixedWages[i-1];
+      if (
+        this.fixedWages[i] !== this.savedFixedWages[i] ||
+        this.nonFixedWages[i] !== this.savedNonFixedWages[i]
+      ) {
+        this.isEditing[i] = true;
+      }
+    }
   }
 }

@@ -1,166 +1,180 @@
-<div class="detail-header">
-  <div class="detail-header-left">
-    <h2 class="employee-detail-title" style="display: flex; align-items: center; gap: 12px;">
-      従業員詳細
-      <button type="button" class="edit-btn" [routerLink]="['/employee-edit', employeeId]">編集</button>
-      <button type="button" class="delete-btn">削除</button>
-      <div *ngIf="hasUnnotified" class="unnotified-warning">
-        ※未通知の標準報酬月額は暫定値です※<br>
-        通知を受け取り次第正式な標準報酬月額を入力し、再計算してください。
-      </div>
-    </h2>
-  </div>
-  <div class="detail-header-right">
-    <h2 class="insurance-title">社会保険料</h2>
-  </div>
-</div>
-<div class="employee-detail-layout">
-  <div class="employee-detail-left">
-    <div *ngIf="employee">
-      <div class="employee-detail-grid">
-        <ng-container *ngFor="let field of displayFields">
-          <!-- 標準報酬月額（健康保険・介護保険）未通知表示 -->
-          <ng-container *ngIf="field.key === 'stdSalaryHealth'">
-            <div *ngIf="(!employee.stdSalaryHealth || employee.stdSalaryHealth === '' || employee.stdSalaryHealth === null) && (!employee.stdSalaryHealthGrade || employee.stdSalaryHealthGrade === '' || employee.stdSalaryHealthGrade === null)" class="employee-detail-item unnotified">
-              <div class="employee-detail-label">標準報酬月額<br>(健康保険・介護保険)※未通知</div>
-              <div class="employee-detail-value">
-                <ng-container *ngIf="autoStdSalaryHealth && autoStdSalaryHealthGrade">
-                  <span>{{ autoStdSalaryHealth | number:'1.0-0' }}円（等級: {{ autoStdSalaryHealthGrade }}）</span>
-                </ng-container>
-              </div>
-            </div>
-            <div *ngIf="employee.stdSalaryHealth && employee.stdSalaryHealthGrade" class="employee-detail-item">
-              <div class="employee-detail-label">{{ field.label }}</div>
-              <div class="employee-detail-value">{{ employee.stdSalaryHealth | number:'1.0-0' }}円（等級：{{ employee.stdSalaryHealthGrade }}）</div>
-            </div>
-          </ng-container>
-          <!-- 標準報酬月額（厚生年金）未通知表示 -->
-          <ng-container *ngIf="field.key === 'stdSalaryPension'">
-            <div *ngIf="(!employee.stdSalaryPension || employee.stdSalaryPension === '' || employee.stdSalaryPension === null) && (!employee.stdSalaryPensionGrade || employee.stdSalaryPensionGrade === '' || employee.stdSalaryPensionGrade === null)" class="employee-detail-item unnotified">
-              <div class="employee-detail-label">標準報酬月額(厚生年金)※未通知</div>
-              <div class="employee-detail-value">
-                <ng-container *ngIf="autoStdSalaryPension && autoStdSalaryPensionGrade">
-                  <span>{{ autoStdSalaryPension | number:'1.0-0' }}円（等級: {{ autoStdSalaryPensionGrade }}）</span>
-                </ng-container>
-              </div>
-            </div>
-            <div *ngIf="employee.stdSalaryPension && employee.stdSalaryPensionGrade" class="employee-detail-item">
-              <div class="employee-detail-label">{{ field.label }}</div>
-              <div class="employee-detail-value">{{ employee.stdSalaryPension | number:'1.0-0' }}円（等級：{{ employee.stdSalaryPensionGrade }}）</div>
-            </div>
-          </ng-container>
-          <!-- 合算標準報酬月額（健康保険・介護保険）未通知表示（「二以上事業所勤務区分」が該当ありの場合のみ） -->
-          <ng-container *ngIf="field.key === 'combinedStdSalaryKenpo' && employee.multiOffice === '二以上事業所勤務'">
-            <div *ngIf="(!employee.combinedStdSalaryKenpo || employee.combinedStdSalaryKenpo === '' || employee.combinedStdSalaryKenpo === null) && (!employee.combinedStdSalaryKenpoGrade || employee.combinedStdSalaryKenpoGrade === '' || employee.combinedStdSalaryKenpoGrade === null)" class="employee-detail-item unnotified">
-              <div class="employee-detail-label">合算標準報酬月額<br>(健康保険・介護保険)※未通知</div>
-              <div class="employee-detail-value">
-                <ng-container *ngIf="autoCombinedStdSalaryKenpo && autoCombinedStdSalaryKenpoGrade">
-                  <span>{{ autoCombinedStdSalaryKenpo | number:'1.0-0' }}円（等級: {{ autoCombinedStdSalaryKenpoGrade }}）</span>
-                </ng-container>
-              </div>
-            </div>
-            <div *ngIf="employee.combinedStdSalaryKenpo && employee.combinedStdSalaryKenpoGrade" class="employee-detail-item">
-              <div class="employee-detail-label">{{ field.label }}</div>
-              <div class="employee-detail-value">{{ employee.combinedStdSalaryKenpo | number:'1.0-0' }}円（等級：{{ employee.combinedStdSalaryKenpoGrade }}）</div>
-            </div>
-          </ng-container>
-          <!-- 合算標準報酬月額（厚生年金）未通知表示（「二以上事業所勤務区分」が該当ありの場合のみ） -->
-          <ng-container *ngIf="field.key === 'combinedStdSalaryNenkin' && employee.multiOffice === '二以上事業所勤務'">
-            <div *ngIf="(!employee.combinedStdSalaryNenkin || employee.combinedStdSalaryNenkin === '' || employee.combinedStdSalaryNenkin === null) && (!employee.combinedStdSalaryNenkinGrade || employee.combinedStdSalaryNenkinGrade === '' || employee.combinedStdSalaryNenkinGrade === null)" class="employee-detail-item unnotified">
-              <div class="employee-detail-label">合算標準報酬月額<br>(厚生年金)※未通知</div>
-              <div class="employee-detail-value">
-                <ng-container *ngIf="autoCombinedStdSalaryNenkin && autoCombinedStdSalaryNenkinGrade">
-                  <span>{{ autoCombinedStdSalaryNenkin | number:'1.0-0' }}円（等級: {{ autoCombinedStdSalaryNenkinGrade }}）</span>
-                </ng-container>
-              </div>
-            </div>
-            <div *ngIf="employee.combinedStdSalaryNenkin && employee.combinedStdSalaryNenkinGrade" class="employee-detail-item">
-              <div class="employee-detail-label">{{ field.label }}</div>
-              <div class="employee-detail-value">{{ employee.combinedStdSalaryNenkin | number:'1.0-0' }}円（等級：{{ employee.combinedStdSalaryNenkinGrade }}）</div>
-            </div>
-          </ng-container>
-          <!-- その他の項目は従来通り表示 -->
-          <ng-container *ngIf="field.key !== 'stdSalaryHealth' && field.key !== 'stdSalaryPension' && field.key !== 'combinedStdSalaryKenpo' && field.key !== 'combinedStdSalaryNenkin'">
-            <div class="employee-detail-item"
-              *ngIf="(field.key === 'leaveDate') ? true : (employee[field.key] !== null && employee[field.key] !== undefined && employee[field.key] !== '' && !(field.key === 'dependentRelations' && (!employee.dependentRelations || employee.dependentRelations.length === 0)))">
-              <div class="employee-detail-label">{{ field.label }}</div>
-              <div class="employee-detail-value">
-                <!-- 氏名は姓＋名を連結表示 -->
-                <ng-container *ngIf="field.key === 'lastName'">
-                  {{ employee.lastName || '' }} {{ employee.firstName || '' }}
-                </ng-container>
-                <!-- 被扶養者続柄は配列ならカンマ区切りで表示 -->
-                <ng-container *ngIf="field.key === 'dependentRelations' && employee.dependentRelations">
-                  {{ employee.dependentRelations.join ? employee.dependentRelations.join('、') : employee.dependentRelations }}
-                </ng-container>
-                <!-- その他の項目 -->
-                <ng-container *ngIf="field.key !== 'lastName' && field.key !== 'dependentRelations'">
-                  <!-- 金額フィールドは3桁カンマ区切りで表示 -->
-                  <ng-container *ngIf="['combinedStdSalaryKenpo', 'combinedStdSalaryNenkin', 'salaryCash', 'salaryInKind', 'salaryTotal', 'combinedSalary'].includes(field.key)">
-                    {{ employee[field.key] | number:'1.0-0' }}円
-                  </ng-container>
-                  <!-- その他はそのまま表示 -->
-                  <ng-container *ngIf="!['combinedStdSalaryKenpo', 'combinedStdSalaryNenkin', 'salaryCash', 'salaryInKind', 'salaryTotal', 'combinedSalary', 'combinedStdSalaryKenpoGrade', 'combinedStdSalaryNenkinGrade'].includes(field.key)">
-                    <ng-container *ngIf="field.key === 'employmentType'; else normalField">
-                      {{ displayEmploymentType }}
-                    </ng-container>
-                    <ng-template #normalField>
-                      {{ employee[field.key] }}
-                    </ng-template>
-                  </ng-container>
-                </ng-container>
-              </div>
-            </div>
-            <div *ngIf="field.key === 'birthdate' && currentAge !== null" class="employee-detail-item">
-              <div class="employee-detail-label">年齢</div>
-              <div class="employee-detail-value">{{ currentAge }}</div>
-            </div>
-          </ng-container>
-        </ng-container>
-      </div>
+<div class="detail-header"></div>
+<div class="detail-main-wrapper">
+  <div class="detail-row detail-row-top">
+    <div class="detail-container detail-container-1">
+      <span class="container-title">従業員情報</span>
+      <div class="info-row"><span class="info-label">管理番号</span><span class="info-value">{{ employee?.managementNumber || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">氏名</span><span class="info-value">{{ (employee?.lastName || employee?.firstName) ? (employee?.lastName + ' ' + employee?.firstName) : '---' }}</span></div>
+      <div class="info-row"><span class="info-label">性別</span><span class="info-value">{{ employee?.gender || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">生年月日</span><span class="info-value">{{ employee?.birthdate || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">年齢</span><span class="info-value">{{ currentAge !== undefined && currentAge !== null ? (currentAge + '歳') : '---' }}</span></div>
+      <div class="info-row"><span class="info-label">国籍</span><span class="info-value">{{ employee?.nationality || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">所属事業所</span><span class="info-value">{{ employee?.officeName || '---' }}</span></div>
     </div>
-    <div *ngIf="!employee">
-      <p>従業員データを取得中...</p>
+    <div class="detail-container detail-container-2">
+      <span class="container-title">雇用契約情報</span>
+      <div class="info-row"><span class="info-label">雇用形態</span><span class="info-value">{{ employee?.employmentType || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">雇用契約期間</span><span class="info-value">{{ employee?.employmentPeriodType || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">雇用契約開始日</span><span class="info-value">{{ employee?.employmentPeriodStart || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">雇用契約終了日</span><span class="info-value">{{ employee?.employmentPeriodEnd || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">所定労働日数（月）</span><span class="info-value">{{ employee?.workDays !== undefined && employee?.workDays !== null && employee?.workDays !== '' ? (employee?.workDays + '日') : '---' }}</span></div>
+      <div class="info-row"><span class="info-label">所定労働時間（週）</span><span class="info-value">{{ employee?.workHours !== undefined && employee?.workHours !== null && employee?.workHours !== '' ? (employee?.workHours + '時間') : '---' }}</span></div>
+      <div class="info-row"><span class="info-label">報酬月額（通貨）</span><span class="info-value">{{ employee?.salaryCash ? (employee?.salaryCash | number:'1.0-0') + '円' : '---' }}</span></div>
+      <div class="info-row"><span class="info-label">報酬月額（現物）</span><span class="info-value">{{ employee?.salaryInKind ? (employee?.salaryInKind | number:'1.0-0') + '円' : '---' }}</span></div>
+      <div class="info-row"><span class="info-label">報酬月額（合計）</span><span class="info-value">{{ employee?.salaryTotal ? (employee?.salaryTotal | number:'1.0-0') + '円' : '---' }}</span></div>
+    </div>
+    <div class="detail-container detail-container-3">
+      <span class="container-title">その他</span>
+      <div class="info-row"><span class="info-label">扶養情報</span><span class="info-value">{{ employee?.dependentStatus || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">被扶養者</span><span class="info-value">{{ employee?.dependentRelations || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">学生区分</span><span class="info-value">{{ employee?.isStudent || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">外国派遣労働者区分</span><span class="info-value">{{ employee?.dispatchedAbroad || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">二以上事業所勤務区分</span><span class="info-value">{{ employee?.multiOffice || '---' }}</span></div>
     </div>
   </div>
-  <div class="employee-detail-right">
-    <table class="insurance-table">
-      <thead>
-        <tr>
-          <th></th>
-          <th>全額</th>
-          <th>会社負担</th>
-          <th>従業員負担</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <th>健康保険料</th>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr>
-          <th>介護保険料</th>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr>
-          <th>厚生年金保険料</th>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-        <tr>
-          <th>合計</th>
-          <td></td>
-          <td></td>
-          <td></td>
-        </tr>
-      </tbody>
-    </table>
-    <button type="button" class="recalc-btn" (click)="onRecalc()">再計算</button>
-    <!-- 右側のコンテナ：今は空、必要に応じて内容を追加 -->
+  <div class="detail-row detail-row-bottom">
+    <div class="detail-container detail-container-4">
+      <span class="container-title">{{ currentNendo }}の月収</span>
+      <div class="monthly-income-table-wrapper">
+        <table class="monthly-income-table">
+          <thead>
+            <tr>
+              <th></th>
+              <th>固定的賃金</th>
+              <th>非固定的賃金</th>
+              <th>合計</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let month of ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月']; let i = index">
+              <th class="vertical-label">
+                <span>{{ month }}</span>
+              </th>
+              <td><input type="text" class="monthly-income-input" [(ngModel)]="fixedWages[i]" (input)="fixedWages[i]=formatWithComma(fixedWages[i])" (focus)="isEditing[i]=true" (blur)="onBlur(i, 'fixed')" /></td>
+              <td><input type="text" class="monthly-income-input" [(ngModel)]="nonFixedWages[i]" (input)="nonFixedWages[i]=formatWithComma(nonFixedWages[i])" (focus)="isEditing[i]=true" (blur)="onBlur(i, 'nonFixed')" /></td>
+              <td class="monthly-income-total-cell">{{ getMonthlyTotal(i) }}</td>
+              <td>
+                <button
+                  class="monthly-income-copy-btn"
+                  [style.visibility]="i === 0 ? 'hidden' : 'visible'"
+                  [attr.aria-label]="month + 'をコピー'"
+                  (click)="i > 0 && copyWages(i)">
+                  <span class="material-icons">content_copy</span>
+                </button>
+                <button *ngIf="!isSaved[i] || isEditing[i] || fixedWages[i] !== savedFixedWages[i] || nonFixedWages[i] !== savedNonFixedWages[i]" class="monthly-income-save-btn" [attr.aria-label]="month + 'を保存'" (click)="saveMonthlySalary(i)">
+                  <span class="material-icons">save_alt</span>
+                </button>
+                <button *ngIf="isSaved[i] && !isEditing[i] && fixedWages[i] === savedFixedWages[i] && nonFixedWages[i] === savedNonFixedWages[i]" class="monthly-income-save-btn saved" disabled aria-label="保存済み">
+                  <span class="material-icons">check_circle</span>
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+    <div class="detail-container detail-container-5"><span class="container-title">社会保険情報</span>
+      <button class="calc-insurance-btn">社会保険料を算出する</button>
+      <table class="insurance-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>全額</th>
+            <th>会社負担</th>
+            <th>従業員負担</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>健康保険</th>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>介護保険</th>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>厚生年金</th>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+          <tr>
+            <th>合計</th>
+            <td></td>
+            <td></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="info-row">
+        <span class="info-label">標準報酬月額（健康保険・介護保険）</span>
+        <span class="info-value">
+          {{
+            standardsList.length > 0
+              ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') + '円'
+              : (employee?.stdSalaryHealth ? (employee?.stdSalaryHealth | number:'1.0-0') + '円' : '---')
+          }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">等級（健康保険・介護保険）</span>
+        <span class="info-value">
+          {{
+            standardsList.length > 0
+              ? (standardsList[standardsList.length-1]?.kenpoGrade || '---')
+              : (employee?.stdSalaryHealthGrade || '---')
+          }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">標準報酬月額（厚生年金）</span>
+        <span class="info-value">
+          {{
+            standardsList.length > 0
+              ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') + '円'
+              : (employee?.stdSalaryPension ? (employee?.stdSalaryPension | number:'1.0-0') + '円' : '---')
+          }}
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">等級（厚生年金）</span>
+        <span class="info-value">
+          {{
+            standardsList.length > 0
+              ? (standardsList[standardsList.length-1]?.nenkinGrade || '---')
+              : (employee?.stdSalaryPensionGrade || '---')
+          }}
+        </span>
+      </div>
+      <div class="info-row"><span class="info-label">資格取得年月日</span><span class="info-value">{{ employee?.joinDate || '---' }}</span></div>
+      <div class="info-row"><span class="info-label">資格喪失年月日</span><span class="info-value">{{ employee?.leaveDate || '---' }}</span></div>
+      <div class="info-row">
+        <span class="info-label">標準報酬月額最終改定月</span>
+        <span class="info-value">
+          <ng-container *ngIf="standardsList.length > 0 && standardsList[standardsList.length-1]?.updatedAt">
+            {{ (standardsList[standardsList.length-1].updatedAt.toDate() | date:'yyyy-MM') }}
+          </ng-container>
+          <ng-container *ngIf="!(standardsList.length > 0 && standardsList[standardsList.length-1]?.updatedAt)">
+            ---
+          </ng-container>
+        </span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">改定種別</span>
+        <span class="info-value">
+          {{
+            standardsList.length > 0
+              ? (standardsList[standardsList.length-1]?.revisionType || '---')
+              : '---'
+          }}
+        </span>
+      </div>
+    </div>
   </div>
 </div>

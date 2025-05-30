@@ -23,6 +23,7 @@ export class CalculateComponent implements OnInit {
     const month = today.getMonth() + 1;
     return month >= 4 ? year : year - 1;
   })();
+  public standardsList: any[] = [];
   constructor(private route: ActivatedRoute, private firestore: Firestore) {}
   async ngOnInit() {
     this.employeesId = this.route.snapshot.paramMap.get('id') || '';
@@ -54,6 +55,10 @@ export class CalculateComponent implements OnInit {
                 .find(row => row['prefecture'] === this.officeData.officePrefecture && String(row['year']) === String(this.currentNendo)) || null;
             }
           }
+          // standardsサブコレクション取得
+          const standardsCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/standards`);
+          const standardsSnap = await getDocs(standardsCol);
+          this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           return;
         }
       }
@@ -91,23 +96,27 @@ export class CalculateComponent implements OnInit {
     return num.toLocaleString();
   }
   get healthInsuranceAmount(): string {
-    if (!this.employeeData || !this.insuranceRateData) return '';
-    const salary = this.employeeData.stdSalaryHealth;
+    if (!this.insuranceRateData) return '';
+    const stdSalary = this.standardsList.length > 0
+      ? this.standardsList[this.standardsList.length-1].kenpoStandardMonthly
+      : (this.employeeData ? this.employeeData.stdSalaryHealth : null);
     const rate = this.insuranceRateData.health_insurance;
-    if (salary == null || rate == null) return '';
+    if (stdSalary == null || rate == null) return '';
     try {
-      return this.formatWithComma(new Decimal(salary).times(new Decimal(rate)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
     } catch {
       return '';
     }
   }
   get pensionInsuranceAmount(): string {
-    if (!this.employeeData || !this.insuranceRateData) return '';
-    const salary = this.employeeData.stdSalaryPension;
+    if (!this.insuranceRateData) return '';
+    const stdSalary = this.standardsList.length > 0
+      ? this.standardsList[this.standardsList.length-1].nenkinStandardMonthly
+      : (this.employeeData ? this.employeeData.stdSalaryPension : null);
     const rate = this.insuranceRateData.pension_insurance;
-    if (salary == null || rate == null) return '';
+    if (stdSalary == null || rate == null) return '';
     try {
-      return this.formatWithComma(new Decimal(salary).times(new Decimal(rate)).toFixed(0));
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toFixed(0));
     } catch {
       return '';
     }
@@ -161,12 +170,14 @@ export class CalculateComponent implements OnInit {
     }
   }
   get careInsuranceAmount(): string {
-    if (!this.employeeData || !this.insuranceRateData) return '';
-    const salary = this.employeeData.stdSalaryHealth;
+    if (!this.insuranceRateData) return '';
+    const stdSalary = this.standardsList.length > 0
+      ? this.standardsList[this.standardsList.length-1].kenpoStandardMonthly
+      : (this.employeeData ? this.employeeData.stdSalaryHealth : null);
     const rate = this.insuranceRateData.care_insurance;
-    if (salary == null || rate == null) return '';
+    if (stdSalary == null || rate == null) return '';
     try {
-      return this.formatWithComma(new Decimal(salary).times(new Decimal(rate)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
     } catch {
       return '';
     }
@@ -239,7 +250,18 @@ export class CalculateComponent implements OnInit {
   onSaveCalc = async () => {
     if (!this.employeesId) return;
     const insurancesCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeesId, 'insurances');
-    const data = {
+    // 最新のinsurancesドキュメントを取得
+    const insurancesSnap = await getDocs(insurancesCol);
+    let latestDoc: Record<string, any> = {};
+    let latestCreatedAt: any = null;
+    insurancesSnap.forEach(doc => {
+      const data: Record<string, any> = doc.data();
+      if (!latestCreatedAt || (data['createdAt'] && data['createdAt'].toMillis && data['createdAt'].toMillis() > latestCreatedAt)) {
+        latestCreatedAt = data['createdAt'] && data['createdAt'].toMillis ? data['createdAt'].toMillis() : null;
+        latestDoc = data;
+      }
+    });
+    const data: Record<string, any> = {
       healthInsuranceTotal: this.healthInsuranceAmount.replace(/,/g, ''),
       healthInsuranceCompany: this.healthInsuranceAmountCompany.replace(/,/g, ''),
       healthInsuranceEmployee: this.healthInsuranceAmountEmployee.replace(/,/g, ''),
@@ -255,6 +277,14 @@ export class CalculateComponent implements OnInit {
       employeeId: this.employeesId,
       createdAt: serverTimestamp(),
     };
+    // createdBy以外の値がすべて同じなら保存しない
+    if (Object.keys(latestDoc).length > 0) {
+      const keys = Object.keys(data).filter(k => k !== 'createdAt' && k !== 'createdBy');
+      const isSame = keys.every(k => String(data[k]) === String(latestDoc[k]));
+      if (isSame) {
+        return; // 何も保存しない
+      }
+    }
     await addDoc(insurancesCol, data);
   };
 }
