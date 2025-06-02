@@ -153,23 +153,27 @@ div[ngif] {
   }
 }
 
-.edit-btn, .delete-btn {
-  font-size: 0.92rem;
-  padding: 3px 10px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin-left: 4px;
-  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+.edit-btn-row {
+  display: flex;
+  justify-content: center;
+  margin:0;
 }
 .edit-btn {
   background: #1976d2;
   color: #fff;
+  font-size: 1.01rem;
+  font-weight: 600;
+  padding: 0.45rem 1.6rem;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
+  transition: background 0.2s;
 }
 .edit-btn:hover {
   background: #1565c0;
 }
+
 .delete-btn {
   background: #e53935;
   color: #fff;

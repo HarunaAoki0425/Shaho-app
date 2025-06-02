@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Firestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import Decimal from 'decimal.js';
@@ -24,8 +24,10 @@ export class CalculateComponent implements OnInit {
     return month >= 4 ? year : year - 1;
   })();
   public standardsList: any[] = [];
-  constructor(private route: ActivatedRoute, private firestore: Firestore) {}
+  public isLoading: boolean = true;
+  constructor(private route: ActivatedRoute, private firestore: Firestore, private router: Router) {}
   async ngOnInit() {
+    this.isLoading = true;
     this.employeesId = this.route.snapshot.paramMap.get('id') || '';
     // companiesコレクションを全件取得
     const companiesCol = collection(this.firestore, 'companies');
@@ -59,11 +61,13 @@ export class CalculateComponent implements OnInit {
           const standardsCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/standards`);
           const standardsSnap = await getDocs(standardsCol);
           this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          this.isLoading = false;
           return;
         }
       }
     }
     console.log('currentNendo:', this.currentNendo);
+    this.isLoading = false;
   }
   get healthInsuranceRate100(): string {
     if (!this.insuranceRateData || this.insuranceRateData.health_insurance == null) return '';
@@ -286,5 +290,6 @@ export class CalculateComponent implements OnInit {
       }
     }
     await addDoc(insurancesCol, data);
+    this.router.navigate(['/employee-detail', this.employeesId]);
   };
 }

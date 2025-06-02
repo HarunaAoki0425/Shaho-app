@@ -39,9 +39,15 @@ export class CompanySettingComponent implements OnInit {
   isLoading: boolean = true;
   companyNameView: string = '';
   officesView: any[] = [];
+  companyView: any = null;
 
   showOfficeDialog: boolean = false;
   officeForm = { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null };
+
+  employmentTypes: string[] = [];
+  customEmploymentTypes: string[] = [];
+  customEmploymentTypeInput: string = '';
+  showCustomTypeInput: boolean = false;
 
   async ngOnInit() {
     runInInjectionContext(this.injector, () => {
@@ -55,6 +61,7 @@ export class CompanySettingComponent implements OnInit {
             if (!snap.empty) {
               this.showForm = false;
               this.companyNameView = snap.docs[0].data()['companyName'] || '';
+              this.companyView = { id: snap.docs[0].id, ...snap.docs[0].data() };
               const companyDocRef = snap.docs[0].ref;
               if (!companyDocRef) return;
               const officesCol = collection(companyDocRef, 'offices');
@@ -94,7 +101,8 @@ export class CompanySettingComponent implements OnInit {
         createdBy: this.user!.uid,
         createdAt: serverTimestamp(),
         updatedBy: null,
-        updatedAt: null
+        updatedAt: null,
+        employmentType: this.employmentTypes
       });
       const companyId = companyDocRef.id;
       for (let i = 0; i < this.offices.length; i++) {
@@ -179,5 +187,30 @@ export class CompanySettingComponent implements OnInit {
       await deleteDoc(targetDoc.ref);
     });
     window.location.reload();
+  }
+
+  onEmploymentTypeChange(event: any, type: string) {
+    if (event.target.checked) {
+      if (!this.employmentTypes.includes(type)) {
+        this.employmentTypes.push(type);
+      }
+    } else {
+      this.employmentTypes = this.employmentTypes.filter(t => t !== type);
+      if (this.customEmploymentTypes.includes(type)) {
+        this.customEmploymentTypes = this.customEmploymentTypes.filter(t => t !== type);
+      }
+    }
+  }
+
+  addCustomEmploymentType() {
+    const value = this.customEmploymentTypeInput.trim();
+    if (value && !this.customEmploymentTypes.includes(value) && !['正社員', '契約社員', 'パート・アルバイト'].includes(value)) {
+      this.customEmploymentTypes.push(value);
+      if (!this.employmentTypes.includes(value)) {
+        this.employmentTypes.push(value);
+      }
+      this.customEmploymentTypeInput = '';
+      this.showCustomTypeInput = false;
+    }
   }
 }

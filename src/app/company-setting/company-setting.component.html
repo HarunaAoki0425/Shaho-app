@@ -9,6 +9,43 @@
       </label>
       <input type="text" name="companyName" [(ngModel)]="companyName" required />
     </div>
+    <!-- 雇用形態種別設定枠 ここから -->
+    <div class="employment-type-setting-row">
+      <label>雇用形態種別</label>
+      <div class="employment-type-checkboxes">
+        <label>
+          <input type="checkbox"
+                 [checked]="employmentTypes.includes('正社員')"
+                 (change)="onEmploymentTypeChange($event, '正社員')">
+          正社員
+        </label>
+        <label>
+          <input type="checkbox"
+                 [checked]="employmentTypes.includes('契約社員')"
+                 (change)="onEmploymentTypeChange($event, '契約社員')">
+          契約社員
+        </label>
+        <label>
+          <input type="checkbox"
+                 [checked]="employmentTypes.includes('パート・アルバイト')"
+                 (change)="onEmploymentTypeChange($event, 'パート・アルバイト')">
+          パート・アルバイト
+        </label>
+        <label *ngFor="let customType of customEmploymentTypes">
+          <input type="checkbox"
+                 [checked]="employmentTypes.includes(customType)"
+                 (change)="onEmploymentTypeChange($event, customType)">
+          {{ customType }}
+        </label>
+        <button type="button" class="add-custom-type-btn" (click)="showCustomTypeInput = true">＋</button>
+      </div>
+      <div *ngIf="showCustomTypeInput" class="custom-type-input-row">
+        <input type="text" [(ngModel)]="customEmploymentTypeInput" [ngModelOptions]="{standalone: true}" placeholder="雇用形態を入力">
+        <button type="button" (click)="addCustomEmploymentType()">追加</button>
+        <button type="button" (click)="showCustomTypeInput = false">キャンセル</button>
+      </div>
+    </div>
+    <!-- 雇用形態種別設定枠 ここまで -->
     <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
     <ng-container *ngFor="let office of offices; let i = index">
@@ -63,6 +100,10 @@
   <div class="company-info-view" *ngIf="!isLoading && !showForm">
     <h2>会社名</h2>
     <div class="company-name-placeholder">{{ companyNameView }}</div>
+    <h2>雇用形態種別</h2>
+    <div class="employment-type-placeholder">
+      {{ companyView?.employmentType?.join('　') || '---' }}
+    </div>
     <h3>事業所情報</h3>
     <div class="offices-placeholder">
       <div class="office-info-placeholder" *ngFor="let office of officesView">
@@ -77,15 +118,14 @@
         </div>
       </div>
     </div>
+    <div class="add-office-view-btn-outer">
+      <button type="button" class="add-office-view-btn" (click)="openOfficeDialog()">事業所追加</button>
+    </div>  
   </div>
-  <div class="add-office-view-btn-outer">
-    <button type="button" class="add-office-view-btn" (click)="openOfficeDialog()">事業所追加</button>
-  </div>
-
   <!-- 事業所追加ポップアップフォーム -->
   <div class="office-dialog-backdrop" *ngIf="showOfficeDialog">
     <div class="office-dialog">
-      <h3>事業所情報の追加</h3>
+      <h3>事業所追加</h3>
       <form (submit)="$event.preventDefault()">
         <div class="dialog-row">
           <label>事業所名</label>

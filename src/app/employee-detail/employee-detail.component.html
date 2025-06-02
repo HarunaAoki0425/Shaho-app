@@ -32,6 +32,9 @@
       <div class="info-row"><span class="info-label">二以上事業所勤務区分</span><span class="info-value">{{ employee?.multiOffice || '---' }}</span></div>
     </div>
   </div>
+  <div class="edit-btn-row">
+    <button class="edit-btn" (click)="goToEdit()">編集</button>
+  </div>
   <div class="detail-row detail-row-bottom">
     <div class="detail-container detail-container-4">
       <span class="container-title">{{ currentNendo }}の月収</span>
@@ -75,7 +78,7 @@
       </div>
     </div>
     <div class="detail-container detail-container-5"><span class="container-title">社会保険情報</span>
-      <button class="calc-insurance-btn">社会保険料を算出する</button>
+      <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
       <table class="insurance-table">
         <thead>
           <tr>
@@ -85,31 +88,34 @@
             <th>従業員負担</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody *ngIf="insurancesList.length > 0">
           <tr>
             <th>健康保険</th>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>{{ insurancesList[insurancesList.length-1]?.healthInsuranceTotal | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.healthInsuranceCompany | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.healthInsuranceEmployee | number:'1.0-0' }}円</td>
           </tr>
           <tr>
             <th>介護保険</th>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>{{ insurancesList[insurancesList.length-1]?.careInsuranceTotal | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.careInsuranceCompany | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.careInsuranceEmployee | number:'1.0-0' }}円</td>
           </tr>
           <tr>
             <th>厚生年金</th>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>{{ insurancesList[insurancesList.length-1]?.pensionInsuranceTotal | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.pensionInsuranceCompany | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.pensionInsuranceEmployee | number:'1.0-0' }}円</td>
           </tr>
           <tr>
             <th>合計</th>
-            <td></td>
-            <td></td>
-            <td></td>
+            <td>{{ insurancesList[insurancesList.length-1]?.total | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.totalCompany | number:'1.0-0' }}円</td>
+            <td>{{ insurancesList[insurancesList.length-1]?.totalEmployee | number:'1.0-0' }}円</td>
           </tr>
+        </tbody>
+        <tbody *ngIf="insurancesList.length === 0">
+          <tr><td colspan="4" style="text-align:center;">計算結果がありません</td></tr>
         </tbody>
       </table>
       <div class="info-row">

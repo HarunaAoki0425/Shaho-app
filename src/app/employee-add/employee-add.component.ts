@@ -548,7 +548,7 @@ export class EmployeeAddComponent implements OnInit {
         createdBy: this.currentUser?.uid || '',
       });
       // calculate画面に遷移
-      this.router.navigate(['/calculate', docRef.id]);
+      this.router.navigate(['/employee-detail', docRef.id]);
     } catch (error) {
       console.error('Failed to save employee data:', error);
       // 既存のエラー時処理 ...

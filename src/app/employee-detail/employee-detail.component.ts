@@ -72,6 +72,7 @@ export class EmployeeDetailComponent implements OnInit {
   public currentNendo: string = '';
   months = ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月'];
   public standardsList: any[] = [];
+  public insurancesList: any[] = [];
 
   async ngOnInit() {
     // 年度（4月始まり）を自動計算
@@ -149,11 +150,23 @@ export class EmployeeDetailComponent implements OnInit {
           const standardsSnap = await getDocs(standardsCol);
           this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           console.log('standardsList:', this.standardsList);
+          await this.fetchInsurances();
           return;
         }
       }
       console.log('該当従業員が見つかりませんでした');
     }
+  }
+
+  async fetchInsurances() {
+    if (!this.employee || !this.employee.companyId || !this.employeeId) return;
+    const insurancesCol = collection(
+      this.firestore,
+      `companies/${this.employee.companyId}/employees/${this.employeeId}/insurances`
+    );
+    const insurancesSnap = await getDocs(insurancesCol);
+    this.insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log('insurancesList:', this.insurancesList);
   }
 
   // 雇用形態の表示用
@@ -260,6 +273,18 @@ export class EmployeeDetailComponent implements OnInit {
       ) {
         this.isEditing[i] = true;
       }
+    }
+  }
+
+  goToCalculate() {
+    if (this.employeeId) {
+      this.router.navigate(['/calculate', this.employeeId]);
+    }
+  }
+
+  goToEdit() {
+    if (this.employeeId) {
+      this.router.navigate(['/employee-edit', this.employeeId]);
     }
   }
 }

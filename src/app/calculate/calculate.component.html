@@ -1,17 +1,34 @@
-<div class="calculate-container">
-  <div *ngIf="employeeData">
-    <div>健康保険（全額）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceAmount }}円</div>
-    <div>健康保険（会社負担）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountCompany }}円</div>
-    <div>健康保険（従業員負担）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountEmployee }}円</div>
-    <div>介護保険（全額）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％＝{{ careInsuranceAmount }}円</div>
-    <div>介護保険（会社負担）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountCompany }}円</div>
-    <div>介護保険（従業員負担）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountEmployee }}円</div>
-    <div>厚生年金（全額）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') : stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％＝{{ pensionInsuranceAmount }}円</div>
-    <div>厚生年金（会社負担）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') : stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountCompany }}円</div>
-    <div>厚生年金（従業員負担）: {{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') : stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountEmployee }}円</div>
-    <div>全額合計: {{ totalInsuranceAmount }}円</div>
-    <div>会社負担合計: {{ totalInsuranceAmountCompany }}円</div>
-    <div>従業員負担合計: {{ totalInsuranceAmountEmployee }}円</div>
+<div class="info-calc-flex">
+  <div>
+    <div class="office-info">
+      <div><span class="office-label">所属事業所：</span><span class="office-value">{{ officeData?.officeName || '---' }}</span></div>
+      <div><span class="office-label">所在都道府県：</span><span class="office-value">{{ officeData?.officePrefecture || '---' }}</span></div>
+      <div><span class="office-label">健康保険料率：</span><span class="office-value">{{ insuranceRateData?.health_insurance ? (insuranceRateData.health_insurance * 100) + '％' : '---' }}</span></div>
+      <div><span class="office-label">介護保険料率：</span><span class="office-value">{{ insuranceRateData?.care_insurance ? (insuranceRateData.care_insurance * 100) + '％' : '---' }}</span></div>
+      <div><span class="office-label">厚生年金保険料率：</span><span class="office-value">{{ insuranceRateData?.pension_insurance ? (insuranceRateData.pension_insurance * 100) + '％' : '---' }}</span></div>
+    </div>
+    <div class="extra-info-box">
+      <div class="extra-info-row"><span class="extra-info-label">健康保険対象：</span><span class="extra-info-value"></span></div>
+      <div class="extra-info-row"><span class="extra-info-label">介護保険：</span><span class="extra-info-value"></span></div>
+      <div class="extra-info-row"><span class="extra-info-label">厚生年金対象：</span><span class="extra-info-value"></span></div>
+    </div>
   </div>
-  <button type="button" class="save-calc-btn" (click)="onSaveCalc()">計算結果を保存</button>
+  <div class="calculate-container">
+    <button type="button" class="save-calc-btn" (click)="onSaveCalc()">計算結果を保存</button>
+    <div *ngIf="isLoading" class="loading-message">計算中・・・</div>
+    <div *ngIf="!isLoading && employeeData">
+      <div class="calc-row"><span class="calc-label">健康保険（全額）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceAmount }}円</span></div>
+      <div class="calc-row"><span class="calc-label">健康保険（会社負担）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountCompany }}円</span></div>
+      <div class="calc-row"><span class="calc-label">健康保険（従業員負担）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountEmployee }}円</span></div>
+      <div class="calc-row"><span class="calc-label">介護保険（全額）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％＝{{ careInsuranceAmount }}円</span></div>
+      <div class="calc-row"><span class="calc-label">介護保険（会社負担）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountCompany }}円</span></div>
+      <div class="calc-row"><span class="calc-label">介護保険（従業員負担）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') : stdSalaryHealthWithComma }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountEmployee }}円</span></div>
+      <div class="calc-row"><span class="calc-label">厚生年金（全額）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') : stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％＝{{ pensionInsuranceAmount }}円</span></div>
+      <div class="calc-row"><span class="calc-label">厚生年金（会社負担）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') : stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountCompany }}円</span></div>
+      <div class="calc-row"><span class="calc-label">厚生年金（従業員負担）</span><span class="calc-value">{{ standardsList.length > 0 ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') : stdSalaryPensionWithComma }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountEmployee }}円</span></div>
+      <div class="calc-row"><span class="calc-label">全額合計</span><span class="calc-value">{{ totalInsuranceAmount }}円</span></div>
+      <div class="calc-row"><span class="calc-label">会社負担合計</span><span class="calc-value">{{ totalInsuranceAmountCompany }}円</span></div>
+      <div class="calc-row"><span class="calc-label">従業員負担合計</span><span class="calc-value">{{ totalInsuranceAmountEmployee }}円</span></div>
+    </div>
+  </div>
 </div>
