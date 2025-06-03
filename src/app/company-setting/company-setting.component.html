@@ -106,16 +106,32 @@
     </div>
     <h3>事業所情報</h3>
     <div class="offices-placeholder">
-      <div class="office-info-placeholder" *ngFor="let office of officesView">
-        <div><strong>事業所名:</strong> {{ office.officeName }}</div>
-        <div><strong>都道府県:</strong> {{ office.officePrefecture }}</div>
-        <div><strong>従業員数:</strong> {{ office.employeeCount }}</div>
-        <div><strong>週の所定労働時間:</strong> {{ office.weeklyHours }}</div>
-        <div><strong>月の所定労働日数:</strong> {{ office.monthlyDays }}</div>
-        <div class="office-card-actions">
-          <button type="button" class="office-edit-btn">編集</button>
-          <button type="button" class="office-delete-btn" (click)="deleteOffice(office)">削除</button>
-        </div>
+      <div class="office-info-placeholder" *ngFor="let office of officesView; let i = index">
+        <ng-container *ngIf="editingOfficeIndex === i; else viewMode">
+          <div><strong>事業所名</strong> <input type="text" [(ngModel)]="editingOffice.officeName"></div>
+          <div><strong>都道府県</strong> <select [(ngModel)]="editingOffice.officePrefecture">
+            <option value="" disabled>選択してください</option>
+            <option *ngFor="let pref of prefectures" [value]="pref">{{ pref }}</option>
+          </select></div>
+          <div><strong>従業員数</strong> <input type="number" [(ngModel)]="editingOffice.employeeCount"></div>
+          <div><strong>週の所定労働時間<br>（正社員）</strong> <input type="number" [(ngModel)]="editingOffice.weeklyHours"></div>
+          <div><strong>月の所定労働日数<br>（正社員）</strong> <input type="number" [(ngModel)]="editingOffice.monthlyDays"></div>
+          <div class="office-card-actions">
+            <button type="button" (click)="saveEditOffice(i)">保存</button>
+            <button type="button" (click)="cancelEditOffice()">キャンセル</button>
+          </div>
+        </ng-container>
+        <ng-template #viewMode>
+          <div class="office-info-row"><span class="office-info-label">事業所名</span><span class="office-info-value">{{ office.officeName }}</span></div>
+          <div class="office-info-row"><span class="office-info-label">都道府県</span><span class="office-info-value">{{ office.officePrefecture }}</span></div>
+          <div class="office-info-row"><span class="office-info-label">従業員数</span><span class="office-info-value">{{ office.employeeCount }}人</span></div>
+          <div class="office-info-row"><span class="office-info-label">週の所定労働時間<br>（正社員）</span><span class="office-info-value">{{ office.weeklyHours }}時間</span></div>
+          <div class="office-info-row"><span class="office-info-label">月の所定労働日数<br>（正社員）</span><span class="office-info-value">{{ office.monthlyDays }}日</span></div>
+          <div class="office-card-actions">
+            <button type="button" class="office-edit-btn" (click)="startEditOffice(i, office)">編集</button>
+            <button type="button" class="office-delete-btn" (click)="deleteOffice(office)">削除</button>
+          </div>
+        </ng-template>
       </div>
     </div>
     <div class="add-office-view-btn-outer">
@@ -143,11 +159,11 @@
           <input type="number" [(ngModel)]="officeForm.employeeCount" name="dialogEmployeeCount" required />
         </div>
         <div class="dialog-row">
-          <label>週の所定労働時間</label>
+          <label>週の所定労働時間（正社員）</label>
           <input type="number" [(ngModel)]="officeForm.weeklyHours" name="dialogWeeklyHours" required />
         </div>
         <div class="dialog-row">
-          <label>月の所定労働日数</label>
+          <label>月の所定労働日数（正社員）</label>
           <input type="number" [(ngModel)]="officeForm.monthlyDays" name="dialogMonthlyDays" required />
         </div>
         <div class="dialog-btn-row">

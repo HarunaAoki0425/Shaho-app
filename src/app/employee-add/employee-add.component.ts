@@ -280,24 +280,42 @@ export class EmployeeAddComponent implements OnInit {
   onSalaryTotalChanged() {
     const total = Number(this.salaryTotal);
     // 健康保険・介護保険
-    this.selectedKenpoDoc = this.kenpoStandardMonthlySalaries.find(item => {
+    let kenpo = this.kenpoStandardMonthlySalaries.find(item => {
       const start = Number(item.monthlyRangeStart ?? -Infinity);
-      const end = Number(item.monthlyRangeEnd ?? Infinity);
+      const end = item.monthlyRangeEnd === null || item.monthlyRangeEnd === '' || item.monthlyRangeEnd === undefined
+        ? Infinity
+        : Number(item.monthlyRangeEnd);
       return total >= start && total < end;
     }) || null;
-    if (this.selectedKenpoDoc) {
-      this.stdSalaryHealth = this.selectedKenpoDoc.standardMonthlySalary ?? null;
-      this.stdSalaryHealthGrade = this.selectedKenpoDoc.grade ?? null;
+    // 最大等級（上限なし）item
+    if (!kenpo) {
+      kenpo = this.kenpoStandardMonthlySalaries.find(item =>
+        item.monthlyRangeEnd === null || item.monthlyRangeEnd === '' || item.monthlyRangeEnd === undefined
+      ) || null;
+    }
+    if (kenpo) {
+      this.stdSalaryHealth = kenpo.standardMonthlySalary ?? null;
+      this.stdSalaryHealthGrade = kenpo.grade ?? null;
     } else {
       this.stdSalaryHealth = null;
       this.stdSalaryHealthGrade = null;
     }
     // 厚生年金
-    this.selectedNenkinDoc = this.nenkinStandardMonthlySalaries.find(item => {
+    let nenkin = this.nenkinStandardMonthlySalaries.find(item => {
       const start = Number(item.nenkinStart ?? -Infinity);
-      const end = Number(item.nenkinEnd ?? Infinity);
+      const end = item.nenkinEnd === null || item.nenkinEnd === '' || item.nenkinEnd === undefined
+        ? Infinity
+        : Number(item.nenkinEnd);
       return total >= start && total < end;
     }) || null;
+    // 最大等級（上限なし）item
+    if (!nenkin) {
+      nenkin = this.nenkinStandardMonthlySalaries.find(item =>
+        item.nenkinEnd === null || item.nenkinEnd === '' || item.nenkinEnd === undefined
+      ) || null;
+    }
+    this.selectedKenpoDoc = kenpo;
+    this.selectedNenkinDoc = nenkin;
   }
 
   // 合算報酬月額から標準報酬月額（健康保険・介護保険／厚生年金）を自動取得

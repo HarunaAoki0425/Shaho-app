@@ -2,7 +2,7 @@ import { Component, OnInit, inject, Injector, runInInjectionContext } from '@ang
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
-import { Firestore, collection, addDoc, serverTimestamp, doc, query, where, getDocs, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, addDoc, serverTimestamp, doc, query, where, getDocs, deleteDoc, updateDoc } from '@angular/fire/firestore';
 
 @Component({
   selector: 'app-company-setting',
@@ -40,6 +40,8 @@ export class CompanySettingComponent implements OnInit {
   companyNameView: string = '';
   officesView: any[] = [];
   companyView: any = null;
+  editingOfficeIndex: number | null = null;
+  editingOffice: any = {};
 
   showOfficeDialog: boolean = false;
   officeForm = { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null };
@@ -66,8 +68,8 @@ export class CompanySettingComponent implements OnInit {
               if (!companyDocRef) return;
               const officesCol = collection(companyDocRef, 'offices');
               const officesSnap = await getDocs(officesCol);
-              this.officesView = officesSnap.docs.map(doc => doc.data())
-                .sort((a, b) => (a['officeNumber'] || 0) - (b['officeNumber'] || 0));
+              this.officesView = officesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }))
+                .sort((a, b) => ((a.officeNumber ?? 0) - (b.officeNumber ?? 0)));
             }
           });
         }
@@ -212,5 +214,52 @@ export class CompanySettingComponent implements OnInit {
       this.customEmploymentTypeInput = '';
       this.showCustomTypeInput = false;
     }
+  }
+
+  startEditOffice(i: number, office: any) {
+    console.log('[DEBUG] startEditOffice called', { i, office });
+    this.editingOfficeIndex = i;
+    this.editingOffice = { ...office };
+    console.log('[DEBUG] editingOfficeIndex set to', this.editingOfficeIndex);
+  }
+
+  async saveEditOffice(i: number) {
+    const office = this.editingOffice;
+    console.log('[DEBUG] saveEditOffice called', { i, office, companyView: this.companyView });
+
+    // Firestore更新
+    if (this.companyView && office.id) {
+      const officeDocRef = doc(this.firestore, 'companies', this.companyView.id, 'offices', office.id);
+      console.log('[DEBUG] officeDocRef path:', officeDocRef.path);
+      try {
+        await updateDoc(officeDocRef, {
+          officeName: office.officeName,
+          officePrefecture: office.officePrefecture,
+          employeeCount: office.employeeCount,
+          weeklyHours: office.weeklyHours,
+          monthlyDays: office.monthlyDays
+        });
+        console.log('[DEBUG] Firestore update success');
+      } catch (e) {
+        console.error('[DEBUG] Firestore update error:', e);
+      }
+    } else {
+      console.warn('[DEBUG] companyView or office.id is missing', { companyView: this.companyView, officeId: office.id });
+    }
+
+    // ローカルも反映
+    this.officesView[i] = { ...office };
+    this.editingOfficeIndex = null;
+    console.log('[DEBUG] editingOfficeIndex reset to null');
+  }
+
+  cancelEditOffice() {
+    console.log('[DEBUG] cancelEditOffice called');
+    this.editingOfficeIndex = null;
+    console.log('[DEBUG] editingOfficeIndex reset to null');
+  }
+
+  logDebug(...args: any[]) {
+    console.log('[TEMPLATE DEBUG]', ...args);
   }
 }

@@ -220,16 +220,16 @@ div[ngif] {
 }
 
 .insurance-table {
-  width: 600px;
-  max-width: 600px;
-  margin-left: auto;
-  margin-right: auto;
+  width: 100%;
+  max-width: 100%;
+  margin-left: 0;
+  margin-right: 0;
   border-collapse: collapse;
   margin-top: 0;
   background: #fff;
   border-radius: 8px;
   overflow: hidden;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 .insurance-table th, .insurance-table td {
   border: 1px solid #d0e3f9;
@@ -302,16 +302,21 @@ div[ngif] {
   color: #1976d2;
 }
 
+.container-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5em;
+  width: 100%;
+}
 .container-title {
-  display: block;
+  display: inline-block;
   font-size: 1.08rem;
   font-weight: 700;
   color: #1976d2;
-  margin-bottom: 0.5em;
-  text-align: left;
   border-bottom: 1px solid #e0e6ef;
   padding-bottom: 0.2em;
-  width: 100%;
+  margin-bottom: 0;
 }
 
 .info-row {
@@ -321,7 +326,7 @@ div[ngif] {
   font-size: 0.98rem;
 }
 .info-label {
-  width: 13em;
+  width: 10em;
   color: #7b8a9b;
   font-weight: 500;
   margin-right: 0.7em;
@@ -334,177 +339,38 @@ div[ngif] {
   font-size: 1em;
 }
 
-.monthly-income-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px 16px;
-  margin-top: 12px;
-  margin-bottom: 8px;
-}
-.monthly-income-cell {
-  height: 48px;
-  background: #f4f8fb;
-  border: 1.5px solid #d0e3f9;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.05rem;
-  color: #7b8a9b;
-  min-width: 0;
-}
-
-.monthly-income-grid-horizontal {
-  display: table;
-  table-layout: fixed;
-  width: 100%;
-  margin-top: 12px;
-  margin-bottom: 8px;
-  border-collapse: collapse;
-  background: #fff;
-}
-.monthly-income-grid-horizontal .monthly-income-cell {
-  display: table-cell;
-  min-width: 0;
-  width: 7.5%; /* 100/13=7.7, 12セルなら8.3%だが余白考慮で7.5% */
-  height: 38px;
-  border: 1px solid #d0e3f9;
-  background: #fcfdff;
-  border-radius: 0;
-  text-align: center;
-  font-size: 0.98rem;
-  color: #1976d2;
-  vertical-align: middle;
-  padding: 0;
-}
-
-.monthly-income-table-wrapper {
-  width: 100%;
-  overflow-x: auto;
-}
-.monthly-income-table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #fff;
-  table-layout: fixed;
-  font-size: 0.98rem;
-}
-.monthly-income-table th,
-.monthly-income-table td {
-  border: 1px solid #d0e3f9;
-  text-align: center;
-  height: 38px;
-  min-width: 40px;
-  padding: 0;
-  background: #fcfdff;
-  color: #1976d2;
-}
-.monthly-income-table th {
-  font-weight: 600;
-  background: #f4f8fb;
-}
-.monthly-income-table .vertical-label {
-  width: 90px;
-  min-width: 70px;
-  background: #f4f8fb;
-  color: #1976d2;
-  font-weight: 700;
-}
-
-.monthly-income-input {
-  width: 100%;
-  min-width: 0;
-  max-width: none;
-  height: 38px;
-  text-align: right;
-  border: none;
-  border-radius: 0;
-  background: #fcfdff;
-  font-size: 0.97rem;
-  color: #222;
-  padding: 0 6px;
-  box-sizing: border-box;
-}
-
-.monthly-income-save-btn {
-  padding: 3px 8px;
-  font-size: 1.1rem;
-  background: none;
-  color: #1976d2;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-left: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-.monthly-income-save-btn:hover {
-  background: #e3f0fc;
-}
-.monthly-income-save-btn.saved .material-icons {
-  color: #43a047;
-}
-.material-icons {
-  font-size: 1.3em;
-  color: #1976d2;
-  vertical-align: middle;
-}
-
-.monthly-income-total-cell {
-  text-align: right;
-}
-
-.monthly-income-save-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 12px;
-  margin-top: 12px;
-  margin-bottom: 8px;
-}
-.monthly-income-save-label {
-  margin-left: 2px;
-  font-size: 0.97rem;
-  color: #1976d2;
-}
 
 .calc-insurance-btn {
-  margin-bottom: 1em;
-  padding: 7px 22px;
-  font-size: 1.02rem;
+  min-width: 220px;
+  padding: 10px 0;
+  font-size: 1.08em;
   background: #1976d2;
   color: #fff;
   border: none;
-  border-radius: 7px;
+  border-radius: 6px;
   cursor: pointer;
-  font-weight: 600;
+  margin: 12px 0 18px 0;
   transition: background 0.2s;
 }
 .calc-insurance-btn:hover {
-  background: #1565c0;
+  background: #1251a2;
 }
 
 .detail-container-5 .info-label {
-  width: 19em;
+  width: 21em;
 }
 
-.monthly-income-copy-btn {
-  padding: 3px 8px;
-  font-size: 1.1rem;
-  background: none;
-  color: #1976d2;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: background 0.2s;
-  margin-right: 4px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+
+.inline-edit-btn {
+  margin-left: 0 !important;
+  vertical-align: middle;
+  font-size: 0.95em;
+  padding: 2px 10px;
+  height: 2em;
 }
-.monthly-income-copy-btn:hover {
-  background: #e3f0fc;
+
+.input-error {
+  border: 1.5px solid #e53935 !important;
+  box-shadow: 0 0 2px #e53935;
 }
 

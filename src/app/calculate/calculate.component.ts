@@ -61,6 +61,12 @@ export class CalculateComponent implements OnInit {
           const standardsCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/standards`);
           const standardsSnap = await getDocs(standardsCol);
           this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // デバッグ出力
+          console.log('[DEBUG] standardsList:', this.standardsList.map(s => ({
+            id: s.id,
+            createdAt: s.createdAt,
+            millis: s.createdAt?.toDate ? s.createdAt.toDate().getTime() : (s.createdAt ? new Date(s.createdAt).getTime() : null)
+          })));
           this.isLoading = false;
           return;
         }
@@ -99,11 +105,20 @@ export class CalculateComponent implements OnInit {
     if (isNaN(num)) return '';
     return num.toLocaleString();
   }
+  get latestStandard() {
+    if (!this.standardsList || this.standardsList.length === 0) return null;
+    const validList = this.standardsList.filter(item => !!item.createdAt);
+    if (validList.length === 0) return null;
+    return validList
+      .map(item => ({
+        ...item,
+        _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+      }))
+      .sort((a, b) => b._millis - a._millis)[0];
+  }
   get healthInsuranceAmount(): string {
     if (!this.insuranceRateData) return '';
-    const stdSalary = this.standardsList.length > 0
-      ? this.standardsList[this.standardsList.length-1].kenpoStandardMonthly
-      : (this.employeeData ? this.employeeData.stdSalaryHealth : null);
+    const stdSalary = this.latestStandard?.kenpoStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryHealth : null);
     const rate = this.insuranceRateData.health_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
@@ -114,9 +129,7 @@ export class CalculateComponent implements OnInit {
   }
   get pensionInsuranceAmount(): string {
     if (!this.insuranceRateData) return '';
-    const stdSalary = this.standardsList.length > 0
-      ? this.standardsList[this.standardsList.length-1].nenkinStandardMonthly
-      : (this.employeeData ? this.employeeData.stdSalaryPension : null);
+    const stdSalary = this.latestStandard?.nenkinStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryPension : null);
     const rate = this.insuranceRateData.pension_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
@@ -175,9 +188,7 @@ export class CalculateComponent implements OnInit {
   }
   get careInsuranceAmount(): string {
     if (!this.insuranceRateData) return '';
-    const stdSalary = this.standardsList.length > 0
-      ? this.standardsList[this.standardsList.length-1].kenpoStandardMonthly
-      : (this.employeeData ? this.employeeData.stdSalaryHealth : null);
+    const stdSalary = this.latestStandard?.kenpoStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryHealth : null);
     const rate = this.insuranceRateData.care_insurance;
     if (stdSalary == null || rate == null) return '';
     try {

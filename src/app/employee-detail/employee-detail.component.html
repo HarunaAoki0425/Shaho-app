@@ -2,83 +2,211 @@
 <div class="detail-main-wrapper">
   <div class="detail-row detail-row-top">
     <div class="detail-container detail-container-1">
-      <span class="container-title">従業員情報</span>
-      <div class="info-row"><span class="info-label">管理番号</span><span class="info-value">{{ employee?.managementNumber || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">氏名</span><span class="info-value">{{ (employee?.lastName || employee?.firstName) ? (employee?.lastName + ' ' + employee?.firstName) : '---' }}</span></div>
-      <div class="info-row"><span class="info-label">性別</span><span class="info-value">{{ employee?.gender || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">生年月日</span><span class="info-value">{{ employee?.birthdate || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">年齢</span><span class="info-value">{{ currentAge !== undefined && currentAge !== null ? (currentAge + '歳') : '---' }}</span></div>
-      <div class="info-row"><span class="info-label">国籍</span><span class="info-value">{{ employee?.nationality || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">所属事業所</span><span class="info-value">{{ employee?.officeName || '---' }}</span></div>
+      <div class="container-title-row">
+        <span class="container-title">従業員情報</span>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditPersonal" (click)="toggleEditPersonal()">編集</button>
+        <ng-container *ngIf="isEditPersonal">
+          <button class="edit-btn inline-edit-btn" (click)="savePersonalInfo()" [disabled]="!isPersonalValid()">保存</button>
+          <button class="edit-btn inline-edit-btn" (click)="cancelEditPersonal()">キャンセル</button>
+        </ng-container>
+      </div>
+      <div class="info-row">
+        <span class="info-label">管理番号</span>
+        <span class="info-value">{{ employee?.managementNumber || '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">氏名</span>
+        <span class="info-value" *ngIf="!isEditPersonal">{{ (employee?.lastName || employee?.firstName) ? (employee?.lastName + ' ' + employee?.firstName) : '---' }}</span>
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.lastName" class="info-value" placeholder="姓" style="width: 4em; margin-right: 0.5em;" [ngClass]="{'input-error': isEditPersonal && !employee.lastName}" />
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.firstName" class="info-value" placeholder="名" style="width: 4em;" [ngClass]="{'input-error': isEditPersonal && !employee.firstName}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">性別</span>
+        <span class="info-value">{{ employee?.gender || '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">生年月日</span>
+        <span class="info-value">{{ employee?.birthdate || '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">年齢</span>
+        <span class="info-value">{{ currentAge !== undefined && currentAge !== null ? (currentAge + '歳') : '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">国籍</span>
+        <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.nationality || '---' }}</span>
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.nationality" class="info-value" style="width: 4em;" [ngClass]="{'input-error': isEditPersonal && !employee.nationality}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">所属事業所</span>
+        <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.officeName || '---' }}</span>
+        <select *ngIf="isEditPersonal" [(ngModel)]="employee.officeName" class="info-value" [ngClass]="{'input-error': isEditPersonal && !employee.officeName}">
+          <option value="">選択してください</option>
+          <option *ngFor="let office of companyOffices" [value]="office.officeName">{{ office.officeName }}</option>
+        </select>
+      </div>
     </div>
     <div class="detail-container detail-container-2">
-      <span class="container-title">雇用契約情報</span>
-      <div class="info-row"><span class="info-label">雇用形態</span><span class="info-value">{{ employee?.employmentType || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">雇用契約期間</span><span class="info-value">{{ employee?.employmentPeriodType || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">雇用契約開始日</span><span class="info-value">{{ employee?.employmentPeriodStart || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">雇用契約終了日</span><span class="info-value">{{ employee?.employmentPeriodEnd || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">所定労働日数（月）</span><span class="info-value">{{ employee?.workDays !== undefined && employee?.workDays !== null && employee?.workDays !== '' ? (employee?.workDays + '日') : '---' }}</span></div>
-      <div class="info-row"><span class="info-label">所定労働時間（週）</span><span class="info-value">{{ employee?.workHours !== undefined && employee?.workHours !== null && employee?.workHours !== '' ? (employee?.workHours + '時間') : '---' }}</span></div>
-      <div class="info-row"><span class="info-label">報酬月額（通貨）</span><span class="info-value">{{ employee?.salaryCash ? (employee?.salaryCash | number:'1.0-0') + '円' : '---' }}</span></div>
-      <div class="info-row"><span class="info-label">報酬月額（現物）</span><span class="info-value">{{ employee?.salaryInKind ? (employee?.salaryInKind | number:'1.0-0') + '円' : '---' }}</span></div>
-      <div class="info-row"><span class="info-label">報酬月額（合計）</span><span class="info-value">{{ employee?.salaryTotal ? (employee?.salaryTotal | number:'1.0-0') + '円' : '---' }}</span></div>
+      <div class="container-title-row">
+        <span class="container-title">雇用契約情報</span>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditContract" (click)="toggleEditContract()">編集</button>
+        <ng-container *ngIf="isEditContract">
+          <button class="edit-btn inline-edit-btn" (click)="saveContractInfo()" [disabled]="!isContractValid()">保存</button>
+          <button class="edit-btn inline-edit-btn" (click)="cancelEditContract()">キャンセル</button>
+        </ng-container>
+      </div>
+      <div class="info-row">
+        <span class="info-label">雇用形態</span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentType || '---' }}</span>
+        <select *ngIf="isEditContract" [(ngModel)]="employee.employmentType" class="info-value" [ngClass]="{'input-error': isEditContract && !employee.employmentType}">
+          <option *ngFor="let type of companyEmploymentTypes" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+      <div class="info-row">
+        <span class="info-label">雇用契約期間</span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentPeriodType || '---' }}</span>
+        <select *ngIf="isEditContract" [(ngModel)]="employee.employmentPeriodType" class="info-value" [ngClass]="{'input-error': isEditContract && !employee.employmentPeriodType}" (change)="onEmploymentPeriodTypeChange()">
+          <option value="無期">無期</option>
+          <option value="有期">有期</option>
+        </select>
+      </div>
+      <div class="info-row">
+        <span class="info-label">雇用契約開始日<span *ngIf="isEditContract && employee.employmentPeriodType === '有期'" style="color: red;">*</span></span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentPeriodStart || '---' }}</span>
+        <input *ngIf="isEditContract" [(ngModel)]="employee.employmentPeriodStart" class="info-value" type="date" [required]="employee.employmentPeriodType === '有期'" [ngClass]="{'input-error': isEditContract && employee.employmentPeriodType === '有期' && !employee.employmentPeriodStart}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">雇用契約終了日<span *ngIf="isEditContract && employee.employmentPeriodType === '有期'" style="color: red;">*</span></span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentPeriodEnd || '---' }}</span>
+        <input *ngIf="isEditContract" [(ngModel)]="employee.employmentPeriodEnd" class="info-value" type="date" [required]="employee.employmentPeriodType === '有期'" [ngClass]="{'input-error': isEditContract && employee.employmentPeriodType === '有期' && !employee.employmentPeriodEnd}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">所定労働日数（月）</span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.workDays !== undefined && employee?.workDays !== null && employee?.workDays !== '' ? (employee?.workDays + '日') : '---' }}</span>
+        <input *ngIf="isEditContract" [(ngModel)]="employee.workDays" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workDays === undefined || employee.workDays === null || employee.workDays === '')}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">所定労働時間（週）</span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.workHours !== undefined && employee?.workHours !== null && employee?.workHours !== '' ? (employee?.workHours + '時間') : '---' }}</span>
+        <input *ngIf="isEditContract" [(ngModel)]="employee.workHours" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workHours === undefined || employee.workHours === null || employee.workHours === '')}" />
+      </div>
     </div>
     <div class="detail-container detail-container-3">
-      <span class="container-title">その他</span>
-      <div class="info-row"><span class="info-label">扶養情報</span><span class="info-value">{{ employee?.dependentStatus || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">被扶養者</span><span class="info-value">{{ employee?.dependentRelations || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">学生区分</span><span class="info-value">{{ employee?.isStudent || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">外国派遣労働者区分</span><span class="info-value">{{ employee?.dispatchedAbroad || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">二以上事業所勤務区分</span><span class="info-value">{{ employee?.multiOffice || '---' }}</span></div>
+      <div class="container-title-row">
+        <span class="container-title">その他</span>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditOther" (click)="toggleEditOther()">編集</button>
+        <ng-container *ngIf="isEditOther">
+          <button class="edit-btn inline-edit-btn" (click)="saveOtherInfo()" [disabled]="!isOtherValid()">保存</button>
+          <button class="edit-btn inline-edit-btn" (click)="cancelEditOther()">キャンセル</button>
+        </ng-container>
+      </div>
+      <div class="info-row">
+        <span class="info-label">扶養情報</span>
+        <span class="info-value" *ngIf="!isEditOther">{{ employee?.dependentStatus || '---' }}</span>
+        <select *ngIf="isEditOther" [(ngModel)]="employee.dependentStatus" class="info-value" (change)="onDependentStatusChange()">
+          <option value="被扶養者あり">被扶養者あり</option>
+          <option value="被扶養者なし">被扶養者なし</option>
+        </select>
+      </div>
+      <div class="info-row">
+        <span class="info-label">被扶養者</span>
+        <span class="info-value" *ngIf="!isEditOther">
+          <ng-container *ngIf="isArray(employee?.dependentRelations); else singleRelation">
+            {{ employee?.dependentRelations?.length ? employee.dependentRelations.join('、') : '---' }}
+          </ng-container>
+          <ng-template #singleRelation>{{ employee?.dependentRelations || '---' }}</ng-template>
+        </span>
+        <div *ngIf="isEditOther && employee.dependentStatus === '被扶養者あり'">
+          <div *ngFor="let relation of employee.dependentRelations; let i = index" style="margin-bottom: 2px;">
+            <input [(ngModel)]="employee.dependentRelations[i]" class="info-value" style="width: 8em;" [ngClass]="{'input-error': isEditOther && employee.dependentStatus === '被扶養者あり' && !employee.dependentRelations[i]}" />
+          </div>
+          <div style="display: flex; gap: 8px; margin-top: 4px;">
+            <button type="button" (click)="addDependentRelation()">追加</button>
+            <button type="button" (click)="removeDependentRelation(employee.dependentRelations.length - 1)" [disabled]="employee.dependentRelations.length === 1">削除</button>
+          </div>
+        </div>
+        <span *ngIf="isEditOther && employee.dependentStatus !== '被扶養者あり'" class="info-value">---</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">学生区分</span>
+        <span class="info-value" *ngIf="!isEditOther">{{ employee?.isStudent || '---' }}</span>
+        <select *ngIf="isEditOther" [(ngModel)]="employee.isStudent" class="info-value">
+          <option value="学生">学生</option>
+          <option value="学生ではない">学生ではない</option>
+        </select>
+      </div>
+      <div class="info-row">
+        <span class="info-label">外国派遣労働者区分</span>
+        <span class="info-value" *ngIf="!isEditOther">{{ employee?.dispatchedAbroad || '---' }}</span>
+        <select *ngIf="isEditOther" [(ngModel)]="employee.dispatchedAbroad" class="info-value" (change)="onDispatchedAbroadChange()">
+          <option value="該当しない">該当しない</option>
+          <option value="日本から外国への派遣労働者">日本から外国への派遣労働者</option>
+          <option value="外国から日本への派遣労働者">外国から日本への派遣労働者</option>
+        </select>
+      </div>
+      <!-- 編集モード用: 社会保障協定国 -->
+      <div class="info-row" *ngIf="isEditOther && employee.dispatchedAbroad !== '該当しない'">
+        <span class="info-label">社会保障協定国</span>
+        <select [(ngModel)]="employee.socialSecurityAgreement" class="info-value" [ngClass]="{'input-error': isEditOther && employee.dispatchedAbroad !== '該当しない' && !employee.socialSecurityAgreement}">
+          <option value="">選択してください</option>
+          <option value="該当する">該当する</option>
+          <option value="該当しない">該当しない</option>
+        </select>
+      </div>
+      <!-- 編集モード用: 一時派遣 -->
+      <div class="info-row" *ngIf="isEditOther && employee.dispatchedAbroad !== '該当しない' && employee.socialSecurityAgreement === '該当する'">
+        <span class="info-label">一時派遣（5年以内）</span>
+        <select [(ngModel)]="employee.temporaryDispatch" class="info-value" [ngClass]="{'input-error': isEditOther && employee.dispatchedAbroad !== '該当しない' && employee.socialSecurityAgreement === '該当する' && !employee.temporaryDispatch}">
+          <option value="">選択してください</option>
+          <option value="該当する">該当する</option>
+          <option value="該当しない">該当しない</option>
+        </select>
+      </div>
+      <!-- 表示モード用: 社会保障協定国 -->
+      <div class="info-row" *ngIf="!isEditOther && employee?.dispatchedAbroad && employee.dispatchedAbroad !== '該当しない'">
+        <span class="info-label">社会保障協定国</span>
+        <span class="info-value">{{ employee?.socialSecurityAgreement ? employee.socialSecurityAgreement : '---' }}</span>
+      </div>
+      <!-- 表示モード用: 一時派遣 -->
+      <div class="info-row" *ngIf="!isEditOther && employee?.dispatchedAbroad && employee.dispatchedAbroad !== '該当しない'">
+        <span class="info-label">一時派遣（5年以内）</span>
+        <span class="info-value">{{ employee?.temporaryDispatch ? employee.temporaryDispatch : '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">二以上事業所勤務区分</span>
+        <span class="info-value" *ngIf="!isEditOther">{{ employee?.multiOffice || '---' }}</span>
+        <select *ngIf="isEditOther" [(ngModel)]="employee.multiOffice" class="info-value" (change)="onMultiOfficeChange()">
+          <option value="該当する">該当する</option>
+          <option value="該当しない">該当しない</option>
+        </select>
+      </div>
+      <div class="info-row" *ngIf="isEditOther && employee.multiOffice === '該当する'">
+        <span class="info-label">選択事業所／非選択事業所</span>
+        <select [(ngModel)]="employee.selectedOfficeType" class="info-value" [ngClass]="{'input-error': isEditOther && employee.multiOffice === '該当する' && !employee.selectedOfficeType}">
+          <option value="">選択してください</option>
+          <option value="選択事業所">選択事業所</option>
+          <option value="非選択事業所">非選択事業所</option>
+        </select>
+      </div>
+      <div class="info-row" *ngIf="isEditOther && employee.multiOffice === '該当する'">
+        <span class="info-label">合算報酬月額（通貨＋現物）</span>
+        <input [(ngModel)]="employee.combinedSalary" class="info-value" type="number" min="0" [ngClass]="{'input-error': isEditOther && employee.multiOffice === '該当する' && isEmptyOrZero(employee.combinedSalary)}" />
+      </div>
+      <!-- 表示モード用: 選択事業所／非選択事業所 -->
+      <div class="info-row" *ngIf="!isEditOther && employee?.multiOffice === '該当する'">
+        <span class="info-label">選択事業所／非選択事業所</span>
+        <span class="info-value">{{ employee?.selectedOfficeType ? employee.selectedOfficeType : '---' }}</span>
+      </div>
+      <!-- 表示モード用: 合算報酬月額（通貨＋現物） -->
+      <div class="info-row" *ngIf="!isEditOther && employee?.multiOffice === '該当する'">
+        <span class="info-label">合算報酬月額（通貨＋現物）</span>
+        <span class="info-value">{{ employee?.combinedSalary !== undefined && employee?.combinedSalary !== null && employee?.combinedSalary !== '' && employee?.combinedSalary !== 0 ? (employee.combinedSalary | number:'1.0-0') + '円' : '---' }}</span>
+      </div>
     </div>
-  </div>
-  <div class="edit-btn-row">
-    <button class="edit-btn" (click)="goToEdit()">編集</button>
   </div>
   <div class="detail-row detail-row-bottom">
     <div class="detail-container detail-container-4">
-      <span class="container-title">{{ currentNendo }}の月収</span>
-      <div class="monthly-income-table-wrapper">
-        <table class="monthly-income-table">
-          <thead>
-            <tr>
-              <th></th>
-              <th>固定的賃金</th>
-              <th>非固定的賃金</th>
-              <th>合計</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let month of ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月']; let i = index">
-              <th class="vertical-label">
-                <span>{{ month }}</span>
-              </th>
-              <td><input type="text" class="monthly-income-input" [(ngModel)]="fixedWages[i]" (input)="fixedWages[i]=formatWithComma(fixedWages[i])" (focus)="isEditing[i]=true" (blur)="onBlur(i, 'fixed')" /></td>
-              <td><input type="text" class="monthly-income-input" [(ngModel)]="nonFixedWages[i]" (input)="nonFixedWages[i]=formatWithComma(nonFixedWages[i])" (focus)="isEditing[i]=true" (blur)="onBlur(i, 'nonFixed')" /></td>
-              <td class="monthly-income-total-cell">{{ getMonthlyTotal(i) }}</td>
-              <td>
-                <button
-                  class="monthly-income-copy-btn"
-                  [style.visibility]="i === 0 ? 'hidden' : 'visible'"
-                  [attr.aria-label]="month + 'をコピー'"
-                  (click)="i > 0 && copyWages(i)">
-                  <span class="material-icons">content_copy</span>
-                </button>
-                <button *ngIf="!isSaved[i] || isEditing[i] || fixedWages[i] !== savedFixedWages[i] || nonFixedWages[i] !== savedNonFixedWages[i]" class="monthly-income-save-btn" [attr.aria-label]="month + 'を保存'" (click)="saveMonthlySalary(i)">
-                  <span class="material-icons">save_alt</span>
-                </button>
-                <button *ngIf="isSaved[i] && !isEditing[i] && fixedWages[i] === savedFixedWages[i] && nonFixedWages[i] === savedNonFixedWages[i]" class="monthly-income-save-btn saved" disabled aria-label="保存済み">
-                  <span class="material-icons">check_circle</span>
-                </button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-    <div class="detail-container detail-container-5"><span class="container-title">社会保険情報</span>
-      <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
+      <span class="container-title">現在の社会保険料</span>
       <table class="insurance-table">
         <thead>
           <tr>
@@ -114,73 +242,105 @@
             <td>{{ insurancesList[insurancesList.length-1]?.totalEmployee | number:'1.0-0' }}円</td>
           </tr>
         </tbody>
+        <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
         <tbody *ngIf="insurancesList.length === 0">
           <tr><td colspan="4" style="text-align:center;">計算結果がありません</td></tr>
         </tbody>
       </table>
+    </div>
+    <div class="detail-container detail-container-5">
+      <div class="container-title-row">
+        <span class="container-title">社会保険情報</span>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditInsurance" (click)="toggleEditInsurance()">編集</button>
+        <ng-container *ngIf="isEditInsurance">
+          <button class="edit-btn inline-edit-btn" (click)="saveInsuranceInfo()" [disabled]="!isInsuranceValid()">保存</button>
+          <button class="edit-btn inline-edit-btn" (click)="cancelEditInsurance()">キャンセル</button>
+        </ng-container>
+      </div>
       <div class="info-row">
         <span class="info-label">標準報酬月額（健康保険・介護保険）</span>
         <span class="info-value">
-          {{
-            standardsList.length > 0
-              ? (standardsList[standardsList.length-1]?.kenpoStandardMonthly | number:'1.0-0') + '円'
-              : (employee?.stdSalaryHealth ? (employee?.stdSalaryHealth | number:'1.0-0') + '円' : '---')
-          }}
+          {{ latestStandard?.kenpoStandardMonthly ? (latestStandard.kenpoStandardMonthly | number:'1.0-0') + '円' : '---' }}
         </span>
+      </div>
+      <div class="info-row" *ngIf="isEditInsurance">
+        <span class="info-label">変更後の標準報酬月額（健康保険・介護保険）</span>
+        <span class="info-value" style="color: #d32f2f;">{{ employee.stdSalaryHealth ? (employee.stdSalaryHealth | number:'1.0-0') + '円' : '---' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">等級（健康保険・介護保険）</span>
         <span class="info-value">
-          {{
-            standardsList.length > 0
-              ? (standardsList[standardsList.length-1]?.kenpoGrade || '---')
-              : (employee?.stdSalaryHealthGrade || '---')
-          }}
+          {{ latestStandard?.kenpoGrade || '---' }}
         </span>
+      </div>
+      <div class="info-row" *ngIf="isEditInsurance">
+        <span class="info-label">変更後の等級（健康保険・介護保険）</span>
+        <span class="info-value" style="color: #d32f2f;">{{ employee.stdSalaryHealthGrade || '---' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">標準報酬月額（厚生年金）</span>
         <span class="info-value">
-          {{
-            standardsList.length > 0
-              ? (standardsList[standardsList.length-1]?.nenkinStandardMonthly | number:'1.0-0') + '円'
-              : (employee?.stdSalaryPension ? (employee?.stdSalaryPension | number:'1.0-0') + '円' : '---')
-          }}
+          {{ latestStandard?.nenkinStandardMonthly ? (latestStandard.nenkinStandardMonthly | number:'1.0-0') + '円' : '---' }}
         </span>
+      </div>
+      <div class="info-row" *ngIf="isEditInsurance">
+        <span class="info-label">変更後の標準報酬月額（厚生年金）</span>
+        <span class="info-value" style="color: #d32f2f;">{{ employee.stdSalaryPension ? (employee.stdSalaryPension | number:'1.0-0') + '円' : '---' }}</span>
       </div>
       <div class="info-row">
         <span class="info-label">等級（厚生年金）</span>
         <span class="info-value">
-          {{
-            standardsList.length > 0
-              ? (standardsList[standardsList.length-1]?.nenkinGrade || '---')
-              : (employee?.stdSalaryPensionGrade || '---')
-          }}
+          {{ latestStandard?.nenkinGrade || '---' }}
         </span>
       </div>
-      <div class="info-row"><span class="info-label">資格取得年月日</span><span class="info-value">{{ employee?.joinDate || '---' }}</span></div>
-      <div class="info-row"><span class="info-label">資格喪失年月日</span><span class="info-value">{{ employee?.leaveDate || '---' }}</span></div>
+      <div class="info-row" *ngIf="isEditInsurance">
+        <span class="info-label">変更後の等級（厚生年金）</span>
+        <span class="info-value" style="color: #d32f2f;">{{ employee.stdSalaryPensionGrade || '---' }}</span>
+      </div>
       <div class="info-row">
         <span class="info-label">標準報酬月額最終改定月</span>
         <span class="info-value">
-          <ng-container *ngIf="standardsList.length > 0 && standardsList[standardsList.length-1]?.updatedAt">
-            {{ (standardsList[standardsList.length-1].updatedAt.toDate() | date:'yyyy-MM') }}
-          </ng-container>
-          <ng-container *ngIf="!(standardsList.length > 0 && standardsList[standardsList.length-1]?.updatedAt)">
-            ---
-          </ng-container>
+          {{ latestStandard?.createdAt ? (latestStandard.createdAt.toDate() | date:'yyyy-MM') : '---' }}
         </span>
+      </div>
+      <div class="info-row" *ngIf="isEditInsurance">
+        <span class="info-label">変更後の標準報酬月額最終改定月<span style="color: red;">*</span></span>
+        <input class="info-value" type="month" [(ngModel)]="employee.updatedStdSalaryMonth" style="color: #d32f2f;" required />
       </div>
       <div class="info-row">
         <span class="info-label">改定種別</span>
         <span class="info-value">
-          {{
-            standardsList.length > 0
-              ? (standardsList[standardsList.length-1]?.revisionType || '---')
-              : '---'
-          }}
+          {{ latestStandard?.revisionType || '---' }}
         </span>
       </div>
+      <div class="info-row" *ngIf="isEditInsurance">
+        <span class="info-label">変更後の改定種別<span style="color: red;">*</span></span>
+        <select class="info-value" [(ngModel)]="employee.updatedRevisionType" style="color: #d32f2f;">
+          <option value="" disabled selected>選択してください</option>
+          <option value="定時決定">定時決定</option>
+          <option value="随時改定">随時改定</option>
+          <option value="育児休業等を終了した際の改定">育児休業等を終了した際の改定</option>
+        </select>
+      </div>
+      <div class="info-row">
+        <span class="info-label">報酬月額（通貨）<span *ngIf="isEditInsurance" style="color: red;">*</span></span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryCash ? (employee?.salaryCash | number:'1.0-0') + '円' : '0円' }}</span>
+        <input *ngIf="isEditInsurance" [(ngModel)]="employee.salaryCash" class="info-value" type="number" min="0" style="width: 6em;" [ngClass]="{'input-error': isEditInsurance && !hasAnySalary() && !employee.salaryInKind}" (ngModelChange)="updateSalaryTotal()" required />
+      </div>
+      <div class="info-row">
+        <span class="info-label">報酬月額（現物）</span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryInKind ? (employee?.salaryInKind | number:'1.0-0') + '円' : '0円' }}</span>
+        <input *ngIf="isEditInsurance" [(ngModel)]="employee.salaryInKind" class="info-value" type="number" min="0" style="width: 6em;" [ngClass]="{'input-error': isEditInsurance && !hasAnySalary() && !employee.salaryCash}" (ngModelChange)="updateSalaryTotal()" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">報酬月額（合計）</span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryTotal ? (employee?.salaryTotal | number:'1.0-0') + '円' : '---' }}</span>
+        <input *ngIf="isEditInsurance" [ngModel]="employee.salaryTotal" class="info-value" type="number" min="0" style="width: 6em;" [readonly]="true" [ngClass]="{'input-error': isEditInsurance && isEmptyOrZero(employee.salaryTotal)}" />
+      </div>
+      <div *ngIf="isEditInsurance" class="insurance-warning" style="color: #d32f2f; font-size: 0.98em; margin-top: 12px;">
+        ※報酬月額は、契約情報変更時ではなく標準報酬月額（等級）改定時に編集してください。
+      </div>
+      
     </div>
   </div>
 </div>

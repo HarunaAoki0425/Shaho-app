@@ -73,6 +73,21 @@ export class EmployeeDetailComponent implements OnInit {
   months = ['4月','5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月'];
   public standardsList: any[] = [];
   public insurancesList: any[] = [];
+  public companyOffices: any[] = [];
+  public isEditPersonal = false;
+  private originalPersonalInfo: any = null;
+  public isEditContract = false;
+  private originalContractInfo: any = null;
+  public companyEmploymentTypes: string[] = [];
+  public isEditOther = false;
+  private originalOtherInfo: any = null;
+  public deductionYMList: string[] = [];
+  private prevSalaryTotal: number | null = null;
+  private prevSalaryTotalForConfirm: number | null = null;
+  public isEditInsurance = false;
+  private originalInsuranceInfo: any = null;
+  public kenpoStandardMonthlyList: any[] = [];
+  public nenkinStandardMonthlyList: any[] = [];
 
   async ngOnInit() {
     // 年度（4月始まり）を自動計算
@@ -100,6 +115,13 @@ export class EmployeeDetailComponent implements OnInit {
         if (empDoc) {
           this.employee = empDoc.data();
           this.employee.companyId = companyDoc.id;
+          // 会社の事業所一覧を取得
+          const officesCol = collection(this.firestore, 'companies', companyDoc.id, 'offices');
+          const officesSnap = await getDocs(officesCol);
+          this.companyOffices = officesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          // 会社の雇用形態配列を取得
+          const companyData = companyDoc.data();
+          this.companyEmploymentTypes = Array.isArray(companyData['employmentType']) ? companyData['employmentType'] : [];
           // 年齢再計算
           if (this.employee.birthdate) {
             const today = new Date();
@@ -151,6 +173,7 @@ export class EmployeeDetailComponent implements OnInit {
           this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
           console.log('standardsList:', this.standardsList);
           await this.fetchInsurances();
+          this.generateDeductionYMList();
           return;
         }
       }
@@ -287,4 +310,392 @@ export class EmployeeDetailComponent implements OnInit {
       this.router.navigate(['/employee-edit', this.employeeId]);
     }
   }
+
+  public toggleEditPersonal() {
+    this.isEditPersonal = !this.isEditPersonal;
+    if (this.isEditPersonal) {
+      // 編集開始時に元データを保存
+      this.originalPersonalInfo = {
+        lastName: this.employee.lastName,
+        firstName: this.employee.firstName,
+        nationality: this.employee.nationality,
+        officeName: this.employee.officeName
+      };
+    }
+  }
+
+  public cancelEditPersonal() {
+    if (this.originalPersonalInfo) {
+      this.employee.lastName = this.originalPersonalInfo.lastName;
+      this.employee.firstName = this.originalPersonalInfo.firstName;
+      this.employee.nationality = this.originalPersonalInfo.nationality;
+      this.employee.officeName = this.originalPersonalInfo.officeName;
+    }
+    this.isEditPersonal = false;
+  }
+
+  public async savePersonalInfo() {
+    if (!this.employeeId || !this.employee.companyId) return;
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    try {
+      await updateDoc(employeeRef, {
+        lastName: this.employee.lastName,
+        firstName: this.employee.firstName,
+        gender: this.employee.gender,
+        nationality: this.employee.nationality,
+        officeName: this.employee.officeName
+      });
+      this.isEditPersonal = false;
+    } catch (e) {
+      alert('保存に失敗しました');
+    }
+  }
+
+  public toggleEditContract() {
+    this.isEditContract = !this.isEditContract;
+    if (this.isEditContract) {
+      this.originalContractInfo = {
+        employmentType: this.employee.employmentType,
+        employmentPeriodType: this.employee.employmentPeriodType,
+        employmentPeriodStart: this.employee.employmentPeriodStart,
+        employmentPeriodEnd: this.employee.employmentPeriodEnd,
+        workDays: this.employee.workDays,
+        workHours: this.employee.workHours,
+        salaryCash: this.employee.salaryCash,
+        salaryInKind: this.employee.salaryInKind,
+        salaryTotal: this.employee.salaryTotal
+      };
+    }
+  }
+
+  public cancelEditContract() {
+    if (this.originalContractInfo) {
+      this.employee.employmentType = this.originalContractInfo.employmentType;
+      this.employee.employmentPeriodType = this.originalContractInfo.employmentPeriodType;
+      this.employee.employmentPeriodStart = this.originalContractInfo.employmentPeriodStart;
+      this.employee.employmentPeriodEnd = this.originalContractInfo.employmentPeriodEnd;
+      this.employee.workDays = this.originalContractInfo.workDays;
+      this.employee.workHours = this.originalContractInfo.workHours;
+      this.employee.salaryCash = this.originalContractInfo.salaryCash;
+      this.employee.salaryInKind = this.originalContractInfo.salaryInKind;
+      this.employee.salaryTotal = this.originalContractInfo.salaryTotal;
+    }
+    this.isEditContract = false;
+  }
+
+  public async saveContractInfo() {
+    if (this.employee.employmentPeriodType === '有期' && (!this.employee.employmentPeriodStart || !this.employee.employmentPeriodEnd)) {
+      alert('雇用契約開始日・終了日は必須です');
+      return;
+    }
+    if (!this.employeeId || !this.employee.companyId) return;
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    try {
+      await updateDoc(employeeRef, {
+        employmentType: this.employee.employmentType,
+        employmentPeriodType: this.employee.employmentPeriodType,
+        employmentPeriodStart: this.employee.employmentPeriodStart,
+        employmentPeriodEnd: this.employee.employmentPeriodEnd,
+        workDays: this.employee.workDays,
+        workHours: this.employee.workHours,
+        salaryCash: this.employee.salaryCash,
+        salaryInKind: this.employee.salaryInKind,
+        salaryTotal: this.employee.salaryTotal
+      });
+      this.isEditContract = false;
+    } catch (e) {
+      alert('保存に失敗しました');
+    }
+  }
+
+  public isContractValid(): boolean {
+    const hasWorkDays = this.employee.workDays !== undefined && this.employee.workDays !== null && this.employee.workDays !== '';
+    const hasWorkHours = this.employee.workHours !== undefined && this.employee.workHours !== null && this.employee.workHours !== '';
+    const hasSalary = this.hasAnySalary();
+    const hasSalaryTotal = this.employee.salaryTotal !== undefined && this.employee.salaryTotal !== null && this.employee.salaryTotal !== '' && Number(this.employee.salaryTotal) !== 0;
+    return !!(this.employee.employmentType && this.employee.employmentPeriodType && hasWorkDays && hasWorkHours && hasSalary && hasSalaryTotal);
+  }
+
+  public hasAnySalary(): boolean {
+    const cash = this.employee.salaryCash;
+    const inKind = this.employee.salaryInKind;
+    return (
+      (cash !== undefined && cash !== null && cash !== '' && Number(cash) !== 0) ||
+      (inKind !== undefined && inKind !== null && inKind !== '' && Number(inKind) !== 0)
+    );
+  }
+
+  public isEmptyOrZero(value: any): boolean {
+    return value === undefined || value === null || value === '' || Number(value) === 0;
+  }
+
+  public isPersonalValid(): boolean {
+    return !!(this.employee.lastName && this.employee.firstName && this.employee.nationality && this.employee.officeName);
+  }
+
+  public toggleEditOther() {
+    this.isEditOther = !this.isEditOther;
+    if (this.isEditOther) {
+      this.originalOtherInfo = {
+        dependentStatus: this.employee.dependentStatus,
+        dependentRelations: this.employee.dependentRelations,
+        isStudent: this.employee.isStudent,
+        dispatchedAbroad: this.employee.dispatchedAbroad,
+        multiOffice: this.employee.multiOffice
+      };
+      if (this.employee.dependentStatus === '被扶養者あり') {
+        if (!Array.isArray(this.employee.dependentRelations) || !this.employee.dependentRelations.length) {
+          this.employee.dependentRelations = [''];
+        }
+      }
+    }
+  }
+
+  public cancelEditOther() {
+    if (this.originalOtherInfo) {
+      this.employee.dependentStatus = this.originalOtherInfo.dependentStatus;
+      this.employee.dependentRelations = this.originalOtherInfo.dependentRelations;
+      this.employee.isStudent = this.originalOtherInfo.isStudent;
+      this.employee.dispatchedAbroad = this.originalOtherInfo.dispatchedAbroad;
+      this.employee.multiOffice = this.originalOtherInfo.multiOffice;
+    }
+    this.isEditOther = false;
+  }
+
+  public async saveOtherInfo() {
+    if (!this.employeeId || !this.employee.companyId) return;
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    try {
+      await updateDoc(employeeRef, {
+        dependentStatus: this.employee.dependentStatus,
+        dependentRelations: this.employee.dependentRelations,
+        isStudent: this.employee.isStudent,
+        dispatchedAbroad: this.employee.dispatchedAbroad,
+        multiOffice: this.employee.multiOffice,
+        selectedOfficeType: this.employee.selectedOfficeType,
+        socialSecurityAgreement: this.employee.socialSecurityAgreement,
+        temporaryDispatch: this.employee.temporaryDispatch,
+        combinedSalary: this.employee.combinedSalary
+      });
+      this.isEditOther = false;
+    } catch (e) {
+      alert('保存に失敗しました');
+    }
+  }
+
+  public addDependentRelation() {
+    if (!Array.isArray(this.employee.dependentRelations)) {
+      this.employee.dependentRelations = this.employee.dependentRelations ? [this.employee.dependentRelations] : [''];
+    }
+    this.employee.dependentRelations.push('');
+  }
+
+  public removeDependentRelation(i: number) {
+    if (Array.isArray(this.employee.dependentRelations) && this.employee.dependentRelations.length > 1) {
+      this.employee.dependentRelations.splice(i, 1);
+    }
+  }
+
+  public isArray(val: any): boolean {
+    return Array.isArray(val);
+  }
+
+  public onDependentStatusChange() {
+    if (this.employee.dependentStatus === '被扶養者あり') {
+      if (!Array.isArray(this.employee.dependentRelations) || !this.employee.dependentRelations.length) {
+        this.employee.dependentRelations = [''];
+      }
+    } else {
+      this.employee.dependentRelations = [];
+    }
+  }
+
+  public isOtherValid(): boolean {
+    if (this.isEditOther && this.employee.dependentStatus === '被扶養者あり') {
+      if (!Array.isArray(this.employee.dependentRelations) || !this.employee.dependentRelations.some((r: string) => r && r.trim() !== '')) {
+        return false;
+      }
+    }
+    if (this.isEditOther && this.employee.dispatchedAbroad !== '該当しない') {
+      if (!this.employee.socialSecurityAgreement) {
+        return false;
+      }
+      if (this.employee.socialSecurityAgreement === '該当する' && !this.employee.temporaryDispatch) {
+        return false;
+      }
+    }
+    if (this.isEditOther && this.employee.multiOffice === '該当する') {
+      if (!this.employee.selectedOfficeType) {
+        return false;
+      }
+      if (this.employee.combinedSalary === undefined || this.employee.combinedSalary === null || this.employee.combinedSalary === '' || Number(this.employee.combinedSalary) === 0) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  public onDispatchedAbroadChange() {
+    if (this.employee.dispatchedAbroad === '該当しない') {
+      this.employee.socialSecurityAgreement = '';
+      this.employee.temporaryDispatch = '';
+    }
+  }
+
+  public onMultiOfficeChange() {
+    if (this.employee.multiOffice === '該当しない') {
+      this.employee.selectedOfficeType = '';
+      this.employee.combinedSalary = '';
+    }
+  }
+
+  public onEmploymentPeriodTypeChange() {
+    if (this.employee.employmentPeriodType === '無期') {
+      this.employee.employmentPeriodStart = '';
+      this.employee.employmentPeriodEnd = '';
+    }
+  }
+
+  generateDeductionYMList() {
+    const startYear = 2025;
+    const startMonth = 3;
+    const count = 12;
+    const list: string[] = [];
+    let year = startYear;
+    let month = startMonth;
+    for (let i = 0; i < count; i++) {
+      list.push(`${year}/${month}`);
+      month++;
+      if (month > 12) {
+        month = 1;
+        year++;
+      }
+    }
+    this.deductionYMList = list;
+  }
+
+  public async toggleEditInsurance() {
+    this.isEditInsurance = true;
+    this.originalInsuranceInfo = { ...this.employee };
+    // employee-addと同じくルート直下から取得
+    const kenpoCol = collection(this.firestore, 'kenpo_standardMonthlySarary');
+    const kenpoSnap = await getDocs(kenpoCol);
+    this.kenpoStandardMonthlyList = kenpoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const nenkinCol = collection(this.firestore, 'nenkin_standardMonthlySarary');
+    const nenkinSnap = await getDocs(nenkinCol);
+    this.nenkinStandardMonthlyList = nenkinSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    // 変更後の標準報酬月額最終改定月の初期値を今の年月に
+    if (!this.employee.updatedStdSalaryMonth) {
+      const now = new Date();
+      const yyyy = now.getFullYear();
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      this.employee.updatedStdSalaryMonth = `${yyyy}-${mm}`;
+    }
+    // テーブル取得後に自動取得を必ず走らせる
+    this.updateSalaryTotal();
+  }
+
+  public cancelEditInsurance() {
+    this.isEditInsurance = false;
+    if (this.originalInsuranceInfo) {
+      this.employee.salaryCash = this.originalInsuranceInfo.salaryCash;
+      this.employee.salaryInKind = this.originalInsuranceInfo.salaryInKind;
+      this.employee.salaryTotal = this.originalInsuranceInfo.salaryTotal;
+    }
+  }
+
+  public async saveInsuranceInfo() {
+    if (!window.confirm('標準報酬月額と等級を変更し社会保険料を再算出しますか？')) {
+      return;
+    }
+    this.isEditInsurance = false;
+    if (!this.employeeId || !this.employee.companyId) return;
+    // standardsサブコレクションに新規ドキュメントを追加
+    const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+    try {
+      await addDoc(standardsCol, {
+        createdAt: new Date(),
+        createdBy: this.currentUser?.uid || '',
+        kenpoGrade: this.employee.stdSalaryHealthGrade || null,
+        kenpoStandardMonthly: this.employee.stdSalaryHealth || null,
+        nenkinGrade: this.employee.stdSalaryPensionGrade || null,
+        nenkinStandardMonthly: this.employee.stdSalaryPension || null,
+        revisionType: this.employee.updatedRevisionType || null
+      });
+      // 保存成功後にcalculate画面へ遷移
+      this.router.navigate(['/calculate', this.employeeId]);
+    } catch (e) {
+      alert('標準報酬月額情報の保存に失敗しました');
+    }
+  }
+
+  public isInsuranceValid(): boolean {
+    // 変更後の標準報酬月額最終改定月・報酬月額（通貨）・改定種別は必須
+    if (!this.employee.updatedStdSalaryMonth || this.employee.updatedStdSalaryMonth === '') return false;
+    if (this.employee.salaryCash === undefined || this.employee.salaryCash === null || this.employee.salaryCash === '' || Number(this.employee.salaryCash) === 0) return false;
+    if (!this.employee.updatedRevisionType || this.employee.updatedRevisionType === '') return false;
+    return true;
+  }
+
+  public getKenpoStandardForSalary(salary: number) {
+    return this.kenpoStandardMonthlyList.find(
+      (item: any) => salary >= item.lower && salary <= item.upper
+    );
+  }
+
+  public getNenkinStandardForSalary(salary: number) {
+    return this.nenkinStandardMonthlyList.find(
+      (item: any) => salary >= item.lower && salary <= item.upper
+    );
+  }
+
+  public updateSalaryTotal() {
+    const cash = Number(this.employee.salaryCash) || 0;
+    const inKind = Number(this.employee.salaryInKind) || 0;
+    const total = cash + inKind;
+    this.employee.salaryTotal = total;
+
+    // 健康保険・介護保険
+    let kenpo = this.kenpoStandardMonthlyList.find(item => {
+      const start = Number(item.monthlyRangeStart ?? -Infinity);
+      const end = item.monthlyRangeEnd === null || item.monthlyRangeEnd === '' || item.monthlyRangeEnd === undefined
+        ? Infinity
+        : Number(item.monthlyRangeEnd);
+      return total >= start && total < end;
+    }) || null;
+    if (!kenpo) {
+      kenpo = this.kenpoStandardMonthlyList.find(item =>
+        item.monthlyRangeEnd === null || item.monthlyRangeEnd === '' || item.monthlyRangeEnd === undefined
+      ) || null;
+    }
+    this.employee.stdSalaryHealth = kenpo ? kenpo.standardMonthlySalary : null;
+    this.employee.stdSalaryHealthGrade = kenpo ? kenpo.grade : null;
+
+    // 厚生年金
+    let nenkin = this.nenkinStandardMonthlyList.find(item => {
+      const start = Number(item.nenkinStart ?? -Infinity);
+      const end = item.nenkinEnd === null || item.nenkinEnd === '' || item.nenkinEnd === undefined
+        ? Infinity
+        : Number(item.nenkinEnd);
+      return total >= start && total < end;
+    }) || null;
+    if (!nenkin) {
+      nenkin = this.nenkinStandardMonthlyList.find(item =>
+        item.nenkinEnd === null || item.nenkinEnd === '' || item.nenkinEnd === undefined
+      ) || null;
+    }
+    this.employee.stdSalaryPension = nenkin ? nenkin.nenkinMonthly : null;
+    this.employee.stdSalaryPensionGrade = nenkin ? nenkin.nenkinGrade : null;
+  }
+
+  get latestStandard() {
+    if (!this.standardsList || this.standardsList.length === 0) return null;
+    return this.standardsList.reduce((latest, item) => {
+      if (!latest) return item;
+      const latestTime = latest.createdAt?.toDate ? latest.createdAt.toDate() : new Date(latest.createdAt);
+      const itemTime = item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
+      return itemTime > latestTime ? item : latest;
+    }, null);
+  }
+
 }
