@@ -14,7 +14,7 @@ export const routes: Routes = [
   { path: 'company-setting', component: CompanySettingComponent },
   { path: 'kenpo-rates', loadComponent: () => import('./kenpo-rates/kenpo-rates.component').then(m => m.KenpoRatesComponent) },
   { path: 'employee-detail/:id', loadComponent: () => import('./employee-detail/employee-detail.component').then(m => m.EmployeeDetailComponent) },
-  { path: 'employee-edit/:id', loadComponent: () => import('./employee-edit/employee-edit.component').then(m => m.EmployeeEditComponent) },
   { path: 'rates-management', loadComponent: () => import('./rates-management/rates-management.component').then(m => m.RatesManagementComponent) },
   { path: 'calculate/:id', loadComponent: () => import('./calculate/calculate.component').then(m => m.CalculateComponent) },
+  { path: 'insurance-history/:id', loadComponent: () => import('./insurance-history/insurance-history.component').then(m => m.InsuranceHistoryComponent) },
 ];

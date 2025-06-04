@@ -3,6 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Firestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import Decimal from 'decimal.js';
+import { JudgeComponent } from '../judge/judge.component';
 
 @Component({
   selector: 'app-calculate',
@@ -25,6 +26,8 @@ export class CalculateComponent implements OnInit {
   })();
   public standardsList: any[] = [];
   public isLoading: boolean = true;
+  public eligibilityResult: any = null;
+  public isSocialInsuranceExcluded: boolean = false;
   constructor(private route: ActivatedRoute, private firestore: Firestore, private router: Router) {}
   async ngOnInit() {
     this.isLoading = true;
@@ -57,16 +60,29 @@ export class CalculateComponent implements OnInit {
                 .find(row => row['prefecture'] === this.officeData.officePrefecture && String(row['year']) === String(this.currentNendo)) || null;
             }
           }
-          // standardsサブコレクション取得
+          // 社会保険要否判定の結果をコンソールに出力
+          const socialInsuranceRequired = JudgeComponent.judgeSocialInsuranceRequired({
+            employee: this.employeeData,
+            office: this.officeData,
+            company: this.companyData
+          });
+          if (!socialInsuranceRequired) {
+            this.isSocialInsuranceExcluded = true;
+            this.isLoading = false;
+            return;
+          }
+          // 判定ロジック呼び出し
+          this.eligibilityResult = JudgeComponent.judgeEligibility(this.employeeData);
+          // standardsサブコレクション取得（createdAt降順でソート）
           const standardsCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/standards`);
           const standardsSnap = await getDocs(standardsCol);
-          this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          // デバッグ出力
-          console.log('[DEBUG] standardsList:', this.standardsList.map(s => ({
-            id: s.id,
-            createdAt: s.createdAt,
-            millis: s.createdAt?.toDate ? s.createdAt.toDate().getTime() : (s.createdAt ? new Date(s.createdAt).getTime() : null)
-          })));
+          this.standardsList = (standardsSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })) as any[])
+            .filter(item => !!item.createdAt)
+            .map(item => ({
+              ...item,
+              _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+            }))
+            .sort((a, b) => b._millis - a._millis);
           this.isLoading = false;
           return;
         }
@@ -263,20 +279,25 @@ export class CalculateComponent implements OnInit {
     return this.formatWithComma(this.employeeData.stdSalaryPension);
   }
   onSaveCalc = async () => {
-    if (!this.employeesId) return;
-    const insurancesCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeesId, 'insurances');
-    // 最新のinsurancesドキュメントを取得
+    if (!this.companyId || !this.employeesId || !this.latestStandard) return;
+    const insurancesCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/insurances`);
     const insurancesSnap = await getDocs(insurancesCol);
-    let latestDoc: Record<string, any> = {};
-    let latestCreatedAt: any = null;
-    insurancesSnap.forEach(doc => {
-      const data: Record<string, any> = doc.data();
-      if (!latestCreatedAt || (data['createdAt'] && data['createdAt'].toMillis && data['createdAt'].toMillis() > latestCreatedAt)) {
-        latestCreatedAt = data['createdAt'] && data['createdAt'].toMillis ? data['createdAt'].toMillis() : null;
-        latestDoc = data;
-      }
-    });
-    const data: Record<string, any> = {
+    const insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }))
+      .filter(item => !!item.createdAt)
+      .map(item => ({
+        ...item,
+        _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+      }))
+      .sort((a, b) => b._millis - a._millis);
+    const latestInsurance = insurancesList[0];
+    const usedStandardId = this.latestStandard?.id;
+    if (latestInsurance && latestInsurance.standardId === usedStandardId) {
+      alert('すでにこの標準報酬月額・等級で計算結果が保存されています。');
+      return;
+    }
+    // 計算結果を保存（standardIdも含める）
+    await addDoc(insurancesCol, {
+      standardId: usedStandardId,
       healthInsuranceTotal: this.healthInsuranceAmount.replace(/,/g, ''),
       healthInsuranceCompany: this.healthInsuranceAmountCompany.replace(/,/g, ''),
       healthInsuranceEmployee: this.healthInsuranceAmountEmployee.replace(/,/g, ''),
@@ -290,17 +311,9 @@ export class CalculateComponent implements OnInit {
       totalCompany: this.totalInsuranceAmountCompany.replace(/,/g, ''),
       totalEmployee: this.totalInsuranceAmountEmployee.replace(/,/g, ''),
       employeeId: this.employeesId,
-      createdAt: serverTimestamp(),
-    };
-    // createdBy以外の値がすべて同じなら保存しない
-    if (Object.keys(latestDoc).length > 0) {
-      const keys = Object.keys(data).filter(k => k !== 'createdAt' && k !== 'createdBy');
-      const isSame = keys.every(k => String(data[k]) === String(latestDoc[k]));
-      if (isSame) {
-        return; // 何も保存しない
-      }
-    }
-    await addDoc(insurancesCol, data);
+      createdAt: new Date(),
+    });
+    alert('計算結果を保存しました。');
     this.router.navigate(['/employee-detail', this.employeesId]);
   };
 }

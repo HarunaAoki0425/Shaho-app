@@ -1,4 +1,6 @@
-<div class="detail-header"></div>
+<div class="detail-header">
+  <span class="detail-header-title">従業員詳細</span>
+</div>
 <div class="detail-main-wrapper">
   <div class="detail-row detail-row-top">
     <div class="detail-container detail-container-1">
@@ -40,7 +42,7 @@
       <div class="info-row">
         <span class="info-label">所属事業所</span>
         <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.officeName || '---' }}</span>
-        <select *ngIf="isEditPersonal" [(ngModel)]="employee.officeName" class="info-value" [ngClass]="{'input-error': isEditPersonal && !employee.officeName}">
+        <select *ngIf="isEditPersonal" [(ngModel)]="employee.officeName" class="info-value" [ngClass]="{'input-error': isEditPersonal && !employee.officeName}" (change)="onOfficeNameChange()">
           <option value="">選択してください</option>
           <option *ngFor="let office of companyOffices" [value]="office.officeName">{{ office.officeName }}</option>
         </select>
@@ -89,6 +91,10 @@
         <span class="info-label">所定労働時間（週）</span>
         <span class="info-value" *ngIf="!isEditContract">{{ employee?.workHours !== undefined && employee?.workHours !== null && employee?.workHours !== '' ? (employee?.workHours + '時間') : '---' }}</span>
         <input *ngIf="isEditContract" [(ngModel)]="employee.workHours" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workHours === undefined || employee.workHours === null || employee.workHours === '')}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">固定給</span>
+        <span class="info-value">{{ employee?.baseSalary != null && employee?.baseSalary !== '' ? (employee.baseSalary | number:'1.0-0') + '円' : '---' }}</span>
       </div>
     </div>
     <div class="detail-container detail-container-3">
@@ -219,34 +225,34 @@
         <tbody *ngIf="insurancesList.length > 0">
           <tr>
             <th>健康保険</th>
-            <td>{{ insurancesList[insurancesList.length-1]?.healthInsuranceTotal | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.healthInsuranceCompany | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.healthInsuranceEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestInsurance?.healthInsuranceTotal ? (latestInsurance.healthInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.healthInsuranceCompany ? (latestInsurance.healthInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.healthInsuranceEmployee ? (latestInsurance.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
           </tr>
           <tr>
             <th>介護保険</th>
-            <td>{{ insurancesList[insurancesList.length-1]?.careInsuranceTotal | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.careInsuranceCompany | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.careInsuranceEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestInsurance?.careInsuranceTotal ? (latestInsurance.careInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.careInsuranceCompany ? (latestInsurance.careInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.careInsuranceEmployee ? (latestInsurance.careInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
           </tr>
           <tr>
             <th>厚生年金</th>
-            <td>{{ insurancesList[insurancesList.length-1]?.pensionInsuranceTotal | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.pensionInsuranceCompany | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.pensionInsuranceEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestInsurance?.pensionInsuranceTotal ? (latestInsurance.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.pensionInsuranceCompany ? (latestInsurance.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.pensionInsuranceEmployee ? (latestInsurance.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
           </tr>
           <tr>
             <th>合計</th>
-            <td>{{ insurancesList[insurancesList.length-1]?.total | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.totalCompany | number:'1.0-0' }}円</td>
-            <td>{{ insurancesList[insurancesList.length-1]?.totalEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestInsurance?.total ? (latestInsurance.total | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.totalCompany ? (latestInsurance.totalCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestInsurance?.totalEmployee ? (latestInsurance.totalEmployee | number:'1.0-0') : '---' }}円</td>
           </tr>
         </tbody>
-        <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
-        <tbody *ngIf="insurancesList.length === 0">
-          <tr><td colspan="4" style="text-align:center;">計算結果がありません</td></tr>
-        </tbody>
       </table>
+        <tbody *ngIf="insurancesList.length === 0">
+        <tr><td colspan="4" style="text-align:center;">計算結果がありません</td></tr></tbody>
+        <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
+        <button class="history-btn" (click)="goToHistory()">履歴</button>
     </div>
     <div class="detail-container detail-container-5">
       <div class="container-title-row">
@@ -300,7 +306,7 @@
       <div class="info-row">
         <span class="info-label">標準報酬月額最終改定月</span>
         <span class="info-value">
-          {{ latestStandard?.createdAt ? (latestStandard.createdAt.toDate() | date:'yyyy-MM') : '---' }}
+          {{ latestStandard?.lastRevisionMonth ? (latestStandard.lastRevisionMonth | date:'yyyy-MM') : '---' }}
         </span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
@@ -336,6 +342,14 @@
         <span class="info-label">報酬月額（合計）</span>
         <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryTotal ? (employee?.salaryTotal | number:'1.0-0') + '円' : '---' }}</span>
         <input *ngIf="isEditInsurance" [ngModel]="employee.salaryTotal" class="info-value" type="number" min="0" style="width: 6em;" [readonly]="true" [ngClass]="{'input-error': isEditInsurance && isEmptyOrZero(employee.salaryTotal)}" />
+      </div>
+      <div class="info-row">
+        <span class="info-label">資格取得日</span>
+        <span class="info-value">{{ employee?.joinDate ? (employee.joinDate | date:'yyyy-MM-dd') : '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">資格喪失日</span>
+        <span class="info-value">{{ employee?.leaveDate ? (employee.leaveDate | date:'yyyy-MM-dd') : '---' }}</span>
       </div>
       <div *ngIf="isEditInsurance" class="insurance-warning" style="color: #d32f2f; font-size: 0.98em; margin-top: 12px;">
         ※報酬月額は、契約情報変更時ではなく標準報酬月額（等級）改定時に編集してください。

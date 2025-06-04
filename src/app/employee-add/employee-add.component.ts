@@ -62,6 +62,8 @@ export class EmployeeAddComponent implements OnInit {
   selectedNenkinDoc: any = null;
   stdSalaryHealth: number | null = null;
   stdSalaryHealthGrade: string | null = null;
+  showBaseSalaryInfoPopup: boolean = false;
+  baseSalary: string | number | null = null;
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -467,6 +469,10 @@ export class EmployeeAddComponent implements OnInit {
         return;
       }
     }
+    if (this.baseSalary === null || this.baseSalary === '' || isNaN(Number(this.baseSalary))) {
+      alert('固定給は必須です。');
+      return;
+    }
     if (!window.confirm('従業員情報を登録しますか？')) {
       return;
     }
@@ -541,6 +547,7 @@ export class EmployeeAddComponent implements OnInit {
       updatedAt: serverTimestamp(),
       managementNumber,
       companiesId: companyId,
+      baseSalary: parseNumber(this.baseSalary),
     };
 
     console.log('Preparing to save employee data to Firestore');
@@ -564,9 +571,10 @@ export class EmployeeAddComponent implements OnInit {
         updatedAt: serverTimestamp(),
         revisionType: '資格取得時',
         createdBy: this.currentUser?.uid || '',
+        lastRevisionMonth: this.joinDate || null
       });
-      // calculate画面に遷移
-      this.router.navigate(['/employee-detail', docRef.id]);
+      // 追加: 登録後にcalculate画面へ遷移
+      this.router.navigate(['/calculate', docRef.id]);
     } catch (error) {
       console.error('Failed to save employee data:', error);
       // 既存のエラー時処理 ...
@@ -599,5 +607,24 @@ export class EmployeeAddComponent implements OnInit {
   getCombinedNenkinGrade(): string | null {
     if (!this.combinedStdSalaryNenkin) return null;
     return this.combinedStdSalaryNenkin ? String(this.combinedStdSalaryNenkin) : null;
+  }
+
+  openBaseSalaryInfoPopup() {
+    this.showBaseSalaryInfoPopup = true;
+  }
+
+  closeBaseSalaryInfoPopup() {
+    this.showBaseSalaryInfoPopup = false;
+  }
+
+  onBaseSalaryInput(event: any) {
+    const value = event.target.value.replace(/,/g, '');
+    if (value === '' || value === null) {
+      this.baseSalary = null;
+    } else {
+      const num = Number(value);
+      this.baseSalary = isNaN(num) ? '' : num;
+    }
+    event.target.value = this.formatWithComma(this.baseSalary);
   }
 }

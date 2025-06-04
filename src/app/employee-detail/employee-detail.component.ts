@@ -89,6 +89,8 @@ export class EmployeeDetailComponent implements OnInit {
   public kenpoStandardMonthlyList: any[] = [];
   public nenkinStandardMonthlyList: any[] = [];
 
+  constructor() {}
+
   async ngOnInit() {
     // 年度（4月始まり）を自動計算
     const today = new Date();
@@ -610,9 +612,22 @@ export class EmployeeDetailComponent implements OnInit {
     }
     this.isEditInsurance = false;
     if (!this.employeeId || !this.employee.companyId) return;
-    // standardsサブコレクションに新規ドキュメントを追加
-    const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    // デバッグ出力
+    console.log('[DEBUG] updateDoc path:', `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    console.log('[DEBUG] updateDoc values:', {
+      salaryCash: this.employee.salaryCash,
+      salaryInKind: this.employee.salaryInKind,
+      salaryTotal: this.employee.salaryTotal
+    });
     try {
+      await updateDoc(employeeRef, {
+        salaryCash: this.employee.salaryCash,
+        salaryInKind: this.employee.salaryInKind,
+        salaryTotal: this.employee.salaryTotal
+      });
+      // standardsサブコレクションに新規ドキュメントを追加
+      const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
       await addDoc(standardsCol, {
         createdAt: new Date(),
         createdBy: this.currentUser?.uid || '',
@@ -620,7 +635,8 @@ export class EmployeeDetailComponent implements OnInit {
         kenpoStandardMonthly: this.employee.stdSalaryHealth || null,
         nenkinGrade: this.employee.stdSalaryPensionGrade || null,
         nenkinStandardMonthly: this.employee.stdSalaryPension || null,
-        revisionType: this.employee.updatedRevisionType || null
+        revisionType: this.employee.updatedRevisionType || null,
+        lastRevisionMonth: this.employee.updatedStdSalaryMonth || null
       });
       // 保存成功後にcalculate画面へ遷移
       this.router.navigate(['/calculate', this.employeeId]);
@@ -696,6 +712,37 @@ export class EmployeeDetailComponent implements OnInit {
       const itemTime = item.createdAt?.toDate ? item.createdAt.toDate() : new Date(item.createdAt);
       return itemTime > latestTime ? item : latest;
     }, null);
+  }
+
+  get latestInsurance() {
+    if (!this.insurancesList || this.insurancesList.length === 0) return null;
+    const validList = this.insurancesList.filter(item => !!item.createdAt);
+    if (validList.length === 0) return null;
+    return validList
+      .map(item => ({
+        ...item,
+        _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+      }))
+      .sort((a, b) => b._millis - a._millis)[0];
+  }
+
+  goToHistory() {
+    if (this.employeeId) {
+      this.router.navigate(['/insurance-history', this.employeeId]);
+    }
+  }
+
+  async onOfficeNameChange() {
+    if (!this.employee || !this.companyOffices) return;
+    const office = this.companyOffices.find(o => o.officeName === this.employee.officeName);
+    if (office) {
+      this.employee.officesId = office.id;
+      // Firestoreのemployeesにも反映
+      if (this.employeeId && this.employee.companyId) {
+        const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+        await updateDoc(employeeRef, { officesId: office.id });
+      }
+    }
   }
 
 }

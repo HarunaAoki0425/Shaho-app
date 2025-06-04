@@ -29,14 +29,6 @@
       </div>
     </div>
     <div>
-      <label>学生区分</label>
-      <select name="isStudent" [(ngModel)]="isStudent">
-        <option value="" disabled selected>選択してください</option>
-        <option value="学生">学生</option>
-        <option value="学生ではない">学生ではない</option>
-      </select>
-    </div>
-    <div>
       <label>国籍</label>
       <select name="nationality" class="nationality-select" [(ngModel)]="nationality">
         <option value="" disabled selected>選択してください</option>
@@ -236,6 +228,30 @@
       </select>
     </div>
     <div>
+      <label>学生区分</label>
+      <select name="isStudent" [(ngModel)]="isStudent">
+        <option value="" disabled selected>選択してください</option>
+        <option value="学生">学生</option>
+        <option value="学生ではない">学生ではない</option>
+      </select>
+    </div>
+    <div>
+      <label>被扶養者の有無</label>
+      <select name="dependentStatus" [(ngModel)]="dependentStatus">
+        <option value="" disabled selected>選択してください</option>
+        <option value="被扶養者あり">被扶養者あり</option>
+        <option value="被扶養者なし">被扶養者なし</option>
+      </select>
+      <div *ngIf="dependentStatus === '被扶養者あり'" class="dependent-relations">
+        <div *ngFor="let relation of dependentRelations; let i = index" class="relation-row">
+          <label>続柄{{ dependentRelations.length > 1 ? (i + 1) : '' }}</label>
+          <input type="text" [(ngModel)]="dependentRelations[i]" name="dependentRelation{{i}}">
+          <button type="button" (click)="removeRelation(i)" *ngIf="dependentRelations.length > 1">削除</button>
+        </div>
+        <button type="button" (click)="addRelation()">＋追加</button>
+      </div>
+    </div>
+    <div>
       <label>所属事業所</label>
       <select name="office" [(ngModel)]="selectedOfficeId" (ngModelChange)="onOfficeChange($event)">
         <option value="" disabled selected>選択してください</option>
@@ -264,6 +280,15 @@
         <label>終了年月日</label>
         <input type="date" name="employmentPeriodEnd" [(ngModel)]="employmentPeriodEnd">
       </div>
+    </div>
+    <div>
+      <label style="display: flex; align-items: center; gap: 6px;">
+        固定給
+        <button type="button" class="info-btn" (click)="openBaseSalaryInfoPopup()" aria-label="基本給の説明">
+          <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
+        </button>
+      </label>
+      <input type="text" name="baseSalary" placeholder="固定給を入力" class="base-salary-input" [value]="formatWithComma(baseSalary)" (input)="onBaseSalaryInput($event)" required [class.input-error]="baseSalary === null || baseSalary === ''">
     </div>
     <div>
       <label>所定労働日数（月）</label>
@@ -317,22 +342,6 @@
     <div>
       <label>資格喪失年月日（退職日）</label>
       <input type="date" name="leaveDate">
-    </div>
-    <div>
-      <label>被扶養者の有無</label>
-      <select name="dependentStatus" [(ngModel)]="dependentStatus">
-        <option value="" disabled selected>選択してください</option>
-        <option value="被扶養者あり">被扶養者あり</option>
-        <option value="被扶養者なし">被扶養者なし</option>
-      </select>
-      <div *ngIf="dependentStatus === '被扶養者あり'" class="dependent-relations">
-        <div *ngFor="let relation of dependentRelations; let i = index" class="relation-row">
-          <label>続柄{{ dependentRelations.length > 1 ? (i + 1) : '' }}</label>
-          <input type="text" [(ngModel)]="dependentRelations[i]" name="dependentRelation{{i}}">
-          <button type="button" (click)="removeRelation(i)" *ngIf="dependentRelations.length > 1">削除</button>
-        </div>
-        <button type="button" (click)="addRelation()">＋追加</button>
-      </div>
     </div>
     <div>
       <label>外国派遣労働者区分</label>
@@ -445,6 +454,15 @@
         標準報酬月額の対象となる報酬に含まれます。
       </div>
       <button type="button" class="info-popup-close" (click)="closeSalaryCashInfoPopup()">閉じる</button>
+    </div>
+  </div>
+  <!-- 基本給インフォメーションポップアップ -->
+  <div *ngIf="showBaseSalaryInfoPopup" class="info-popup-backdrop">
+    <div class="info-popup-modal">
+      <div class="info-popup-content">
+        残業代、賞与、通勤手当、臨時の手当て等を含まない金額を入力してください。
+      </div>
+      <button type="button" class="info-popup-close" (click)="closeBaseSalaryInfoPopup()">閉じる</button>
     </div>
   </div>
 </div>

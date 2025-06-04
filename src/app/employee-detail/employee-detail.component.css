@@ -227,30 +227,46 @@ div[ngif] {
   border-collapse: collapse;
   margin-top: 0;
   background: #fff;
-  border-radius: 8px;
-  overflow: hidden;
+  border-radius: 0;
+  overflow: visible;
   font-size: 0.95rem;
+  margin-bottom: 2.5em;
+  box-shadow: none;
 }
 .insurance-table th, .insurance-table td {
   border: 1px solid #d0e3f9;
   padding: 7px 8px;
   text-align: center;
   width: 25%;
+  border-color: #d0e3f9;
 }
 .insurance-table th {
   background: #f4f8fb;
   color: #1976d2;
   font-weight: 600;
+  border-color: #d0e3f9;
 }
 .insurance-table td {
   background: #fff;
   color: #222;
+  border-color: #d0e3f9;
 }
 
 .detail-header {
   width: 100%;
-  padding-top: 2.5rem;
-  margin-bottom: 0.5rem;
+  padding-top: 3.5rem;
+  margin-bottom: 1.2rem;
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-start;
+}
+
+.detail-header-title {
+  font-size: 2.0rem;
+  font-weight: 700;
+  color: #1976d2;
+  letter-spacing: 0.04em;
+  margin-left: 0.2em;
 }
 
 .detail-header-left,
@@ -286,7 +302,7 @@ div[ngif] {
 }
 .detail-container {
   position: relative;
-  padding-top: 1.2rem;
+  padding-top: 0;
   padding-left: 1.2rem;
   padding-right: 1.2rem;
   padding-bottom: 1.2rem;
@@ -343,13 +359,13 @@ div[ngif] {
 .calc-insurance-btn {
   min-width: 220px;
   padding: 10px 0;
-  font-size: 1.08em;
+  font-size: 0.7em;
   background: #1976d2;
-  color: #fff;
+  color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  margin: 12px 0 18px 0;
+  margin: 0 0 18px 0;
   transition: background 0.2s;
 }
 .calc-insurance-btn:hover {
@@ -372,5 +388,31 @@ div[ngif] {
 .input-error {
   border: 1.5px solid #e53935 !important;
   box-shadow: 0 0 2px #e53935;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.97); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.history-btn {
+  min-width: 120px;
+  padding: 8px 0;
+  font-size: 0.7em;
+  background: #fff;
+  color: #1976d2;
+  border: 2px solid #1976d2;
+  border-radius: 6px;
+  cursor: pointer;
+  margin: 8px 0 0 0;
+  font-weight: 600;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.06);
+}
+.history-btn:hover, .history-btn:focus {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1251a2;
+  outline: none;
 }
 
