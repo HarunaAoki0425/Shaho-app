@@ -27,7 +27,6 @@
         </th>
         <th>氏名</th>
         <th>雇用形態</th>
-        <th>社会保険加入中</th>
         <th>事業所</th>
         <th (click)="toggleSort('joinDate')" class="th-join-date" style="cursor:pointer; user-select:none;">
           入社日
@@ -43,7 +42,6 @@
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.managementNumber }}</td>
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.lastName }} {{ emp.firstName }}</td>
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.employmentType }}</td>
-        <td (click)="goToDetail(emp)" style="cursor:pointer;"></td>
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.officeName }}</td>
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.joinDate }}</td>
       </tr>

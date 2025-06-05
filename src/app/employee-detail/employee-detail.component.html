@@ -213,48 +213,71 @@
   <div class="detail-row detail-row-bottom">
     <div class="detail-container detail-container-4">
       <span class="container-title">現在の社会保険料</span>
-      <table class="insurance-table">
-        <thead>
-          <tr>
-            <th></th>
-            <th>全額</th>
-            <th>会社負担</th>
-            <th>従業員負担</th>
-          </tr>
-        </thead>
-        <tbody *ngIf="insurancesList.length > 0">
-          <tr>
-            <th>健康保険</th>
-            <td>{{ latestInsurance?.healthInsuranceTotal ? (latestInsurance.healthInsuranceTotal | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.healthInsuranceCompany ? (latestInsurance.healthInsuranceCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.healthInsuranceEmployee ? (latestInsurance.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
-          </tr>
-          <tr>
-            <th>介護保険</th>
-            <td>{{ latestInsurance?.careInsuranceTotal ? (latestInsurance.careInsuranceTotal | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.careInsuranceCompany ? (latestInsurance.careInsuranceCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.careInsuranceEmployee ? (latestInsurance.careInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
-          </tr>
-          <tr>
-            <th>厚生年金</th>
-            <td>{{ latestInsurance?.pensionInsuranceTotal ? (latestInsurance.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.pensionInsuranceCompany ? (latestInsurance.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.pensionInsuranceEmployee ? (latestInsurance.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
-          </tr>
-          <tr>
-            <th>合計</th>
-            <td>{{ latestInsurance?.total ? (latestInsurance.total | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.totalCompany ? (latestInsurance.totalCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestInsurance?.totalEmployee ? (latestInsurance.totalEmployee | number:'1.0-0') : '---' }}円</td>
-          </tr>
-        </tbody>
-      </table>
-        <tbody *ngIf="insurancesList.length === 0">
-        <tr><td colspan="4" style="text-align:center;">計算結果がありません</td></tr></tbody>
-        <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
-        <button class="history-btn" (click)="goToHistory()">履歴</button>
+      <div *ngIf="employee && employee.onMaternityLeave" style="margin-top: 12px; color: #d32f2f; font-weight: bold;">
+        ※育休・産休中のため、社会保険免除※<br>
+        <span style="font-weight: normal; color: #333;">
+          開始年月日: {{ employee.maternityLeaveStartDate || '---' }}　終了年月日: {{ employee.maternityLeaveEndDate || '---' }}
+          <button class="edit-btn" style="margin-left: 8px; font-size: 0.95em; padding: 2px 8px;" (click)="onEditMaternityLeaveDates()">編集</button>
+        </span>
+      </div>
+      <ng-container *ngIf="employee && !employee.onMaternityLeave">
+        <ng-container *ngIf="insurancesList.length > 0; else noInsurance">
+          <table class="insurance-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>全額</th>
+                <th>会社負担</th>
+                <th>従業員負担</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th>健康保険</th>
+                <td>{{ latestInsurance?.healthInsuranceTotal ? (latestInsurance.healthInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.healthInsuranceCompany ? (latestInsurance.healthInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.healthInsuranceEmployee ? (latestInsurance.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+              </tr>
+              <tr>
+                <th>介護保険</th>
+                <td>{{ latestInsurance?.careInsuranceTotal ? (latestInsurance.careInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.careInsuranceCompany ? (latestInsurance.careInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.careInsuranceEmployee ? (latestInsurance.careInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+              </tr>
+              <tr>
+                <th>厚生年金</th>
+                <td>{{ latestInsurance?.pensionInsuranceTotal ? (latestInsurance.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.pensionInsuranceCompany ? (latestInsurance.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.pensionInsuranceEmployee ? (latestInsurance.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+              </tr>
+              <tr>
+                <th>合計</th>
+                <td>{{ latestInsurance?.total ? (latestInsurance.total | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.totalCompany ? (latestInsurance.totalCompany | number:'1.0-0') : '---' }}円</td>
+                <td>{{ latestInsurance?.totalEmployee ? (latestInsurance.totalEmployee | number:'1.0-0') : '---' }}円</td>
+              </tr>
+            </tbody>
+          </table>
+          <div class="insurance-action-buttons">
+            <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
+            <button *ngIf="!employee.onMaternityLeave" class="maternity-leave-btn" (click)="onMaternityLeave()">育休・産休</button>
+            <button class="history-btn" (click)="goToHistory()">履歴</button>
+          </div>
+        </ng-container>
+        <ng-template #noInsurance>
+          <div style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
+            社会保険加入対象外です
+          </div>
+        </ng-template>
+        <span *ngIf="showMaternityLeaveInputs" style="display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; margin-bottom: 8px;">
+          <label>開始年月日 <input type="date" [(ngModel)]="maternityLeaveStart" style="margin-right: 8px;" /></label>
+          <label>終了年月日 <input type="date" [(ngModel)]="maternityLeaveEnd" /></label>
+          <button class="save-maternity-leave-btn" (click)="onSaveMaternityLeave()">保存</button>
+          <button class="cancel-maternity-leave-btn" (click)="onCancelMaternityLeaveInput()">キャンセル</button>
+        </span>
+      </ng-container>
     </div>
-    <div class="detail-container detail-container-5">
+    <div class="detail-container detail-container-5" *ngIf="insurancesList.length > 0">
       <div class="container-title-row">
         <span class="container-title">社会保険情報</span>
         <button class="edit-btn inline-edit-btn" *ngIf="!isEditInsurance" (click)="toggleEditInsurance()">編集</button>
@@ -350,6 +373,15 @@
       <div class="info-row">
         <span class="info-label">資格喪失日</span>
         <span class="info-value">{{ employee?.leaveDate ? (employee.leaveDate | date:'yyyy-MM-dd') : '---' }}</span>
+      </div>
+      <!-- 高齢任意加入選択欄 -->
+      <div class="info-row" *ngIf="isAfterMonthBeforeSeventyBirthdayEve">
+        <span class="info-label">厚生年金高齢任意加入</span>
+        <select class="info-value" [(ngModel)]="employee.seniorVoluntaryEnrollment">
+          <option value="する">する</option>
+          <option value="しない">しない</option>
+        </select>
+        <button class="confirm-btn" style="margin-left: 8px;" (click)="confirmSeniorVoluntaryEnrollment()">決定</button>
       </div>
       <div *ngIf="isEditInsurance" class="insurance-warning" style="color: #d32f2f; font-size: 0.98em; margin-top: 12px;">
         ※報酬月額は、契約情報変更時ではなく標準報酬月額（等級）改定時に編集してください。

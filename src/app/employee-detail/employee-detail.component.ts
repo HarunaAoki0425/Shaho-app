@@ -88,6 +88,9 @@ export class EmployeeDetailComponent implements OnInit {
   private originalInsuranceInfo: any = null;
   public kenpoStandardMonthlyList: any[] = [];
   public nenkinStandardMonthlyList: any[] = [];
+  public showMaternityLeaveInputs = false;
+  public maternityLeaveStart: string = '';
+  public maternityLeaveEnd: string = '';
 
   constructor() {}
 
@@ -173,9 +176,27 @@ export class EmployeeDetailComponent implements OnInit {
           const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
           const standardsSnap = await getDocs(standardsCol);
           this.standardsList = standardsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-          console.log('standardsList:', this.standardsList);
           await this.fetchInsurances();
           this.generateDeductionYMList();
+          // 画面表示時にonMaternityLeaveを自動判定
+          const start = this.employee.maternityLeaveStartDate;
+          const end = this.employee.maternityLeaveEndDate;
+          if (start && end) {
+            const now = new Date();
+            const startDate = new Date(start);
+            const endDate = new Date(end);
+            if (!isNaN(startDate.getTime()) && !isNaN(endDate.getTime())) {
+              if (now >= startDate && now <= endDate && !this.employee.onMaternityLeave) {
+                const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+                await updateDoc(employeeRef, { onMaternityLeave: true });
+                this.employee.onMaternityLeave = true;
+              }
+            }
+          }
+          // 画面表示時にアラートを出す（70歳の誕生日の前日を含む月の前の月を迎えているのにseniorVoluntaryEnrollmentフィールドが存在しない場合）
+          if (this.isAfterMonthBeforeSeventyBirthdayEve && !('seniorVoluntaryEnrollment' in this.employee)) {
+            alert('厚生年金の高齢任意加入手続きをした場合は、「厚生年金高齢任意加入：する」を、していない場合は「しない」を選択してください。');
+          }
           return;
         }
       }
@@ -191,7 +212,6 @@ export class EmployeeDetailComponent implements OnInit {
     );
     const insurancesSnap = await getDocs(insurancesCol);
     this.insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log('insurancesList:', this.insurancesList);
   }
 
   // 雇用形態の表示用
@@ -743,6 +763,101 @@ export class EmployeeDetailComponent implements OnInit {
         await updateDoc(employeeRef, { officesId: office.id });
       }
     }
+  }
+
+  getMonthBeforeSeventyBirthdayEve(birthdate: string): { year: number, month: number } | null {
+    if (!birthdate) return null;
+    const birth = new Date(birthdate);
+    if (isNaN(birth.getTime())) return null;
+    // 70歳の誕生日
+    const seventyBirthday = new Date(birth.getFullYear() + 70, birth.getMonth(), birth.getDate());
+    // 70歳の誕生日の前日
+    const seventyEve = new Date(seventyBirthday);
+    seventyEve.setDate(seventyEve.getDate() - 1);
+    // その月の前の月
+    let year = seventyEve.getFullYear();
+    let month = seventyEve.getMonth(); // 0-indexed, 前の月
+    if (month === 0) {
+      month = 12;
+      year -= 1;
+    }
+    // monthは1-indexedで返す
+    return { year, month };
+  }
+
+  /**
+   * 現在が「70歳の誕生日の前日を含む月の前の月」以降かどうかを判定するgetter
+   */
+  get isAfterMonthBeforeSeventyBirthdayEve(): boolean {
+    if (!this.employee?.birthdate) return false;
+    const target = this.getMonthBeforeSeventyBirthdayEve(this.employee.birthdate);
+    if (!target) return false;
+    const now = new Date();
+    const nowYear = now.getFullYear();
+    const nowMonth = now.getMonth() + 1; // 1-indexed
+    // 現在年月が「70歳の誕生日の前日を含む月の前の月」以降か
+    if (nowYear > target.year) return true;
+    if (nowYear === target.year && nowMonth >= target.month) return true;
+    return false;
+  }
+
+  public async confirmSeniorVoluntaryEnrollment() {
+    if (!this.employeeId || !this.employee.companyId) return;
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    try {
+      await updateDoc(employeeRef, {
+        seniorVoluntaryEnrollment: this.employee.seniorVoluntaryEnrollment
+      });
+      // 画面上も即時反映
+      this.employee.seniorVoluntaryEnrollment = this.employee.seniorVoluntaryEnrollment;
+      window.location.reload();
+    } catch (e) {
+      alert('高齢任意加入の保存に失敗しました');
+    }
+  }
+
+  public onMaternityLeave() {
+    this.showMaternityLeaveInputs = !this.showMaternityLeaveInputs;
+    // 入力欄を閉じたときは値をリセット
+    if (!this.showMaternityLeaveInputs) {
+      this.maternityLeaveStart = '';
+      this.maternityLeaveEnd = '';
+    }
+  }
+
+  public async onSaveMaternityLeave() {
+    if (!this.maternityLeaveStart || !this.maternityLeaveEnd) {
+      alert('開始年月日と終了年月日を両方入力してください');
+      return;
+    }
+    if (!this.employeeId || !this.employee.companyId) return;
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    try {
+      await updateDoc(employeeRef, {
+        onMaternityLeave: false,
+        maternityLeaveStartDate: this.maternityLeaveStart,
+        maternityLeaveEndDate: this.maternityLeaveEnd
+      });
+      alert('育休・産休情報を保存しました');
+      this.showMaternityLeaveInputs = false;
+      this.maternityLeaveStart = '';
+      this.maternityLeaveEnd = '';
+      window.location.reload();
+    } catch (e) {
+      alert('育休・産休情報の保存に失敗しました');
+    }
+  }
+
+  public onEditMaternityLeaveDates() {
+    this.maternityLeaveStart = this.employee.maternityLeaveStartDate || '';
+    this.maternityLeaveEnd = this.employee.maternityLeaveEndDate || '';
+    this.showMaternityLeaveInputs = true;
+  }
+
+  public onCancelMaternityLeaveInput() {
+    this.showMaternityLeaveInputs = false;
+    this.maternityLeaveStart = '';
+    this.maternityLeaveEnd = '';
   }
 
 }

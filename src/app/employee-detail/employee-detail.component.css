@@ -355,27 +355,67 @@ div[ngif] {
   font-size: 1em;
 }
 
+.insurance-action-buttons {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.calc-insurance-btn,
+.maternity-leave-btn,
+.history-btn {
+  width: auto;
+  box-sizing: border-box;
+  font-size: 0.98em;
+  border-radius: 7px;
+  font-weight: 600;
+  padding: 8px 18px;
+  margin: 0;
+  transition: background 0.2s, color 0.2s, border 0.2s;
+}
 
 .calc-insurance-btn {
   min-width: 220px;
-  padding: 10px 0;
-  font-size: 0.7em;
+  max-width: 220px;
   background: #1976d2;
-  color: white;
+  color: #fff;
   border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  margin: 0 0 18px 0;
-  transition: background 0.2s;
 }
 .calc-insurance-btn:hover {
   background: #1251a2;
 }
 
+.maternity-leave-btn {
+  min-width: 120px;
+  max-width: 180px;
+  background: #42a5f5;
+  color: #fff;
+  border: none;
+}
+.maternity-leave-btn:hover {
+  background: #1976d2;
+}
+
+.history-btn {
+  min-width: 120px;
+  max-width: 180px;
+  background: #fff;
+  color: #1976d2;
+  border: 0.5px solid #1976d2;
+}
+.history-btn:hover, .history-btn:focus {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1251a2;
+}
+
 .detail-container-5 .info-label {
   width: 21em;
 }
-
 
 .inline-edit-btn {
   margin-left: 0 !important;
@@ -393,26 +433,5 @@ div[ngif] {
 @keyframes fadeIn {
   from { opacity: 0; transform: scale(0.97); }
   to { opacity: 1; transform: scale(1); }
-}
-
-.history-btn {
-  min-width: 120px;
-  padding: 8px 0;
-  font-size: 0.7em;
-  background: #fff;
-  color: #1976d2;
-  border: 2px solid #1976d2;
-  border-radius: 6px;
-  cursor: pointer;
-  margin: 8px 0 0 0;
-  font-weight: 600;
-  transition: background 0.2s, color 0.2s, border 0.2s;
-  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.06);
-}
-.history-btn:hover, .history-btn:focus {
-  background: #1976d2;
-  color: #fff;
-  border-color: #1251a2;
-  outline: none;
 }
 

@@ -36,7 +36,7 @@ export class JudgeComponent {
       const start = new Date(employee.employmentPeriodStart);
       const end = new Date(employee.employmentPeriodEnd);
       const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-      periodOk = diffDays >= 60; // 2か月以上
+      periodOk = diffDays >= 59; // 2か月以上
     }
     const allExtra = (
       officeEmployeeCount >= 51 &&
@@ -66,5 +66,122 @@ export class JudgeComponent {
     // TODO: 実際の判定ロジックをここに実装
     // 例: return { health: true, pension: false, ... };
     return { health: true, pension: true, care: true };
+  }
+
+  static judgeHealthInsurance(employee: any): boolean {
+    if (!employee?.birthdate) return false;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const birth = new Date(employee.birthdate);
+    if (isNaN(birth.getTime())) return false;
+    const seventyFifthBirthday = new Date(birth.getFullYear() + 75, birth.getMonth(), birth.getDate());
+    const lastEligibleYear = seventyFifthBirthday.getFullYear();
+    const lastEligibleMonth = seventyFifthBirthday.getMonth() + 1;
+    // 75歳の誕生日の属する月まで対象
+    if (
+      currentYear < lastEligibleYear ||
+      (currentYear === lastEligibleYear && currentMonth <= lastEligibleMonth)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  static judgeCareInsurance(employee: any): boolean {
+    if (!employee?.birthdate) return false;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const birth = new Date(employee.birthdate);
+    if (isNaN(birth.getTime())) return false;
+    // 40歳の誕生日の前日
+    const fortyBirthday = new Date(birth.getFullYear() + 40, birth.getMonth(), birth.getDate());
+    const fortyEve = new Date(fortyBirthday);
+    fortyEve.setDate(fortyEve.getDate() - 1);
+    const fortyEveYear = fortyEve.getFullYear();
+    const fortyEveMonth = fortyEve.getMonth() + 1;
+    // 65歳の誕生日の前日
+    const sixtyFiveBirthday = new Date(birth.getFullYear() + 65, birth.getMonth(), birth.getDate());
+    const sixtyFiveEve = new Date(sixtyFiveBirthday);
+    sixtyFiveEve.setDate(sixtyFiveEve.getDate() - 1);
+    let sixtyFiveEveYear = sixtyFiveEve.getFullYear();
+    let sixtyFiveEveMonth = sixtyFiveEve.getMonth() + 1;
+    // 終了月は65歳の誕生日の前日が含まれる月の前の月
+    let endYear = sixtyFiveEveYear;
+    let endMonth = sixtyFiveEveMonth - 1;
+    if (endMonth === 0) {
+      endMonth = 12;
+      endYear -= 1;
+    }
+    // 判定
+    const afterStart =
+      currentYear > fortyEveYear ||
+      (currentYear === fortyEveYear && currentMonth >= fortyEveMonth);
+    const beforeEnd =
+      currentYear < endYear ||
+      (currentYear === endYear && currentMonth <= endMonth);
+    return afterStart && beforeEnd;
+  }
+
+  static judgePensionInsurance(employee: any): boolean {
+    if (!employee?.birthdate) return false;
+    const now = new Date();
+    const currentYear = now.getFullYear();
+    const currentMonth = now.getMonth() + 1;
+    const birth = new Date(employee.birthdate);
+    if (isNaN(birth.getTime())) return false;
+    // 70歳の誕生日の前日
+    const seventyBirthday = new Date(birth.getFullYear() + 70, birth.getMonth(), birth.getDate());
+    const seventyEve = new Date(seventyBirthday);
+    seventyEve.setDate(seventyEve.getDate() - 1);
+    let seventyEveYear = seventyEve.getFullYear();
+    let seventyEveMonth = seventyEve.getMonth() + 1;
+    // 終了月は70歳の誕生日の前日が含まれる月の前の月
+    let endYear = seventyEveYear;
+    let endMonth = seventyEveMonth - 1;
+    if (endMonth === 0) {
+      endMonth = 12;
+      endYear -= 1;
+    }
+    // 判定
+    const result = (
+      currentYear < endYear ||
+      (currentYear === endYear && currentMonth <= endMonth)
+    );
+    // 70歳を超えていても、seniorVoluntaryEnrollmentが「する」ならtrue
+    if (employee.seniorVoluntaryEnrollment === 'する') {
+      return true;
+    }
+    return result;
+  }
+
+  static judgeInternationalSocialInsurance(employee: any): boolean {
+    // 外国派遣労働者区分が「該当しない」の場合は対象外
+    if (employee.dispatchedAbroad === '該当しない') {
+      return false;
+    }
+    // 社会保障協定国が「該当しない」の場合はtrue
+    if (employee.socialSecurityAgreement === '該当しない') {
+      return true;
+    }
+    // 社会保障協定国が「該当する」の場合
+    if (employee.socialSecurityAgreement === '該当する') {
+      // 日本から外国への派遣労働者 かつ 一時派遣が「該当する」
+      if (
+        employee.dispatchedAbroad === '日本から外国への派遣労働者' &&
+        employee.temporaryDispatch === '該当する'
+      ) {
+        return true;
+      }
+      // 外国から日本への派遣労働者 かつ 一時派遣が「該当しない」
+      if (
+        employee.dispatchedAbroad === '外国から日本への派遣労働者' &&
+        employee.temporaryDispatch === '該当しない'
+      ) {
+        return true;
+      }
+    }
+    return false;
   }
 }

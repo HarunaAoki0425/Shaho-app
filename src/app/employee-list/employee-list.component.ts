@@ -34,7 +34,6 @@ export class EmployeeListComponent implements OnInit {
         const q = query(companiesCol, where('createdBy', '==', user.uid));
         const companiesSnap = await getDocs(q);
         this.companies = companiesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        console.log('取得したcompanies:', this.companies);
         // employees取得
         this.employees = [];
         for (const company of this.companies) {
@@ -45,7 +44,6 @@ export class EmployeeListComponent implements OnInit {
         }
         // 管理番号順にソート
         this.employees.sort((a, b) => Number(a.managementNumber) - Number(b.managementNumber));
-        console.log('取得したemployees:', this.employees);
       }
     });
   }

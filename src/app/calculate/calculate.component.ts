@@ -28,7 +28,11 @@ export class CalculateComponent implements OnInit {
   public isLoading: boolean = true;
   public eligibilityResult: any = null;
   public isSocialInsuranceExcluded: boolean = false;
-  constructor(private route: ActivatedRoute, private firestore: Firestore, private router: Router) {}
+  public healthInsuranceResult: boolean = false;
+  public careInsuranceResult: boolean = false;
+  public pensionInsuranceResult: boolean = false;
+  public hasUnsavedCalc: boolean = false;
+  constructor(private route: ActivatedRoute, private firestore: Firestore, public router: Router) {}
   async ngOnInit() {
     this.isLoading = true;
     this.employeesId = this.route.snapshot.paramMap.get('id') || '';
@@ -71,6 +75,31 @@ export class CalculateComponent implements OnInit {
             this.isLoading = false;
             return;
           }
+          // 健康保険判定結果をコンソールに出力
+          const healthInsuranceResult = JudgeComponent.judgeHealthInsurance(this.employeeData);
+          console.log('[健康保険判定]', healthInsuranceResult);
+          // 介護保険判定結果をコンソールに出力
+          const careInsuranceResult = JudgeComponent.judgeCareInsurance(this.employeeData);
+          console.log('[介護保険判定]', careInsuranceResult);
+          // 厚生年金判定結果をコンソールに出力
+          const pensionInsuranceResult = JudgeComponent.judgePensionInsurance(this.employeeData);
+          console.log('[厚生年金判定]', pensionInsuranceResult);
+          // 国際社会保険判定
+          if (this.employeeData.dispatchedAbroad !== '該当しない') {
+            const internationalSocialInsuranceResult = JudgeComponent.judgeInternationalSocialInsurance(this.employeeData);
+            console.log('[海外派遣判定]', internationalSocialInsuranceResult);
+            if (!internationalSocialInsuranceResult) {
+              this.isSocialInsuranceExcluded = true;
+              this.isLoading = false;
+              return;
+            }
+          } else {
+            console.log('[海外派遣判定] 判定しない');
+          }
+          // 各保険判定結果をプロパティに格納
+          this.healthInsuranceResult = JudgeComponent.judgeHealthInsurance(this.employeeData);
+          this.careInsuranceResult = JudgeComponent.judgeCareInsurance(this.employeeData);
+          this.pensionInsuranceResult = JudgeComponent.judgePensionInsurance(this.employeeData);
           // 判定ロジック呼び出し
           this.eligibilityResult = JudgeComponent.judgeEligibility(this.employeeData);
           // standardsサブコレクション取得（createdAt降順でソート）
@@ -84,12 +113,14 @@ export class CalculateComponent implements OnInit {
             }))
             .sort((a, b) => b._millis - a._millis);
           this.isLoading = false;
+          await this.checkUnsavedCalc();
           return;
         }
       }
     }
     console.log('currentNendo:', this.currentNendo);
     this.isLoading = false;
+    await this.checkUnsavedCalc();
   }
   get healthInsuranceRate100(): string {
     if (!this.insuranceRateData || this.insuranceRateData.health_insurance == null) return '';
@@ -133,7 +164,7 @@ export class CalculateComponent implements OnInit {
       .sort((a, b) => b._millis - a._millis)[0];
   }
   get healthInsuranceAmount(): string {
-    if (!this.insuranceRateData) return '';
+    if (!this.healthInsuranceResult || !this.insuranceRateData) return '';
     const stdSalary = this.latestStandard?.kenpoStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryHealth : null);
     const rate = this.insuranceRateData.health_insurance;
     if (stdSalary == null || rate == null) return '';
@@ -143,18 +174,8 @@ export class CalculateComponent implements OnInit {
       return '';
     }
   }
-  get pensionInsuranceAmount(): string {
-    if (!this.insuranceRateData) return '';
-    const stdSalary = this.latestStandard?.nenkinStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryPension : null);
-    const rate = this.insuranceRateData.pension_insurance;
-    if (stdSalary == null || rate == null) return '';
-    try {
-      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toFixed(0));
-    } catch {
-      return '';
-    }
-  }
   get healthInsuranceAmountCompany(): string {
+    if (!this.healthInsuranceResult) return '';
     const total = this.healthInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
@@ -164,6 +185,7 @@ export class CalculateComponent implements OnInit {
     }
   }
   get healthInsuranceAmountEmployee(): string {
+    if (!this.healthInsuranceResult) return '';
     const total = this.healthInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
@@ -178,7 +200,19 @@ export class CalculateComponent implements OnInit {
       return '';
     }
   }
+  get pensionInsuranceAmount(): string {
+    if (!this.pensionInsuranceResult || !this.insuranceRateData) return '';
+    const stdSalary = this.latestStandard?.nenkinStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryPension : null);
+    const rate = this.insuranceRateData.pension_insurance;
+    if (stdSalary == null || rate == null) return '';
+    try {
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toFixed(0));
+    } catch {
+      return '';
+    }
+  }
   get pensionInsuranceAmountCompany(): string {
+    if (!this.pensionInsuranceResult) return '';
     const total = this.pensionInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
@@ -188,6 +222,7 @@ export class CalculateComponent implements OnInit {
     }
   }
   get pensionInsuranceAmountEmployee(): string {
+    if (!this.pensionInsuranceResult) return '';
     const total = this.pensionInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
@@ -203,7 +238,7 @@ export class CalculateComponent implements OnInit {
     }
   }
   get careInsuranceAmount(): string {
-    if (!this.insuranceRateData) return '';
+    if (!this.careInsuranceResult || !this.insuranceRateData) return '';
     const stdSalary = this.latestStandard?.kenpoStandardMonthly ?? (this.employeeData ? this.employeeData.stdSalaryHealth : null);
     const rate = this.insuranceRateData.care_insurance;
     if (stdSalary == null || rate == null) return '';
@@ -214,6 +249,7 @@ export class CalculateComponent implements OnInit {
     }
   }
   get careInsuranceAmountCompany(): string {
+    if (!this.careInsuranceResult) return '';
     const total = this.careInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
@@ -223,6 +259,7 @@ export class CalculateComponent implements OnInit {
     }
   }
   get careInsuranceAmountEmployee(): string {
+    if (!this.careInsuranceResult) return '';
     const total = this.careInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
@@ -238,9 +275,9 @@ export class CalculateComponent implements OnInit {
     }
   }
   get totalInsuranceAmount(): string {
-    const h = this.healthInsuranceAmount.replace(/,/g, '');
-    const p = this.pensionInsuranceAmount.replace(/,/g, '');
-    const c = this.careInsuranceAmount.replace(/,/g, '');
+    const h = this.healthInsuranceResult ? this.healthInsuranceAmount.replace(/,/g, '') : '';
+    const p = this.pensionInsuranceResult ? this.pensionInsuranceAmount.replace(/,/g, '') : '';
+    const c = this.careInsuranceResult ? this.careInsuranceAmount.replace(/,/g, '') : '';
     if (!h && !p && !c) return '';
     try {
       return this.formatWithComma(new Decimal(h || 0).plus(new Decimal(p || 0)).plus(new Decimal(c || 0)).toString());
@@ -249,9 +286,9 @@ export class CalculateComponent implements OnInit {
     }
   }
   get totalInsuranceAmountCompany(): string {
-    const h = this.healthInsuranceAmountCompany.replace(/,/g, '');
-    const p = this.pensionInsuranceAmountCompany.replace(/,/g, '');
-    const c = this.careInsuranceAmountCompany.replace(/,/g, '');
+    const h = this.healthInsuranceResult ? this.healthInsuranceAmountCompany.replace(/,/g, '') : '';
+    const p = this.pensionInsuranceResult ? this.pensionInsuranceAmountCompany.replace(/,/g, '') : '';
+    const c = this.careInsuranceResult ? this.careInsuranceAmountCompany.replace(/,/g, '') : '';
     if (!h && !p && !c) return '';
     try {
       return this.formatWithComma(new Decimal(h || 0).plus(new Decimal(p || 0)).plus(new Decimal(c || 0)).toString());
@@ -260,9 +297,9 @@ export class CalculateComponent implements OnInit {
     }
   }
   get totalInsuranceAmountEmployee(): string {
-    const h = this.healthInsuranceAmountEmployee.replace(/,/g, '');
-    const p = this.pensionInsuranceAmountEmployee.replace(/,/g, '');
-    const c = this.careInsuranceAmountEmployee.replace(/,/g, '');
+    const h = this.healthInsuranceResult ? this.healthInsuranceAmountEmployee.replace(/,/g, '') : '';
+    const p = this.pensionInsuranceResult ? this.pensionInsuranceAmountEmployee.replace(/,/g, '') : '';
+    const c = this.careInsuranceResult ? this.careInsuranceAmountEmployee.replace(/,/g, '') : '';
     if (!h && !p && !c) return '';
     try {
       return this.formatWithComma(new Decimal(h || 0).plus(new Decimal(p || 0)).plus(new Decimal(c || 0)).toString());
@@ -277,6 +314,24 @@ export class CalculateComponent implements OnInit {
   get stdSalaryPensionWithComma(): string {
     if (!this.employeeData || this.employeeData.stdSalaryPension == null) return '';
     return this.formatWithComma(this.employeeData.stdSalaryPension);
+  }
+  private async checkUnsavedCalc() {
+    if (!this.companyId || !this.employeesId || !this.latestStandard) {
+      this.hasUnsavedCalc = false;
+      return;
+    }
+    const insurancesCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/insurances`);
+    const insurancesSnap = await getDocs(insurancesCol);
+    const insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }))
+      .filter(item => !!item.createdAt)
+      .map(item => ({
+        ...item,
+        _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+      }))
+      .sort((a, b) => b._millis - a._millis);
+    const latestInsurance = insurancesList[0];
+    const usedStandardId = this.latestStandard?.id;
+    this.hasUnsavedCalc = !(latestInsurance && latestInsurance.standardId === usedStandardId);
   }
   onSaveCalc = async () => {
     if (!this.companyId || !this.employeesId || !this.latestStandard) return;
@@ -296,24 +351,40 @@ export class CalculateComponent implements OnInit {
       return;
     }
     // 計算結果を保存（standardIdも含める）
-    await addDoc(insurancesCol, {
+    const saveData: any = {
       standardId: usedStandardId,
-      healthInsuranceTotal: this.healthInsuranceAmount.replace(/,/g, ''),
-      healthInsuranceCompany: this.healthInsuranceAmountCompany.replace(/,/g, ''),
-      healthInsuranceEmployee: this.healthInsuranceAmountEmployee.replace(/,/g, ''),
-      careInsuranceTotal: this.careInsuranceAmount.replace(/,/g, ''),
-      careInsuranceCompany: this.careInsuranceAmountCompany.replace(/,/g, ''),
-      careInsuranceEmployee: this.careInsuranceAmountEmployee.replace(/,/g, ''),
-      pensionInsuranceTotal: this.pensionInsuranceAmount.replace(/,/g, ''),
-      pensionInsuranceCompany: this.pensionInsuranceAmountCompany.replace(/,/g, ''),
-      pensionInsuranceEmployee: this.pensionInsuranceAmountEmployee.replace(/,/g, ''),
-      total: this.totalInsuranceAmount.replace(/,/g, ''),
-      totalCompany: this.totalInsuranceAmountCompany.replace(/,/g, ''),
-      totalEmployee: this.totalInsuranceAmountEmployee.replace(/,/g, ''),
       employeeId: this.employeesId,
       createdAt: new Date(),
-    });
+    };
+    if (this.healthInsuranceResult) {
+      saveData.healthInsuranceTotal = this.healthInsuranceAmount.replace(/,/g, '');
+      saveData.healthInsuranceCompany = this.healthInsuranceAmountCompany.replace(/,/g, '');
+      saveData.healthInsuranceEmployee = this.healthInsuranceAmountEmployee.replace(/,/g, '');
+    }
+    if (this.careInsuranceResult) {
+      saveData.careInsuranceTotal = this.careInsuranceAmount.replace(/,/g, '');
+      saveData.careInsuranceCompany = this.careInsuranceAmountCompany.replace(/,/g, '');
+      saveData.careInsuranceEmployee = this.careInsuranceAmountEmployee.replace(/,/g, '');
+    }
+    if (this.pensionInsuranceResult) {
+      saveData.pensionInsuranceTotal = this.pensionInsuranceAmount.replace(/,/g, '');
+      saveData.pensionInsuranceCompany = this.pensionInsuranceAmountCompany.replace(/,/g, '');
+      saveData.pensionInsuranceEmployee = this.pensionInsuranceAmountEmployee.replace(/,/g, '');
+    }
+    // 合計は含まれる保険のみで計算
+    saveData.total = this.totalInsuranceAmount.replace(/,/g, '');
+    saveData.totalCompany = this.totalInsuranceAmountCompany.replace(/,/g, '');
+    saveData.totalEmployee = this.totalInsuranceAmountEmployee.replace(/,/g, '');
+    await addDoc(insurancesCol, saveData);
     alert('計算結果を保存しました。');
+    this.router.navigate(['/employee-detail', this.employeesId]);
+  };
+  onNavigateToDetail = async () => {
+    await this.checkUnsavedCalc();
+    if (this.hasUnsavedCalc) {
+      alert('計算結果を保存してください');
+      return;
+    }
     this.router.navigate(['/employee-detail', this.employeesId]);
   };
 }
