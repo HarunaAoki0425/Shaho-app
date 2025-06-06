@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Firestore, collection, getDocs, updateDoc, doc, addDoc, query, where, setDoc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, updateDoc, doc, addDoc, query, where, setDoc, deleteDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -91,6 +91,12 @@ export class EmployeeDetailComponent implements OnInit {
   public showMaternityLeaveInputs = false;
   public maternityLeaveStart: string = '';
   public maternityLeaveEnd: string = '';
+  public isEditCombined = false;
+  public tempCombinedSalary: string | number | null = null;
+  public tempCombinedKenpoStandardMonthly: number | null = null;
+  public tempCombinedKenpoGrade: string | null = null;
+  public tempCombinedNenkinStandardMonthly: number | null = null;
+  public tempCombinedNenkinGrade: string | null = null;
 
   constructor() {}
 
@@ -196,6 +202,11 @@ export class EmployeeDetailComponent implements OnInit {
           // 画面表示時にアラートを出す（70歳の誕生日の前日を含む月の前の月を迎えているのにseniorVoluntaryEnrollmentフィールドが存在しない場合）
           if (this.isAfterMonthBeforeSeventyBirthdayEve && !('seniorVoluntaryEnrollment' in this.employee)) {
             alert('厚生年金の高齢任意加入手続きをした場合は、「厚生年金高齢任意加入：する」を、していない場合は「しない」を選択してください。');
+          }
+          // リロード後のアラート表示
+          if (localStorage.getItem('showSeniorVoluntaryEnrollmentAlert') === '1') {
+            alert('厚生年金算出のため「社会保険を算出する」を押して計算を実行してください。');
+            localStorage.removeItem('showSeniorVoluntaryEnrollmentAlert');
           }
           return;
         }
@@ -656,7 +667,8 @@ export class EmployeeDetailComponent implements OnInit {
         nenkinGrade: this.employee.stdSalaryPensionGrade || null,
         nenkinStandardMonthly: this.employee.stdSalaryPension || null,
         revisionType: this.employee.updatedRevisionType || null,
-        lastRevisionMonth: this.employee.updatedStdSalaryMonth || null
+        lastRevisionMonth: this.employee.updatedStdSalaryMonth || null,
+        memo: ''
       });
       // 保存成功後にcalculate画面へ遷移
       this.router.navigate(['/calculate', this.employeeId]);
@@ -808,8 +820,24 @@ export class EmployeeDetailComponent implements OnInit {
       await updateDoc(employeeRef, {
         seniorVoluntaryEnrollment: this.employee.seniorVoluntaryEnrollment
       });
+      // standardsにも新規作成
+      const latest = this.latestStandard;
+      if (latest) {
+        const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+        // id, createdAt以外をコピー
+        const { id, createdAt, ...copyFields } = latest;
+        await addDoc(standardsCol, {
+          ...copyFields,
+          createdAt: new Date(),
+          memo: '厚生年金高齢任意加入手続きにより変更'
+        });
+      }
       // 画面上も即時反映
       this.employee.seniorVoluntaryEnrollment = this.employee.seniorVoluntaryEnrollment;
+      // 「する」の場合はリロード後にアラートを出すフラグをセット
+      if (this.employee.seniorVoluntaryEnrollment === 'する') {
+        localStorage.setItem('showSeniorVoluntaryEnrollmentAlert', '1');
+      }
       window.location.reload();
     } catch (e) {
       alert('高齢任意加入の保存に失敗しました');
@@ -858,6 +886,117 @@ export class EmployeeDetailComponent implements OnInit {
     this.showMaternityLeaveInputs = false;
     this.maternityLeaveStart = '';
     this.maternityLeaveEnd = '';
+  }
+
+  async deleteEmployee() {
+    if (!this.employeeId || !this.employee?.companyId) return;
+    if (!window.confirm('本当にこの従業員を削除しますか？\nこの操作は元に戻せません。')) return;
+    const employeePath = `companies/${this.employee.companyId}/employees/${this.employeeId}`;
+    const employeeRef = doc(this.firestore, employeePath);
+    // サブコレクション削除
+    const subcollections = ['standards', 'insurances', 'monthlySarary'];
+    for (const sub of subcollections) {
+      const subCol = collection(this.firestore, `${employeePath}/${sub}`);
+      const subSnap = await getDocs(subCol);
+      for (const subDoc of subSnap.docs) {
+        await deleteDoc(subDoc.ref);
+      }
+    }
+    // 従業員本体削除
+    await deleteDoc(employeeRef);
+    alert('従業員を削除しました');
+    this.router.navigate(['/employee-list']);
+  }
+
+  async toggleEditCombined() {
+    this.isEditCombined = !this.isEditCombined;
+    if (this.isEditCombined) {
+      this.tempCombinedSalary = this.employee?.combinedSalary ?? '';
+      // 標準報酬月額テーブルが空ならFirestoreから取得
+      if (!this.kenpoStandardMonthlyList.length) {
+        const kenpoCol = collection(this.firestore, 'kenpo_standardMonthlySarary');
+        const kenpoSnap = await getDocs(kenpoCol);
+        this.kenpoStandardMonthlyList = kenpoSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+      if (!this.nenkinStandardMonthlyList.length) {
+        const nenkinCol = collection(this.firestore, 'nenkin_standardMonthlySarary');
+        const nenkinSnap = await getDocs(nenkinCol);
+        this.nenkinStandardMonthlyList = nenkinSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      }
+      // 入力欄を開いたときに初期値で自動判定
+      this.onTempCombinedSalaryChange();
+    }
+  }
+
+  async saveCombinedSalary() {
+    if (!this.employeeId || !this.employee?.companyId) return;
+    const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+    await updateDoc(employeeRef, {
+      combinedSalary: this.tempCombinedSalary,
+      combinedKenpoStandardMonthly: this.tempCombinedKenpoStandardMonthly,
+      combinedKenpoGrade: this.tempCombinedKenpoGrade,
+      combinedNenkinStandardMonthly: this.tempCombinedNenkinStandardMonthly,
+      combinedNenkinGrade: this.tempCombinedNenkinGrade
+    });
+    this.employee.combinedSalary = this.tempCombinedSalary;
+    this.employee.combinedKenpoStandardMonthly = this.tempCombinedKenpoStandardMonthly;
+    this.employee.combinedKenpoGrade = this.tempCombinedKenpoGrade;
+    this.employee.combinedNenkinStandardMonthly = this.tempCombinedNenkinStandardMonthly;
+    this.employee.combinedNenkinGrade = this.tempCombinedNenkinGrade;
+    // standardsサブコレクションのlastStandardも上書き
+    if (this.latestStandard && this.latestStandard.id) {
+      const standardRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards/${this.latestStandard.id}`);
+      await updateDoc(standardRef, {
+        combinedSalary: this.tempCombinedSalary,
+        combinedKenpoStandardMonthly: this.tempCombinedKenpoStandardMonthly,
+        combinedKenpoGrade: this.tempCombinedKenpoGrade,
+        combinedNenkinStandardMonthly: this.tempCombinedNenkinStandardMonthly,
+        combinedNenkinGrade: this.tempCombinedNenkinGrade
+      });
+    }
+    this.isEditCombined = false;
+  }
+
+  // 合算報酬月額の入力値が変わったときに標準報酬月額・等級を自動判定
+  onTempCombinedSalaryChange() {
+    const salary = Number(this.tempCombinedSalary);
+    if (!salary || isNaN(salary)) {
+      this.tempCombinedKenpoStandardMonthly = null;
+      this.tempCombinedKenpoGrade = null;
+      this.tempCombinedNenkinStandardMonthly = null;
+      this.tempCombinedNenkinGrade = null;
+      return;
+    }
+    // 健康保険・介護保険
+    let kenpo = this.kenpoStandardMonthlyList.find(item => {
+      const start = Number(item.monthlyRangeStart ?? -Infinity);
+      const end = item.monthlyRangeEnd === null || item.monthlyRangeEnd === '' || item.monthlyRangeEnd === undefined
+        ? Infinity
+        : Number(item.monthlyRangeEnd);
+      return salary >= start && salary < end;
+    }) || null;
+    if (!kenpo) {
+      kenpo = this.kenpoStandardMonthlyList.find(item =>
+        item.monthlyRangeEnd === null || item.monthlyRangeEnd === '' || item.monthlyRangeEnd === undefined
+      ) || null;
+    }
+    this.tempCombinedKenpoStandardMonthly = kenpo ? kenpo.standardMonthlySalary : null;
+    this.tempCombinedKenpoGrade = kenpo ? kenpo.grade : null;
+    // 厚生年金
+    let nenkin = this.nenkinStandardMonthlyList.find(item => {
+      const start = Number(item.nenkinStart ?? -Infinity);
+      const end = item.nenkinEnd === null || item.nenkinEnd === '' || item.nenkinEnd === undefined
+        ? Infinity
+        : Number(item.nenkinEnd);
+      return salary >= start && salary < end;
+    }) || null;
+    if (!nenkin) {
+      nenkin = this.nenkinStandardMonthlyList.find(item =>
+        item.nenkinEnd === null || item.nenkinEnd === '' || item.nenkinEnd === undefined
+      ) || null;
+    }
+    this.tempCombinedNenkinStandardMonthly = nenkin ? nenkin.nenkinMonthly : null;
+    this.tempCombinedNenkinGrade = nenkin ? nenkin.nenkinGrade : null;
   }
 
 }

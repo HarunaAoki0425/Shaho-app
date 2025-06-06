@@ -1,6 +1,19 @@
 <div class="container">
   <h2 class="employee-add-title">従業員登録</h2>
   <form class="employee-form">
+    <div class="info-row">
+      <label class="info-label"></label>
+      <label style="margin-right: 1.5em;">
+        <input type="radio" name="employeeAddType" [(ngModel)]="employeeAddType" value="入社時登録"> 入社時登録
+      </label>
+      <label>
+        <input type="radio" name="employeeAddType" [(ngModel)]="employeeAddType" value="既存社員追加"> 既存社員追加
+      </label>
+    </div>
+    <div>
+      <label>社員番号</label>
+      <input type="text" name="employeeNumber" [(ngModel)]="employeeNumber" class="info-value">
+    </div>
     <div class="name-row">
       <label>氏名</label>
       <div class="name-input-group">
@@ -24,7 +37,14 @@
     <div class="birthdate-row">
       <label>生年月日</label>
       <div class="birthdate-inline">
-        <input type="date" name="birthdate" [(ngModel)]="birthdate" (change)="onBirthdateChange($event)" class="birthdate-input">
+        <input
+          type="date"
+          name="birthdate"
+          [(ngModel)]="birthdate"
+          [max]="todayString"
+          (change)="onBirthdateChange($event)"
+          class="birthdate-input"
+        >
         <span *ngIf="age !== null" class="age-display-inline">年齢: {{ age }}歳</span>
       </div>
     </div>
@@ -288,7 +308,16 @@
           <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
         </button>
       </label>
-      <input type="text" name="baseSalary" placeholder="固定給を入力" class="base-salary-input" [value]="formatWithComma(baseSalary)" (input)="onBaseSalaryInput($event)" required [class.input-error]="baseSalary === null || baseSalary === ''">
+      <input
+        type="text"
+        name="baseSalary"
+        [value]="formatWithComma(baseSalary)"
+        (input)="onBaseSalaryInput($event)"
+        class="info-value"
+        inputmode="numeric"
+        pattern="[0-9]*"
+        autocomplete="off"
+      />
     </div>
     <div>
       <label>所定労働日数（月）</label>
@@ -334,6 +363,20 @@
         </ng-container>
         <ng-template #noNenkin>---</ng-template>
       </span>
+    </div>
+    <div *ngIf="employeeAddType === '既存社員追加'">
+      <label>標準報酬月額最終改定月</label>
+      <input type="month" name="lastRevisionMonth" [(ngModel)]="lastRevisionMonth" class="info-value">
+    </div>
+    <div *ngIf="employeeAddType === '既存社員追加'">
+      <label>改定種別</label>
+      <select name="revisionType" [(ngModel)]="revisionType">
+        <option value="" disabled selected>選択してください</option>
+        <option value="資格取得時">資格取得時</option>
+        <option value="定時決定">定時決定</option>
+        <option value="随時改定">随時改定</option>
+        <option value="育児休業等を終了した際の改定">育児休業等を終了した際の改定</option>
+      </select>
     </div>
     <div>
       <label>資格取得年月日（入社日）</label>
@@ -420,7 +463,7 @@
     <button type="button" class="save-btn" (click)="onRegister()" [disabled]="kenpoSalaryError || nenkinSalaryError || combinedKenpoSalaryError || combinedNenkinSalaryError">登録</button>
   </div>
   <div *ngIf="showInfoPopup" class="info-popup-backdrop">
-    <div class="info-popup">
+    <div class="info-popup-modal">
       <div class="info-popup-content">労働の対償として現物で支給されるものがある場合は、<br>
         その現物を通貨に換算した金額を入力してください。<br>
         現物で支給されるものが食事や住宅である場合は、<br>
@@ -434,7 +477,7 @@
     </div>
   </div>
   <div *ngIf="showAgreementInfoPopup" class="info-popup-backdrop">
-    <div class="info-popup">
+    <div class="info-popup-modal">
       <div class="info-popup-content">
         社会保障協定国とは、日本と社会保障協定を締結している国を指します。<br>
         協定国に派遣される場合、年金や健康保険の二重加入を防ぐための特例措置が適用されることがあります。<br>
@@ -444,7 +487,7 @@
     </div>
   </div>
   <div *ngIf="showSalaryCashInfoPopup" class="info-popup-backdrop">
-    <div class="info-popup">
+    <div class="info-popup-modal">
       <div class="info-popup-content">
         標準報酬月額算出のための月額（通貨）を入力してください。<br>
         対象となる報酬は、基本給のほか、役付手当、<br>

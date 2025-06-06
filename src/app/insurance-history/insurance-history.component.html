@@ -1,3 +1,28 @@
 <div class="history-header">
   <span class="history-header-title">社会保険料履歴</span>
 </div>
+
+<div>
+  <div *ngFor="let pair of insuranceStandardPairs" class="pair-block" style="border:1px solid #aaa; margin-bottom: 24px; padding: 12px;">
+    <div>健康保険全額: {{ pair.insurance.healthInsuranceTotal || '---' }}</div>
+    <div>健康保険会社: {{ pair.insurance.healthInsuranceCompany || '---' }}</div>
+    <div>健康保険従業員: {{ pair.insurance.healthInsuranceEmployee || '---' }}</div>
+    <div>介護保険全額: {{ pair.insurance.careInsuranceTotal || '---' }}</div>
+    <div>介護保険会社: {{ pair.insurance.careInsuranceCompany || '---' }}</div>
+    <div>介護保険従業員: {{ pair.insurance.careInsuranceEmployee || '---' }}</div>
+    <div>厚生年金全額: {{ pair.insurance.pensionInsuranceTotal || '---' }}</div>
+    <div>厚生年金会社: {{ pair.insurance.pensionInsuranceCompany || '---' }}</div>
+    <div>厚生年金従業員: {{ pair.insurance.pensionInsuranceEmployee || '---' }}</div>
+    <div>合計: {{ pair.insurance.total || '---' }}</div>
+    <div>合計会社: {{ pair.insurance.totalCompany || '---' }}</div>
+    <div>合計従業員: {{ pair.insurance.totalEmployee || '---' }}</div>
+    <div *ngIf="pair.standard; else noStandard">
+      <div>改定月: {{ pair.standard.lastRevisionMonth ? (pair.standard.lastRevisionMonth | date:'yyyy-MM') : '---' }}</div>
+      <div>改定種別: {{ pair.standard.revisionType || '---' }}</div>
+      <div>メモ: {{ pair.standard.memo || '' }}</div>
+    </div>
+    <ng-template #noStandard>
+      <div style="color: #d32f2f;">対応する標準報酬情報がありません</div>
+    </ng-template>
+  </div>
+</div>

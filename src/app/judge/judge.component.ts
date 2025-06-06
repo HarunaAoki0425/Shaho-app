@@ -9,6 +9,19 @@ import Decimal from 'decimal.js';
 })
 export class JudgeComponent {
   static judgeSocialInsuranceRequired({ employee, office, company }: { employee: any, office: any, company: any }): boolean {
+    // 事業所が非適用なら即false
+    if (office?.applicableOffice === false) {
+      console.log('[DEBUG] 判定結果: false (事業所が非適用)');
+      return false;
+    }
+    // すべての保険判定がfalseなら対象外
+    const health = this.judgeHealthInsurance(employee);
+    const care = this.judgeCareInsurance(employee);
+    const pension = this.judgePensionInsurance(employee);
+    if (!health && !care && !pension) {
+      console.log('[DEBUG] 判定結果: false (全保険判定がfalse)');
+      return false;
+    }
     // 条件: 月の所定労働日数・週の所定労働時間が正社員の4分の3以上（Decimalで計算）
     const empWorkDays = new Decimal(employee?.workDays || 0);
     const empWorkHours = new Decimal(employee?.workHours || 0);

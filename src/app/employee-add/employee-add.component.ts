@@ -64,6 +64,11 @@ export class EmployeeAddComponent implements OnInit {
   stdSalaryHealthGrade: string | null = null;
   showBaseSalaryInfoPopup: boolean = false;
   baseSalary: string | number | null = null;
+  public employeeAddType: string = '入社時登録';
+  public lastRevisionMonth: string = '';
+  public revisionType: string = '';
+  employeeNumber: string = '';
+  public todayString: string = new Date().toISOString().slice(0, 10);
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -473,6 +478,16 @@ export class EmployeeAddComponent implements OnInit {
       alert('固定給は必須です。');
       return;
     }
+    if (this.employeeAddType === '既存社員追加') {
+      if (!this.lastRevisionMonth) {
+        alert('標準報酬月額最終改定月は必須です');
+        return;
+      }
+      if (!this.revisionType) {
+        alert('改定種別は必須です');
+        return;
+      }
+    }
     if (!window.confirm('従業員情報を登録しますか？')) {
       return;
     }
@@ -548,6 +563,7 @@ export class EmployeeAddComponent implements OnInit {
       managementNumber,
       companiesId: companyId,
       baseSalary: parseNumber(this.baseSalary),
+      employeeNumber: this.employeeNumber
     };
 
     console.log('Preparing to save employee data to Firestore');
@@ -569,9 +585,9 @@ export class EmployeeAddComponent implements OnInit {
         combinedNenkinGrade: this.getCombinedNenkinGrade() || null,
         createdAt: serverTimestamp(),
         updatedAt: serverTimestamp(),
-        revisionType: '資格取得時',
+        revisionType: this.employeeAddType === '既存社員追加' ? this.revisionType : '資格取得時',
         createdBy: this.currentUser?.uid || '',
-        lastRevisionMonth: this.joinDate || null
+        lastRevisionMonth: this.employeeAddType === '既存社員追加' ? this.lastRevisionMonth : (this.joinDate || null)
       });
       // 追加: 登録後にcalculate画面へ遷移
       this.router.navigate(['/calculate', docRef.id]);

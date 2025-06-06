@@ -53,6 +53,12 @@ export class EmployeeListComponent implements OnInit {
     return Array.from(new Set(this.employees.map(emp => emp.officeName).filter(name => !!name)));
   }
 
+  get employmentTypes() {
+    // 全companiesのemploymentType配列をフラットにまとめて重複除去
+    const allTypes = this.companies.flatMap(c => Array.isArray(c.employmentType) ? c.employmentType : []);
+    return Array.from(new Set(allTypes));
+  }
+
   toggleSort(key: 'managementNumber' | 'joinDate') {
     if (this.sortKey !== key) {
       this.sortKey = key;

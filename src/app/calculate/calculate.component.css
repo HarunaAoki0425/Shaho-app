@@ -229,3 +229,15 @@
 .info-calc-flex {
   margin-top: 2.5rem;
 }
+
+.unsaved-warning {
+  color: #d32f2f;
+  font-weight: bold;
+  margin-top: 0;
+  font-size: 1.08em;
+  text-align: center;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  max-width: 100%;
+}

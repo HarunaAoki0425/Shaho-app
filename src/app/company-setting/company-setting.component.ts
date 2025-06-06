@@ -21,7 +21,7 @@ export class CompanySettingComponent implements OnInit {
   errorMessage: string = '';
 
   offices = [
-    { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null }
+    { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null, isVoluntaryApplicable: null }
   ];
 
   prefectures: string[] = [
@@ -44,7 +44,7 @@ export class CompanySettingComponent implements OnInit {
   editingOffice: any = {};
 
   showOfficeDialog: boolean = false;
-  officeForm = { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null };
+  officeForm = { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null, isVoluntaryApplicable: null };
 
   employmentTypes: string[] = [];
   customEmploymentTypes: string[] = [];
@@ -109,9 +109,16 @@ export class CompanySettingComponent implements OnInit {
       const companyId = companyDocRef.id;
       for (let i = 0; i < this.offices.length; i++) {
         const office = this.offices[i];
+        let applicableOffice: boolean;
+        if (office.employeeCount !== null && office.employeeCount <= 4) {
+          applicableOffice = office.isVoluntaryApplicable === true;
+        } else {
+          applicableOffice = true;
+        }
         const officesCol = collection(companyDocRef, 'offices');
         await addDoc(officesCol, {
           ...office,
+          applicableOffice,
           officeNumber: i + 1,
           companyId,
           createdBy: this.user!.uid,
@@ -125,7 +132,7 @@ export class CompanySettingComponent implements OnInit {
   }
 
   addOffice() {
-    this.offices.push({ officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null });
+    this.offices.push({ officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null, isVoluntaryApplicable: null });
   }
 
   removeOffice(i: number) {
@@ -135,7 +142,7 @@ export class CompanySettingComponent implements OnInit {
   }
 
   openOfficeDialog() {
-    this.officeForm = { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null };
+    this.officeForm = { officeName: '', officePrefecture: '', employeeCount: null, weeklyHours: null, monthlyDays: null, isVoluntaryApplicable: null };
     this.showOfficeDialog = true;
   }
   closeOfficeDialog() {
@@ -157,8 +164,15 @@ export class CompanySettingComponent implements OnInit {
         const n = doc.data()['officeNumber'];
         if (typeof n === 'number' && n > maxNumber) maxNumber = n;
       });
+      let applicableOffice: boolean;
+      if (this.officeForm.employeeCount !== null && this.officeForm.employeeCount <= 4) {
+        applicableOffice = this.officeForm.isVoluntaryApplicable === true;
+      } else {
+        applicableOffice = true;
+      }
       await addDoc(officesCol, {
         ...this.officeForm,
+        applicableOffice,
         officeNumber: maxNumber + 1,
         companyId: companyDocRef.id,
         createdBy: this.user!.uid,

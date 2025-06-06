@@ -9,10 +9,7 @@
     <label>雇用形態：</label>
     <select [(ngModel)]="selectedEmploymentType">
       <option value="">すべて</option>
-      <option value="正社員">正社員</option>
-      <option value="契約社員">契約社員</option>
-      <option value="パート・アルバイト">パート・アルバイト</option>
-      <option value="その他">その他</option>
+      <option *ngFor="let type of employmentTypes" [value]="type">{{ type }}</option>
     </select>
   </div>
   <table class="employee-list-table">

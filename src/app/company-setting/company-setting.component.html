@@ -76,6 +76,15 @@
           </label>
           <input type="number" [(ngModel)]="office.employeeCount" name="employeeCount{{i}}" [required]="i === 0" />
         </div>
+        <div *ngIf="office.employeeCount !== null && office.employeeCount <= 50">
+          <label>任意適用事業所
+            <span *ngIf="i === 0" class="required-mark">※</span>
+          </label>
+          <select [(ngModel)]="office.isVoluntaryApplicable" name="isVoluntaryApplicable{{i}}">
+            <option [ngValue]="true">該当する</option>
+            <option [ngValue]="false">該当しない</option>
+          </select>
+        </div>
         <div>
           <label>
             正社員の週の所定労働時間
@@ -127,6 +136,9 @@
           <div class="office-info-row"><span class="office-info-label">従業員数</span><span class="office-info-value">{{ office.employeeCount }}人</span></div>
           <div class="office-info-row"><span class="office-info-label">週の所定労働時間<br>（正社員）</span><span class="office-info-value">{{ office.weeklyHours }}時間</span></div>
           <div class="office-info-row"><span class="office-info-label">月の所定労働日数<br>（正社員）</span><span class="office-info-value">{{ office.monthlyDays }}日</span></div>
+          <div class="office-info-row"><span class="office-info-label">事業所区分</span><span class="office-info-value">
+            {{ office.employeeCount <= 4 && office.applicableOffice === true ? '任意適用事業所' : (office.applicableOffice === true ? '適用事業所' : office.applicableOffice === false ? '非適用事業所' : '') }}
+          </span></div>
           <div class="office-card-actions">
             <button type="button" class="office-edit-btn" (click)="startEditOffice(i, office)">編集</button>
             <button type="button" class="office-delete-btn" (click)="deleteOffice(office)">削除</button>
@@ -157,6 +169,14 @@
         <div class="dialog-row">
           <label>従業員数</label>
           <input type="number" [(ngModel)]="officeForm.employeeCount" name="dialogEmployeeCount" required />
+        </div>
+        <div class="dialog-row" *ngIf="officeForm.employeeCount !== null && officeForm.employeeCount <= 4">
+          <label>任意適用事業所かどうか</label>
+          <select [(ngModel)]="officeForm.isVoluntaryApplicable" name="dialogIsVoluntaryApplicable">
+            <option [ngValue]="null" disabled selected>選択してください</option>
+            <option [ngValue]="true">はい</option>
+            <option [ngValue]="false">いいえ</option>
+          </select>
         </div>
         <div class="dialog-row">
           <label>週の所定労働時間（正社員）</label>
