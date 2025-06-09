@@ -1,0 +1,163 @@
+/* 社会保険料テーブルのスタイル模倣 */
+.insurance-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 16px;
+  background: #fff;
+  font-size: 0.98em;
+  overflow: hidden;
+}
+.insurance-table th,
+.insurance-table td {
+  border: 1px solid#d0e3f9;
+  padding: 8px 10px;
+  text-align: center;
+}
+.insurance-table th {
+  background:#f4f8fb;
+  font-weight: bold;
+  color: #1976d2;
+}
+.insurance-table tr:last-child th,
+.insurance-table tr:last-child td {
+  border-bottom: 1px solid  #d0e3f9;
+}
+.insurance-table th:first-child,
+.insurance-table td:first-child {
+  width: 120px;
+  min-width: 100px;
+  max-width: 160px;
+  white-space: nowrap;
+}
+.insurance-table th:not(:first-child),
+.insurance-table td:not(:first-child) {
+  min-width: 80px;
+  max-width: 120px;
+  white-space: nowrap;
+}
+
+.insurance-table td {
+    background: #fff;
+    color: #222;
+    border-color: #d0e3f9;
+}
+
+.bonus-container-wrapper {
+  display: flex;
+  gap: 32px;
+  margin: 0;
+}
+.bonus-container-left, .bonus-container-right {
+  border-radius: 10px;
+  padding: 10px;
+  min-width: 280px;
+  flex: 1;
+}
+.bonus-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 18px;
+  gap: 12px;
+}
+.bonus-row label {
+  min-width: 120px;
+  font-weight: 500;
+  color: #333;
+  font-size: 1em;
+}
+.bonus-row input[type="number"],
+.bonus-row input[type="date"] {
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+  width: 140px;
+  background: #fff;
+  transition: border 0.2s;
+}
+.bonus-row input[type="number"]:focus,
+.bonus-row input[type="date"]:focus {
+  border: 1.5px solid #1976d2;
+  outline: none;
+}
+.bonus-calc-btn, .history-btn {
+  min-width: 120px;
+  max-width: 400px;
+  display: inline-block;
+  margin-right: 12px;
+  font-size: 0.78em;
+  font-weight: 600;
+  padding: 0.5em 1.6em;
+  border: none;
+  border-radius: 7px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(67, 160, 71, 0.08);
+  transition: background 0.2s, color 0.2s;
+}
+
+.bonus-calc-btn {
+  background: #1976d2;
+  color: #fff;
+}
+.bonus-calc-btn:hover {
+  background: #1565c0;
+}
+
+.history-btn {
+  background: #fff;
+  color: #1976d2;
+  border: 0.5px solid #1976d2;
+  max-width: 200px;
+}
+
+.history-btn:hover, .history-btn:focus {
+  background: #1976d2;
+  color: #fff;
+  border-color: #1251a2;
+}
+
+.insurance-table-wrapper {
+  background: #fff;
+  border-radius: 8px;
+  display: flex;
+  justify-content: center;
+}
+
+.bonus-save-btn {
+    margin-top: 8px;
+    padding: 8px 18px;
+    background: #43a047;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.2s;
+    box-shadow: 0 1px 4px rgba(67,160,71,0.08);
+  }
+  .bonus-save-btn:hover {
+    background: #388e3c;
+  }
+
+.bonus-total {
+  font-size: 1.18em;
+  font-weight: bold;
+  color: #1976d2;
+  margin-top: 2.2em;
+  margin-bottom: 0.2em;
+  letter-spacing: 0.04em;
+}
+
+.bonus-total-amount {
+  font-size: 1.45em;
+  font-weight: bold;
+  color: #388e3c;
+  margin-bottom: 1.5em;
+  margin-top: 0.1em;
+  letter-spacing: 0.04em;
+  background: #e8f5e9;
+  border-radius: 8px;
+  padding: 0.3em 0.8em;
+  display: inline-block;
+}

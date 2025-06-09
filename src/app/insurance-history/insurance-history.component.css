@@ -1,16 +1,61 @@
+body, .history-header, .history-header-title, .pair-block, .insurance-grid, .insurance-grid > div, .sotai {
+  font-size: 0.92em;
+}
+
 .history-header {
   width: 100%;
   padding-top: 3.5rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 18px;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
+  text-align: left;
 }
 
 .history-header-title {
-  font-size: 2.0rem;
-  font-weight: 700;
-  color: #1976d2;
+  font-size: 1.25em;
+  font-weight: bold;
+  color: #333;
   letter-spacing: 0.04em;
   margin-left: 0.2em;
+}
+
+.pair-block {
+  border: 1px solid #aaa;
+  margin-bottom: 24px;
+  padding: 16px 20px;
+  border-radius: 8px;
+  background: #fafbfc;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+  font-size: 0.92em;
+}
+
+.insurance-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px 16px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+}
+
+.insurance-grid > div {
+  background: #fff;
+  border-radius: 4px;
+  padding: 6px 8px;
+  border: 1px solid #e0e0e0;
+  font-size: 0.92em;
+  min-width: 0;
+  word-break: break-all;
+}
+
+.sotai {
+  color: #d32f2f;
+  font-weight: bold;
+  font-size: 1em;
+  margin-bottom: 8px;
+}
+
+.pair-block .no-standard {
+  color: #d32f2f;
+  margin-top: 8px;
 }

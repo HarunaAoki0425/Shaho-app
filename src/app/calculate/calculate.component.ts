@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, AfterViewChecked } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Firestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
@@ -11,7 +11,7 @@ import { JudgeComponent } from '../judge/judge.component';
   templateUrl: './calculate.component.html',
   styleUrl: './calculate.component.css'
 })
-export class CalculateComponent implements OnInit {
+export class CalculateComponent implements OnInit, AfterViewChecked {
   employeesId: string = '';
   companyId: string = '';
   employeeData: any = null;
@@ -32,6 +32,8 @@ export class CalculateComponent implements OnInit {
   public careInsuranceResult: boolean = false;
   public pensionInsuranceResult: boolean = false;
   public hasUnsavedCalc: boolean = false;
+  public hasSavedExcludedInsurance: boolean = false;
+  private triedSaveExcluded: boolean = false;
   constructor(private route: ActivatedRoute, private firestore: Firestore, public router: Router) {}
   async ngOnInit() {
     this.isLoading = true;
@@ -64,6 +66,16 @@ export class CalculateComponent implements OnInit {
                 .find(row => row['prefecture'] === this.officeData.officePrefecture && String(row['year']) === String(this.currentNendo)) || null;
             }
           }
+          // standardsサブコレクション取得（createdAt降順でソート）
+          const standardsCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/standards`);
+          const standardsSnap = await getDocs(standardsCol);
+          this.standardsList = (standardsSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })) as any[])
+            .filter(item => !!item.createdAt)
+            .map(item => ({
+              ...item,
+              _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+            }))
+            .sort((a, b) => b._millis - a._millis);
           // 社会保険要否判定の結果をコンソールに出力
           const socialInsuranceRequired = JudgeComponent.judgeSocialInsuranceRequired({
             employee: this.employeeData,
@@ -102,16 +114,6 @@ export class CalculateComponent implements OnInit {
           this.pensionInsuranceResult = JudgeComponent.judgePensionInsurance(this.employeeData);
           // 判定ロジック呼び出し
           this.eligibilityResult = JudgeComponent.judgeEligibility(this.employeeData);
-          // standardsサブコレクション取得（createdAt降順でソート）
-          const standardsCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/standards`);
-          const standardsSnap = await getDocs(standardsCol);
-          this.standardsList = (standardsSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })) as any[])
-            .filter(item => !!item.createdAt)
-            .map(item => ({
-              ...item,
-              _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
-            }))
-            .sort((a, b) => b._millis - a._millis);
           this.isLoading = false;
           await this.checkUnsavedCalc();
           return;
@@ -121,6 +123,39 @@ export class CalculateComponent implements OnInit {
     console.log('currentNendo:', this.currentNendo);
     this.isLoading = false;
     await this.checkUnsavedCalc();
+  }
+  ngAfterViewChecked() {
+    if (this.isSocialInsuranceExcluded && !this.hasSavedExcludedInsurance && !this.triedSaveExcluded) {
+      this.triedSaveExcluded = true;
+      this.saveExcludedInsurance();
+    }
+  }
+  async saveExcludedInsurance() {
+    const employeeRef = doc(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}`);
+    const insurancesCol = collection(employeeRef, 'insurances');
+    const latestStandard = this.standardsList && this.standardsList.length > 0 ? this.standardsList[0] : null;
+    const standardIdToSave = latestStandard ? latestStandard.id : null;
+    // 既存のinsurancesを取得
+    const insurancesSnap = await getDocs(insurancesCol);
+    const insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) }));
+    // 同じstandardIdが既に存在する場合は保存しない
+    if (standardIdToSave && insurancesList.some(i => i.standardId === standardIdToSave)) {
+      console.log('[DEBUG] 社会保険対象外: 同じstandardIdが既に存在するため保存しません', standardIdToSave);
+      this.hasSavedExcludedInsurance = true;
+      return;
+    }
+    console.log('[DEBUG] 社会保険対象外: insurances保存開始', {
+      employeeId: this.employeesId,
+      companyId: this.companyId,
+      standardId: standardIdToSave
+    });
+    await addDoc(insurancesCol, {
+      createdAt: serverTimestamp(),
+      standardId: standardIdToSave,
+      isInsuranceTarget: false
+    });
+    console.log('[DEBUG] 社会保険対象外: insurances保存完了');
+    this.hasSavedExcludedInsurance = true;
   }
   get healthInsuranceRate100(): string {
     if (!this.insuranceRateData || this.insuranceRateData.health_insurance == null) return '';

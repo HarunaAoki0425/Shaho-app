@@ -42,10 +42,15 @@ export class InsuranceHistoryComponent implements OnInit {
       if (empDoc) {
         this.employee = empDoc.data();
         this.employee.companyId = companyDoc.id;
-        // insurances全件
+        // insurances全件（createdAt降順でソート）
         const insurancesCol = collection(this.firestore, 'companies', companyDoc.id, 'employees', this.employeeId, 'insurances');
         const insurancesSnap = await getDocs(insurancesCol);
-        this.insurances = insurancesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        this.insurances = (insurancesSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })) as any[])
+          .map(item => ({
+            ...item,
+            _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
+          }))
+          .sort((a, b) => b._millis - a._millis);
         // standards全件
         const standardsCol = collection(this.firestore, 'companies', companyDoc.id, 'employees', this.employeeId, 'standards');
         const standardsSnap = await getDocs(standardsCol);

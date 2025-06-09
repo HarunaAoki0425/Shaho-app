@@ -1,0 +1,66 @@
+<div class="bonus-container-wrapper" style="display: flex; gap: 24px;">
+  <div class="bonus-container-left" style="flex: 1;">
+    <div class="bonus-row">
+      <label for="bonus-date">賞与支給年月日</label>
+      <input id="bonus-date" type="date" [(ngModel)]="bonusDate" />
+    </div>
+    <div class="bonus-row">
+      <label for="bonus-amount">賞与額</label>
+      <input id="bonus-amount" type="number" placeholder="金額を入力" [(ngModel)]="bonusAmount" (input)="onBonusAmountChange($event)" />
+    </div>
+    <div class="bonus-row">
+        <label>標準賞与額</label>
+        <span>{{ standardBonusAmount !== null ? (standardBonusAmount | number:'1.0-0') : '---' }}</span>
+      </div>
+      <button type="button" class="bonus-save-btn" (click)="saveBonus()">保存</button>
+  </div>
+  <div class="bonus-container-center" style="flex: 1;">
+    <div class="bonus-btn-row" style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
+      <button type="button" class="bonus-calc-btn" (click)="goToBonusCalculate()">賞与の社会保険料を算出する</button>
+      <button type="button" class="history-btn" (click)="goToBonusHistory()">履歴</button>
+    </div>
+    <div class="insurance-table-wrapper">
+      <table class="insurance-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>全額</th>
+            <th>会社負担</th>
+            <th>従業員負担</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th>健康保険</th>
+            <td>{{ latestBonus?.healthInsuranceTotal ? (latestBonus.healthInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.healthInsuranceCompany ? (latestBonus.healthInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.healthInsuranceEmployee ? (latestBonus.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+          </tr>
+          <tr>
+            <th>介護保険</th>
+            <td>{{ latestBonus?.careInsuranceTotal ? (latestBonus.careInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.careInsuranceCompany ? (latestBonus.careInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.careInsuranceEmployee ? (latestBonus.careInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+          </tr>
+          <tr>
+            <th>厚生年金</th>
+            <td>{{ latestBonus?.pensionInsuranceTotal ? (latestBonus.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.pensionInsuranceCompany ? (latestBonus.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.pensionInsuranceEmployee ? (latestBonus.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+          </tr>
+          <tr>
+            <th>合計</th>
+            <td>{{ latestBonus?.total ? (latestBonus.total | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.totalCompany ? (latestBonus.totalCompany | number:'1.0-0') : '---' }}円</td>
+            <td>{{ latestBonus?.totalEmployee ? (latestBonus.totalEmployee | number:'1.0-0') : '---' }}円</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="bonus-date">{{ latestBonus?.bonusDate | date:'yyyy/MM/dd' }}支給分（{{ latestBonus?.bonusAmount | number:'1.0-0' }}円）</div>
+  </div>
+  <div class="bonus-container-right" style="flex: 1;">
+    <div class="bonus-total">{{ currentNendo }}年度賞与合計</div>
+    <div class="bonus-total-amount">{{ currentNendoBonusTotal | number:'1.0-0' }}円</div>
+  </div>
+</div>

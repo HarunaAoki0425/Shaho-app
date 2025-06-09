@@ -220,8 +220,11 @@
           <button class="edit-btn" style="margin-left: 8px; font-size: 0.95em; padding: 2px 8px;" (click)="onEditMaternityLeaveDates()">編集</button>
         </span>
       </div>
-      <ng-container *ngIf="employee && !employee.onMaternityLeave">
-        <ng-container *ngIf="insurancesList.length > 0; else noInsurance">
+      <ng-container *ngIf="employee">
+        <div *ngIf="insurancesLoaded && isSocialInsuranceExcludedByInsurance" style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
+          社会保険加入対象外です
+        </div>
+        <ng-container *ngIf="insurancesList.length > 0">
           <table class="insurance-table">
             <thead>
               <tr>
@@ -259,19 +262,24 @@
             </tbody>
           </table>
         </ng-container>
-        <ng-template #noInsurance>
-          <div style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
-            社会保険加入対象外です
+        <ng-container *ngIf="insurancesList.length === 0">
+          <div>
+            <div>insurancesLoaded: {{ insurancesLoaded }}</div>
+            <div>isSocialInsuranceExcludedByInsurance: {{ isSocialInsuranceExcludedByInsurance }}</div>
+            <div>insurancesList: {{ insurancesList | json }}</div>
+            <div *ngIf="insurancesLoaded && isSocialInsuranceExcludedByInsurance" style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
+              社会保険加入対象外です
+            </div>
           </div>
-        </ng-template>
+        </ng-container>
         <div class="insurance-action-buttons">
           <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
           <button
             class="maternity-leave-btn"
             (click)="onMaternityLeave()"
             *ngIf="!employee.onMaternityLeave"
-            [disabled]="insurancesList.length === 0"
-            [ngClass]="{'disabled-btn': insurancesList.length === 0}"
+            [disabled]="insurancesList.length === 0 || (insurancesLoaded && isSocialInsuranceExcludedByInsurance)"
+            [ngClass]="{'disabled-btn': insurancesList.length === 0 || (insurancesLoaded && isSocialInsuranceExcludedByInsurance)}"
           >育休・産休</button>
           <button class="history-btn" (click)="goToHistory()">履歴</button>
         </div>
@@ -438,6 +446,13 @@
           <button type="button" class="edit-btn" style="padding: 2px 12px; font-size: 0.95em;" (click)="saveCombinedSalary()">保存</button>
         </span>
       </div>
+    </div>
+  </div>
+  <!-- 賞与情報（コンテナ6） -->
+  <div class="detail-row detail-row-bonus" *ngIf="!isSocialInsuranceExcludedByInsurance">
+    <div class="detail-container detail-container-6">
+      <span class="container-title">賞与情報</span>
+      <app-bonus [employeeId]="employeeId" [companyId]="employee?.companyId"></app-bonus>
     </div>
   </div>
 </div>

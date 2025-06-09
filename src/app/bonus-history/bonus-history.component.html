@@ -1,0 +1,26 @@
+<div class="history-header">
+  <span class="history-header-title">賞与履歴</span>
+</div>
+
+<div>
+  <div *ngFor="let b of bonuses" class="pair-block" style="border:1px solid #aaa; margin-bottom: 24px; padding: 12px;">
+    <div class="bonus-grid">
+      <div>健康保険全額: {{ b.healthInsuranceTotal != null ? (b.healthInsuranceTotal | number:'1.0-0') : '---' }}円</div>
+      <div>健康保険会社負担額: {{ b.healthInsuranceCompany != null ? (b.healthInsuranceCompany | number:'1.0-0') : '---' }}円</div>
+      <div>健康保険従業員負担額: {{ b.healthInsuranceEmployee != null ? (b.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</div>
+      <div>介護保険全額: {{ b.careInsuranceTotal != null ? (b.careInsuranceTotal | number:'1.0-0') : '---' }}円</div>
+      <div>介護保険会社負担額: {{ b.careInsuranceCompany != null ? (b.careInsuranceCompany | number:'1.0-0') : '---' }}円</div>
+      <div>介護保険従業員負担額: {{ b.careInsuranceEmployee != null ? (b.careInsuranceEmployee | number:'1.0-0') : '---' }}円</div>
+      <div>厚生年金全額: {{ b.pensionInsuranceTotal != null ? (b.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</div>
+      <div>厚生年金会社負担額: {{ b.pensionInsuranceCompany != null ? (b.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</div>
+      <div>厚生年金従業員負担額: {{ b.pensionInsuranceEmployee != null ? (b.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</div>
+      <div>合計: {{ b.total != null ? (b.total | number:'1.0-0') : '---' }}円</div>
+      <div>合計会社負担額: {{ b.totalCompany != null ? (b.totalCompany | number:'1.0-0') : '---' }}円</div>
+      <div>合計従業員負担額: {{ b.totalEmployee != null ? (b.totalEmployee | number:'1.0-0') : '---' }}円</div>
+    </div>
+    <div>支給年月日: {{ b.bonusDate | date:'yyyy/MM/dd' }}</div>
+    <div>賞与額: {{ b.bonusAmount | number:'1.0-0' }}円</div>
+    <div>標準賞与額: {{ b.standardBonusAmount | number:'1.0-0' }}円</div>
+  </div>
+</div>
+

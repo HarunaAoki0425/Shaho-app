@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import Decimal from 'decimal.js';
+import { Firestore, collection, addDoc, doc, serverTimestamp } from '@angular/fire/firestore';
+import { inject } from '@angular/core';
 
 @Component({
   selector: 'app-judge',
@@ -8,6 +10,8 @@ import Decimal from 'decimal.js';
   styleUrl: './judge.component.css'
 })
 export class JudgeComponent {
+  private firestore = inject(Firestore);
+
   static judgeSocialInsuranceRequired({ employee, office, company }: { employee: any, office: any, company: any }): boolean {
     // 事業所が非適用なら即false
     if (office?.applicableOffice === false) {
@@ -196,5 +200,24 @@ export class JudgeComponent {
       }
     }
     return false;
+  }
+
+  async onJudgeAndNavigate(employee: any, office: any, company: any, standardId: string) {
+    const isTarget = JudgeComponent.judgeSocialInsuranceRequired({ employee, office, company });
+    if (!isTarget) {
+      // 社会保険対象外の場合、insurancesサブコレクションに保存
+      const employeeRef = doc(this.firestore, `companies/${company.id}/employees/${employee.id}`);
+      const insurancesCol = collection(employeeRef, 'insurances');
+      await addDoc(insurancesCol, {
+        createdAt: serverTimestamp(),
+        standardId: standardId,
+        isInsuranceTarget: false
+      });
+      // 画面遷移
+      // this.router.navigate(['/calculate', employee.id]);
+    } else {
+      // 対象の場合は従来通り
+      // this.router.navigate(['/calculate', employee.id]);
+    }
   }
 }

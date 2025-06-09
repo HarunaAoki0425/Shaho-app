@@ -17,4 +17,6 @@ export const routes: Routes = [
   { path: 'rates-management', loadComponent: () => import('./rates-management/rates-management.component').then(m => m.RatesManagementComponent) },
   { path: 'calculate/:id', loadComponent: () => import('./calculate/calculate.component').then(m => m.CalculateComponent) },
   { path: 'insurance-history/:id', loadComponent: () => import('./insurance-history/insurance-history.component').then(m => m.InsuranceHistoryComponent) },
+  { path: 'bonus-calculate/:id', loadComponent: () => import('./bonus-calculate/bonus-calculate.component').then(m => m.BonusCalculateComponent) },
+  { path: 'bonus-history/:id', loadComponent: () => import('./bonus-history/bonus-history.component').then(m => m.BonusHistoryComponent) },
 ];

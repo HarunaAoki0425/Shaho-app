@@ -1,15 +1,16 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Firestore, collection, getDocs, updateDoc, doc, addDoc, query, where, setDoc, deleteDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { BonusComponent } from '../bonus/bonus.component';
 
 @Component({
   selector: 'app-employee-detail',
   standalone: true,
-  imports: [CommonModule, RouterModule, FormsModule],
+  imports: [CommonModule, RouterModule, FormsModule, BonusComponent],
   templateUrl: './employee-detail.component.html',
   styleUrl: './employee-detail.component.css'
 })
@@ -36,6 +37,7 @@ export class EmployeeDetailComponent implements OnInit {
   private route = inject(ActivatedRoute);
   private firestore = inject(Firestore);
   private router = inject(Router);
+  private cdr = inject(ChangeDetectorRef);
   displayFields = [
     { key: 'managementNumber', label: '管理番号' },
     { key: 'lastName', label: '氏名' },
@@ -97,6 +99,7 @@ export class EmployeeDetailComponent implements OnInit {
   public tempCombinedKenpoGrade: string | null = null;
   public tempCombinedNenkinStandardMonthly: number | null = null;
   public tempCombinedNenkinGrade: string | null = null;
+  public insurancesLoaded = false;
 
   constructor() {}
 
@@ -223,6 +226,9 @@ export class EmployeeDetailComponent implements OnInit {
     );
     const insurancesSnap = await getDocs(insurancesCol);
     this.insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    console.log('[DEBUG] insurancesList:', this.insurancesList);
+    this.insurancesLoaded = true;
+    this.cdr.detectChanges();
   }
 
   // 雇用形態の表示用
@@ -396,7 +402,8 @@ export class EmployeeDetailComponent implements OnInit {
         workHours: this.employee.workHours,
         salaryCash: this.employee.salaryCash,
         salaryInKind: this.employee.salaryInKind,
-        salaryTotal: this.employee.salaryTotal
+        salaryTotal: this.employee.salaryTotal,
+        baseSalary: this.employee.baseSalary
       };
     }
   }
@@ -412,6 +419,7 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.salaryCash = this.originalContractInfo.salaryCash;
       this.employee.salaryInKind = this.originalContractInfo.salaryInKind;
       this.employee.salaryTotal = this.originalContractInfo.salaryTotal;
+      this.employee.baseSalary = this.originalContractInfo.baseSalary;
     }
     this.isEditContract = false;
   }
@@ -433,7 +441,8 @@ export class EmployeeDetailComponent implements OnInit {
         workHours: this.employee.workHours,
         salaryCash: this.employee.salaryCash,
         salaryInKind: this.employee.salaryInKind,
-        salaryTotal: this.employee.salaryTotal
+        salaryTotal: this.employee.salaryTotal,
+        baseSalary: this.employee.baseSalary
       });
       this.isEditContract = false;
     } catch (e) {
@@ -997,6 +1006,11 @@ export class EmployeeDetailComponent implements OnInit {
     }
     this.tempCombinedNenkinStandardMonthly = nenkin ? nenkin.nenkinMonthly : null;
     this.tempCombinedNenkinGrade = nenkin ? nenkin.nenkinGrade : null;
+  }
+
+  // 社会保険対象外かどうかを判定するgetter
+  get isSocialInsuranceExcludedByInsurance(): boolean {
+    return this.insurancesList.some(i => i.isInsuranceTarget === false || i.isInsuranceTarget === 'false' || i.isInsuranceTarget === 0);
   }
 
 }
