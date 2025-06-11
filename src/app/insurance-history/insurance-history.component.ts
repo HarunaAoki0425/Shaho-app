@@ -48,6 +48,7 @@ export class InsuranceHistoryComponent implements OnInit {
         this.insurances = (insurancesSnap.docs.map(doc => ({ id: doc.id, ...(doc.data() as any) })) as any[])
           .map(item => ({
             ...item,
+            createdAt: item.createdAt?.toDate ? item.createdAt.toDate() : (item.createdAt ? new Date(item.createdAt) : null),
             _millis: item.createdAt?.toDate ? item.createdAt.toDate().getTime() : (item.createdAt ? new Date(item.createdAt).getTime() : 0)
           }))
           .sort((a, b) => b._millis - a._millis);

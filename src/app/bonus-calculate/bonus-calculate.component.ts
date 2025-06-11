@@ -118,9 +118,20 @@ export class BonusCalculateComponent implements OnInit {
       return '';
     }
   }
+  get usedBonusAmount(): number | null {
+    if (this.latestBonus) {
+      if (this.latestBonus.nendoBonusExcessAdjusted != null) {
+        return this.latestBonus.nendoBonusExcessAdjusted;
+      }
+      if (this.latestBonus.standardBonusAmount != null) {
+        return this.latestBonus.standardBonusAmount;
+      }
+    }
+    return null;
+  }
   get healthInsuranceAmount(): string {
     if (!this.healthInsuranceResult || !this.insuranceRateData) return '';
-    const stdSalary = this.latestBonus?.standardBonusAmount;
+    const stdSalary = this.usedBonusAmount;
     const rate = this.insuranceRateData.health_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
@@ -155,9 +166,20 @@ export class BonusCalculateComponent implements OnInit {
       return '';
     }
   }
+  get usedPensionBonusAmount(): number | null {
+    if (this.latestBonus) {
+      if (this.latestBonus.monthBonusExcessAdjustedDiff != null) {
+        return this.latestBonus.monthBonusExcessAdjustedDiff;
+      }
+      if (this.latestBonus.standardBonusAmount != null) {
+        return this.latestBonus.standardBonusAmount;
+      }
+    }
+    return null;
+  }
   get pensionInsuranceAmount(): string {
     if (!this.pensionInsuranceResult || !this.insuranceRateData) return '';
-    const stdSalary = this.latestBonus?.standardBonusAmount;
+    const stdSalary = this.usedPensionBonusAmount;
     const rate = this.insuranceRateData.pension_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
@@ -194,7 +216,7 @@ export class BonusCalculateComponent implements OnInit {
   }
   get careInsuranceAmount(): string {
     if (!this.careInsuranceResult || !this.insuranceRateData) return '';
-    const stdSalary = this.latestBonus?.standardBonusAmount;
+    const stdSalary = this.usedBonusAmount;
     const rate = this.insuranceRateData.care_insurance;
     if (stdSalary == null || rate == null) return '';
     try {

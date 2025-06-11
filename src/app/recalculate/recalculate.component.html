@@ -1,0 +1,5 @@
+<div *ngIf="isLoading" class="loading-message">{{ loadingMessage }}</div>
+<div *ngIf="!isLoading">
+  <button type="button" class="recalc-btn" (click)="onBatchRecalculate()" [disabled]="isCalculating">料率変更時計算</button>
+  <div *ngIf="calcMessage" class="calc-message">{{ calcMessage }}</div>
+</div>

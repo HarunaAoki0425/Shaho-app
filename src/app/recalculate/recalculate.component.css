@@ -1,0 +1,28 @@
+.recalc-btn {
+  display: block;
+  margin: 70px auto 0 auto;
+  background: #1976d2;
+  color: #fff;
+  font-size: 1.25em;
+  font-weight: bold;
+  padding: 1em 3em;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.12);
+  transition: background 0.2s, box-shadow 0.2s, transform 0.1s;
+  letter-spacing: 0.04em;
+}
+.recalc-btn:hover {
+  background: #1565c0;
+  box-shadow: 0 6px 24px rgba(25, 118, 210, 0.18);
+  transform: translateY(-2px) scale(1.03);
+}
+
+.loading-message, .calc-message {
+  text-align: center;
+  font-size: 1.25em;
+  font-weight: bold;
+  margin-top: 70px;
+}
+

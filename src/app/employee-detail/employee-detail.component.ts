@@ -202,16 +202,20 @@ export class EmployeeDetailComponent implements OnInit {
               }
             }
           }
-          // 画面表示時にアラートを出す（70歳の誕生日の前日を含む月の前の月を迎えているのにseniorVoluntaryEnrollmentフィールドが存在しない場合）
-          if (this.isAfterMonthBeforeSeventyBirthdayEve && !('seniorVoluntaryEnrollment' in this.employee)) {
-            alert('厚生年金の高齢任意加入手続きをした場合は、「厚生年金高齢任意加入：する」を、していない場合は「しない」を選択してください。');
-          }
           // リロード後のアラート表示
           if (localStorage.getItem('showSeniorVoluntaryEnrollmentAlert') === '1') {
-            alert('厚生年金算出のため「社会保険を算出する」を押して計算を実行してください。');
+            const confirmed = window.confirm('厚生年金の算出をします');
             localStorage.removeItem('showSeniorVoluntaryEnrollmentAlert');
+            if (confirmed) {
+              this.router.navigate(['/calculate', this.employeeId]);
+            } else {
+              this.employee.seniorVoluntaryEnrollment = 'しない';
+              if (this.employeeId && this.employee.companyId) {
+                const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
+                updateDoc(employeeRef, { seniorVoluntaryEnrollment: 'しない' });
+              }
+            }
           }
-          return;
         }
       }
       console.log('該当従業員が見つかりませんでした');
@@ -377,12 +381,81 @@ export class EmployeeDetailComponent implements OnInit {
     if (!this.employeeId || !this.employee.companyId) return;
     const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
     try {
+      // 生年月日が変更されているか判定
+      const birthdateChanged = this.originalPersonalInfo && this.originalPersonalInfo.birthdate !== this.employee.birthdate;
+      if (birthdateChanged) {
+        const confirmed = window.confirm('生年月日を変更しますか？社会保険料が変更される可能性があります。');
+        if (!confirmed) {
+          this.isEditPersonal = false;
+          return;
+        }
+        // standards新規作成
+        if (this.latestStandard) {
+          const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+          const { id, createdAt, ...copyFields } = this.latestStandard;
+          await addDoc(standardsCol, {
+            ...copyFields,
+            createdAt: new Date(),
+            memo: '年齢変更'
+          });
+        }
+        // employees上書き
+        await updateDoc(employeeRef, {
+          lastName: this.employee.lastName,
+          firstName: this.employee.firstName,
+          gender: this.employee.gender,
+          nationality: this.employee.nationality,
+          officeName: this.employee.officeName,
+          birthdate: this.employee.birthdate
+        });
+        this.router.navigate(['/calculate', this.employeeId]);
+        return;
+      }
+      // 所属事業所が変更されているか判定
+      const officeChanged = this.originalPersonalInfo && this.originalPersonalInfo.officeName !== this.employee.officeName;
+      if (officeChanged) {
+        const confirmed = window.confirm('所属事業所を変更しますか？社会保険料が変更されます。');
+        if (!confirmed) {
+          this.isEditPersonal = false;
+          return;
+        }
+        // 事業所IDも更新
+        const office = this.companyOffices.find(o => o.officeName === this.employee.officeName);
+        if (office) {
+          this.employee.officesId = office.id;
+        }
+        // standards新規作成
+        if (this.employee.officesId && this.latestStandard) {
+          const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+          const { id, createdAt, ...copyFields } = this.latestStandard;
+          await addDoc(standardsCol, {
+            ...copyFields,
+            createdAt: new Date(),
+            memo: '所属事業所変更'
+          });
+        }
+        // employees上書き
+        await updateDoc(employeeRef, {
+          lastName: this.employee.lastName,
+          firstName: this.employee.firstName,
+          gender: this.employee.gender,
+          nationality: this.employee.nationality,
+          officeName: this.employee.officeName,
+          officesId: this.employee.officesId,
+          birthdate: this.employee.birthdate
+        });
+        // calculate画面へ遷移
+        this.router.navigate(['/calculate', this.employeeId]);
+        return;
+      }
+      // 事業所変更がない場合は通常保存
       await updateDoc(employeeRef, {
         lastName: this.employee.lastName,
         firstName: this.employee.firstName,
         gender: this.employee.gender,
         nationality: this.employee.nationality,
-        officeName: this.employee.officeName
+        officeName: this.employee.officeName,
+        birthdate: this.employee.birthdate
       });
       this.isEditPersonal = false;
     } catch (e) {
@@ -432,6 +505,59 @@ export class EmployeeDetailComponent implements OnInit {
     if (!this.employeeId || !this.employee.companyId) return;
     const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
     try {
+      // 差分チェック
+      let contractChanged = false;
+      if (this.originalContractInfo) {
+        const keys = [
+          'employmentType',
+          'employmentPeriodType',
+          'employmentPeriodStart',
+          'employmentPeriodEnd',
+          'workDays',
+          'workHours',
+          'salaryCash',
+          'salaryInKind',
+          'salaryTotal',
+          'baseSalary'
+        ];
+        for (const key of keys) {
+          if (this.employee[key] !== this.originalContractInfo[key]) {
+            contractChanged = true;
+            break;
+          }
+        }
+      }
+      if (contractChanged) {
+        const confirmed = window.confirm('雇用契約情報を変更しますか？社会保険料が変更になる可能性があります。');
+        if (!confirmed) {
+          this.isEditContract = false;
+          return;
+        }
+        if (this.latestStandard) {
+          const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+          const { id, createdAt, ...copyFields } = this.latestStandard;
+          await addDoc(standardsCol, {
+            ...copyFields,
+            createdAt: new Date(),
+            memo: '雇用契約情報更新'
+          });
+        }
+        await updateDoc(employeeRef, {
+          employmentType: this.employee.employmentType,
+          employmentPeriodType: this.employee.employmentPeriodType,
+          employmentPeriodStart: this.employee.employmentPeriodStart,
+          employmentPeriodEnd: this.employee.employmentPeriodEnd,
+          workDays: this.employee.workDays,
+          workHours: this.employee.workHours,
+          salaryCash: this.employee.salaryCash,
+          salaryInKind: this.employee.salaryInKind,
+          salaryTotal: this.employee.salaryTotal,
+          baseSalary: this.employee.baseSalary
+        });
+        this.router.navigate(['/calculate', this.employeeId]);
+        return;
+      }
+      // 差分がない場合は通常保存
       await updateDoc(employeeRef, {
         employmentType: this.employee.employmentType,
         employmentPeriodType: this.employee.employmentPeriodType,
@@ -508,6 +634,57 @@ export class EmployeeDetailComponent implements OnInit {
     if (!this.employeeId || !this.employee.companyId) return;
     const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
     try {
+      // 差分チェック
+      let otherChanged = false;
+      if (this.originalOtherInfo) {
+        const keys = [
+          'dependentStatus',
+          'dependentRelations',
+          'isStudent',
+          'dispatchedAbroad',
+          'multiOffice',
+          'selectedOfficeType',
+          'socialSecurityAgreement',
+          'temporaryDispatch',
+          'combinedSalary'
+        ];
+        for (const key of keys) {
+          if (JSON.stringify(this.employee[key]) !== JSON.stringify(this.originalOtherInfo[key])) {
+            otherChanged = true;
+            break;
+          }
+        }
+      }
+      if (otherChanged) {
+        const confirmed = window.confirm('その他情報を変更しますか？社会保険料が変更になる可能性があります。');
+        if (!confirmed) {
+          this.isEditOther = false;
+          return;
+        }
+        if (this.latestStandard) {
+          const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+          const { id, createdAt, ...copyFields } = this.latestStandard;
+          await addDoc(standardsCol, {
+            ...copyFields,
+            createdAt: new Date(),
+            memo: 'その他情報更新'
+          });
+        }
+        await updateDoc(employeeRef, {
+          dependentStatus: this.employee.dependentStatus,
+          dependentRelations: this.employee.dependentRelations,
+          isStudent: this.employee.isStudent,
+          dispatchedAbroad: this.employee.dispatchedAbroad,
+          multiOffice: this.employee.multiOffice,
+          selectedOfficeType: this.employee.selectedOfficeType,
+          socialSecurityAgreement: this.employee.socialSecurityAgreement,
+          temporaryDispatch: this.employee.temporaryDispatch,
+          combinedSalary: this.employee.combinedSalary
+        });
+        this.router.navigate(['/calculate', this.employeeId]);
+        return;
+      }
+      // 差分がない場合は通常保存
       await updateDoc(employeeRef, {
         dependentStatus: this.employee.dependentStatus,
         dependentRelations: this.employee.dependentRelations,
@@ -838,7 +1015,7 @@ export class EmployeeDetailComponent implements OnInit {
         await addDoc(standardsCol, {
           ...copyFields,
           createdAt: new Date(),
-          memo: '厚生年金高齢任意加入手続きにより変更'
+          memo: '厚生年金高齢任意加入手続きのため変更'
         });
       }
       // 画面上も即時反映
@@ -1011,6 +1188,24 @@ export class EmployeeDetailComponent implements OnInit {
   // 社会保険対象外かどうかを判定するgetter
   get isSocialInsuranceExcludedByInsurance(): boolean {
     return this.insurancesList.some(i => i.isInsuranceTarget === false || i.isInsuranceTarget === 'false' || i.isInsuranceTarget === 0);
+  }
+
+  // 40歳の誕生日の前日が含まれる月が今月以前かどうかを判定する関数
+  isMonthOfFortiethBirthdayEveOrBefore(birthdate: string): boolean {
+    if (!birthdate) return false;
+    const birth = new Date(birthdate);
+    if (isNaN(birth.getTime())) return false;
+    const now = new Date();
+    // 40歳の誕生日の前日
+    const fortyBirthday = new Date(birth.getFullYear() + 40, birth.getMonth(), birth.getDate());
+    const fortyEve = new Date(fortyBirthday);
+    fortyEve.setDate(fortyEve.getDate() - 1);
+    // その月の1日
+    const monthStart = new Date(fortyEve.getFullYear(), fortyEve.getMonth(), 1);
+    // 今月の1日
+    const nowMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+    // 「誕生日の前日が含まれる月」が今月以前か
+    return monthStart <= nowMonthStart;
   }
 
 }

@@ -5,6 +5,8 @@
 <div>
   <div *ngFor="let pair of insuranceStandardPairs" class="pair-block" style="border:1px solid #aaa; margin-bottom: 24px; padding: 12px;">
     <div *ngIf="pair.insurance.isInsuranceTarget === false || pair.insurance.isInsuranceTarget === 'false' || pair.insurance.isInsuranceTarget === 0" class="sotai">社会保険対象外</div>
+    <div>{{ pair.insurance.memo || '' }}</div>
+    <div>{{ pair.insurance.createdAt | date:'yyyy-MM-dd' }}</div>
     <div class="insurance-grid">
       <div>健康保険全額: {{ pair.insurance.healthInsuranceTotal != null ? (pair.insurance.healthInsuranceTotal | number:'1.0-0') : '---' }}円</div>
       <div>健康保険会社負担額: {{ pair.insurance.healthInsuranceCompany != null ? (pair.insurance.healthInsuranceCompany | number:'1.0-0') : '---' }}円</div>
@@ -22,7 +24,7 @@
     <div *ngIf="pair.standard; else noStandard">
       <div>改定月: {{ pair.standard.lastRevisionMonth ? (pair.standard.lastRevisionMonth | date:'yyyy-MM') : '---' }}</div>
       <div>改定種別: {{ pair.standard.revisionType || '---' }}</div>
-      <div>{{ pair.standard.memo || '' }}</div>
+      <div *ngIf="pair.insurance.memo !== '料率変更'" style="color: #d32f2f;">{{ pair.standard.memo || '' }}</div>
     </div>
     <ng-template #noStandard>
       <div style="color: #d32f2f;">対応する標準報酬情報がありません</div>

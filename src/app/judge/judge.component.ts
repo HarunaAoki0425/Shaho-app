@@ -174,11 +174,11 @@ export class JudgeComponent {
   }
 
   static judgeInternationalSocialInsurance(employee: any): boolean {
-    // 外国派遣労働者区分が「該当しない」の場合は対象外
-    if (employee.dispatchedAbroad === '該当しない') {
-      return false;
+    // 海外派遣判定が不要な場合はtrueを返す
+    if (!employee.dispatchedAbroad || employee.dispatchedAbroad === '該当しない') {
+      return true;
     }
-    // 社会保障協定国が「該当しない」の場合はtrue
+    // 社会保障協定国が「該当しない」の場合は計算対象
     if (employee.socialSecurityAgreement === '該当しない') {
       return true;
     }
@@ -199,6 +199,7 @@ export class JudgeComponent {
         return true;
       }
     }
+    // それ以外は除外
     return false;
   }
 

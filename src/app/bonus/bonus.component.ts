@@ -38,8 +38,9 @@ export class BonusComponent implements OnInit, OnChanges {
       const bonusSnap = await getDocs(bonusCol);
       const bonusList = bonusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
       this.allBonuses = bonusList;
-      const sorted = bonusList.filter(b => b.calcAt).sort((a, b) => new Date(b.calcAt).getTime() - new Date(a.calcAt).getTime());
-      this.latestBonus = sorted.length > 0 ? sorted[0] : null;
+      // bonusDateが最も新しいもの（日まで比較）
+      const dateBonuses = bonusList.filter(b => b.bonusDate).sort((a, b) => new Date(b.bonusDate).getTime() - new Date(a.bonusDate).getTime());
+      this.latestBonus = dateBonuses.length > 0 ? dateBonuses[0] : null;
     }
   }
 
@@ -64,11 +65,53 @@ export class BonusComponent implements OnInit, OnChanges {
       alert('賞与支給年月日・賞与額を入力してください');
       return;
     }
+    // 年度計算
+    const dateObj = new Date(this.bonusDate);
+    const nendo = dateObj.getMonth() + 1 >= 4 ? dateObj.getFullYear() : dateObj.getFullYear() - 1;
+    const start = new Date(nendo, 3, 1); // 4月1日
+    const end = new Date(nendo + 1, 3, 1); // 翌年4月1日未満
+    // 同年度のbonusをすべて取得
     const bonusCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeeId}/bonus`);
+    const bonusSnap = await getDocs(bonusCol);
+    const bonuses = bonusSnap.docs.map(doc => doc.data() as any);
+    const nendoBonuses = bonuses.filter(b => b.bonusDate && new Date(b.bonusDate) >= start && new Date(b.bonusDate) < end);
+    // 今回入力値も加えた合計（standardBonusAmountベース）
+    const nendoBonusTotal = nendoBonuses.reduce((sum, b) => sum + (typeof b.standardBonusAmount === 'number' ? b.standardBonusAmount : Number(b.standardBonusAmount) || 0), 0) + (this.standardBonusAmount || 0);
+    let nendoBonusExcess: number | undefined = undefined;
+    if (nendoBonusTotal >= 5730000) {
+      nendoBonusExcess = nendoBonusTotal - 5730000;
+    }
+    let nendoBonusExcessAdjusted: number | undefined = undefined;
+    if (nendoBonusExcess !== undefined) {
+      nendoBonusExcessAdjusted = Math.max((this.standardBonusAmount || 0) - nendoBonusExcess, 0);
+    }
+    // 同月のbonusをすべて取得
+    const inputYear = dateObj.getFullYear();
+    const inputMonth = dateObj.getMonth(); // 0-indexed
+    const monthBonuses = bonuses.filter(b => {
+      if (!b.bonusDate) return false;
+      const d = new Date(b.bonusDate);
+      return d.getFullYear() === inputYear && d.getMonth() === inputMonth;
+    });
+    const monthBonusTotal = monthBonuses.reduce((sum, b) => sum + (typeof b.standardBonusAmount === 'number' ? b.standardBonusAmount : Number(b.standardBonusAmount) || 0), 0) + (this.standardBonusAmount || 0);
+    let monthBonusExcessAdjusted: number | undefined = undefined;
+    if (monthBonusTotal > 1500000) {
+      monthBonusExcessAdjusted = Math.max(monthBonusTotal - 1500000, 0);
+    }
+    let monthBonusExcessAdjustedDiff: number | undefined = undefined;
+    if (monthBonusExcessAdjusted !== undefined) {
+      monthBonusExcessAdjustedDiff = Math.max((this.standardBonusAmount || 0) - monthBonusExcessAdjusted, 0);
+    }
     await addDoc(bonusCol, {
       bonusDate: this.bonusDate,
       bonusAmount: this.bonusAmount,
       standardBonusAmount: this.standardBonusAmount,
+      nendoBonusTotal,
+      monthBonusTotal,
+      ...(nendoBonusExcess !== undefined ? { nendoBonusExcess } : {}),
+      ...(nendoBonusExcessAdjusted !== undefined ? { nendoBonusExcessAdjusted } : {}),
+      ...(monthBonusExcessAdjusted !== undefined ? { monthBonusExcessAdjusted } : {}),
+      ...(monthBonusExcessAdjustedDiff !== undefined ? { monthBonusExcessAdjustedDiff } : {}),
       createdAt: serverTimestamp()
     });
     alert('賞与情報を保存しました。賞与の社会保険料を算出してください。');
@@ -101,5 +144,40 @@ export class BonusComponent implements OnInit, OnChanges {
     return this.allBonuses
       .filter(b => b.bonusDate && new Date(b.bonusDate) >= start && new Date(b.bonusDate) < end)
       .reduce((sum, b) => sum + (typeof b.bonusAmount === 'number' ? b.bonusAmount : Number(b.bonusAmount) || 0), 0);
+  }
+
+  get currentNendoLatestBonusNendoBonusTotal(): number | null {
+    const nendo = this.currentNendo;
+    const start = new Date(nendo, 3, 1); // 4月1日
+    const end = new Date(nendo + 1, 3, 1); // 翌年4月1日未満
+    const nendoBonuses = this.allBonuses
+      .filter(b => b.bonusDate && new Date(b.bonusDate) >= start && new Date(b.bonusDate) < end && b.standardBonusAmount != null);
+    if (nendoBonuses.length === 0) return null;
+    // bonusDateが最新のもの
+    const latest = nendoBonuses.sort((a, b) => new Date(b.bonusDate).getTime() - new Date(a.bonusDate).getTime())[0];
+    return latest.nendoBonusTotal ?? null;
+  }
+
+  get currentYearMonthLabel(): string {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    return `${year}年${month.toString().padStart(2, '0')}月`;
+  }
+
+  get currentMonthLatestBonusMonthBonusTotal(): number | null {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1;
+    const monthBonuses = this.allBonuses
+      .filter(b => {
+        if (!b.bonusDate) return false;
+        const d = new Date(b.bonusDate);
+        return d.getFullYear() === year && (d.getMonth() + 1) === month;
+      });
+    if (monthBonuses.length === 0) return null;
+    // bonusDateが最新のもの
+    const latest = monthBonuses.sort((a, b) => new Date(b.bonusDate).getTime() - new Date(a.bonusDate).getTime())[0];
+    return latest.monthBonusTotal ?? null;
   }
 }

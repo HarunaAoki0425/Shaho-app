@@ -60,7 +60,11 @@
     <div class="bonus-date">{{ latestBonus?.bonusDate | date:'yyyy/MM/dd' }}支給分（{{ latestBonus?.bonusAmount | number:'1.0-0' }}円）</div>
   </div>
   <div class="bonus-container-right" style="flex: 1;">
-    <div class="bonus-total">{{ currentNendo }}年度賞与合計</div>
-    <div class="bonus-total-amount">{{ currentNendoBonusTotal | number:'1.0-0' }}円</div>
+    <div class="bonus-total">{{ currentNendo }}年度標準賞与額合計</div>
+    <div class="bonus-total-amount">{{ currentNendoLatestBonusNendoBonusTotal !== null ? (currentNendoLatestBonusNendoBonusTotal | number:'1.0-0') + '円' : '---' }}</div>
+    <div style="font-size: 12px; color: #666;">健康保険・介護保険の年間累計標準賞与額の上限は573万円です。それ以降標準賞与額は0円として保険者が決定することとなります。</div>
+    <div class="bonus-total">{{ currentYearMonthLabel }}標準賞与合計</div>
+    <div class="bonus-total-amount">{{ currentMonthLatestBonusMonthBonusTotal !== null ? (currentMonthLatestBonusMonthBonusTotal | number:'1.0-0') + '円' : '---' }}</div>
+    <div style="font-size: 12px; color: #666;">厚生年金の月間累計標準賞与額の上限は150万円です。それ以降標準賞与額は0円として保険者が決定することとなります。</div>
   </div>
 </div>

@@ -3,6 +3,7 @@
   <br>
   <button class="to-detail-btn" (click)="router.navigate(['/employee-detail', employeeId])">従業員詳細画面へ</button>
 </div>
+<div style="text-align: center; font-size: 18px; color: #fc0606; margin-bottom: 0px;">※画面から離れる前に必ず計算結果を保存してください※</div>
 <div class="info-calc-flex" style="margin-top: 0;">
   <div>
     <div class="office-info">
@@ -34,15 +35,87 @@
       社会保険加入対象外です
     </div>
     <div *ngIf="!isSocialInsuranceExcluded && employeeData">
-      <div class="calc-row" *ngIf="healthInsuranceResult"><span class="calc-label">健康保険（全額）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceAmount }}円</span></div>
-      <div class="calc-row" *ngIf="healthInsuranceResult"><span class="calc-label">健康保険（会社負担）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountCompany }}円</span></div>
-      <div class="calc-row" *ngIf="healthInsuranceResult"><span class="calc-label">健康保険（従業員負担）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountEmployee }}円</span></div>
-      <div class="calc-row" *ngIf="careInsuranceResult"><span class="calc-label">介護保険（全額）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ careInsuranceRate100 }}％＝{{ careInsuranceAmount }}円</span></div>
-      <div class="calc-row" *ngIf="careInsuranceResult"><span class="calc-label">介護保険（会社負担）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountCompany }}円</span></div>
-      <div class="calc-row" *ngIf="careInsuranceResult"><span class="calc-label">介護保険（従業員負担）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountEmployee }}円</span></div>
-      <div class="calc-row" *ngIf="pensionInsuranceResult"><span class="calc-label">厚生年金（全額）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ pensionInsuranceRate100 }}％＝{{ pensionInsuranceAmount }}円</span></div>
-      <div class="calc-row" *ngIf="pensionInsuranceResult"><span class="calc-label">厚生年金（会社負担）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountCompany }}円</span></div>
-      <div class="calc-row" *ngIf="pensionInsuranceResult"><span class="calc-label">厚生年金（従業員負担）</span><span class="calc-value">{{ latestBonus?.standardBonusAmount ? (latestBonus.standardBonusAmount | number:'1.0-0') : '---' }}円×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountEmployee }}円</span></div>
+      <div class="calc-row" *ngIf="healthInsuranceResult">
+        <span class="calc-label">健康保険（全額）</span>
+        <span class="calc-value">
+          {{ usedBonusAmount !== null ? (usedBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted != null">（調整後）</span>
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted == null"></span>
+          ×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceAmount }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="healthInsuranceResult">
+        <span class="calc-label">健康保険（会社負担）</span>
+        <span class="calc-value">
+          {{ usedBonusAmount !== null ? (usedBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted != null">（調整後）</span>
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted == null"></span>
+          ×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountCompany }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="healthInsuranceResult">
+        <span class="calc-label">健康保険（従業員負担）</span>
+        <span class="calc-value">
+          {{ usedBonusAmount !== null ? (usedBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted != null">（調整後）</span>
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted == null"></span>
+          ×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceAmountEmployee }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="careInsuranceResult">
+        <span class="calc-label">介護保険（全額）</span>
+        <span class="calc-value">
+          {{ usedBonusAmount !== null ? (usedBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted != null">（調整後）</span>
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted == null"></span>
+          ×{{ careInsuranceRate100 }}％＝{{ careInsuranceAmount }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="careInsuranceResult">
+        <span class="calc-label">介護保険（会社負担）</span>
+        <span class="calc-value">
+          {{ usedBonusAmount !== null ? (usedBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted != null">（調整後）</span>
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted == null"></span>
+          ×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountCompany }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="careInsuranceResult">
+        <span class="calc-label">介護保険（従業員負担）</span>
+        <span class="calc-value">
+          {{ usedBonusAmount !== null ? (usedBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted != null">（調整後）</span>
+          <span *ngIf="latestBonus?.nendoBonusExcessAdjusted == null"></span>
+          ×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceAmountEmployee }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="pensionInsuranceResult">
+        <span class="calc-label">厚生年金（全額）</span>
+        <span class="calc-value">
+          {{ usedPensionBonusAmount !== null ? (usedPensionBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.monthBonusExcessAdjustedDiff != null">（調整後）</span>
+          <span *ngIf="latestBonus?.monthBonusExcessAdjustedDiff == null">（標準賞与額）</span>
+          ×{{ pensionInsuranceRate100 }}％＝{{ pensionInsuranceAmount }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="pensionInsuranceResult">
+        <span class="calc-label">厚生年金（会社負担）</span>
+        <span class="calc-value">
+          {{ usedPensionBonusAmount !== null ? (usedPensionBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.monthBonusExcessAdjustedDiff != null">（調整後）</span>
+          <span *ngIf="latestBonus?.monthBonusExcessAdjustedDiff == null">（標準賞与額）</span>
+          ×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountCompany }}円
+        </span>
+      </div>
+      <div class="calc-row" *ngIf="pensionInsuranceResult">
+        <span class="calc-label">厚生年金（従業員負担）</span>
+        <span class="calc-value">
+          {{ usedPensionBonusAmount !== null ? (usedPensionBonusAmount | number:'1.0-0') : '---' }}円
+          <span *ngIf="latestBonus?.monthBonusExcessAdjustedDiff != null">（調整後）</span>
+          <span *ngIf="latestBonus?.monthBonusExcessAdjustedDiff == null">（標準賞与額）</span>
+          ×{{ pensionInsuranceRate100 }}％÷2＝{{ pensionInsuranceAmountEmployee }}円
+        </span>
+      </div>
       <div class="calc-row" *ngIf="healthInsuranceResult || careInsuranceResult || pensionInsuranceResult"><span class="calc-label">全額合計</span><span class="calc-value">{{ totalInsuranceAmount }}円</span></div>
       <div class="calc-row" *ngIf="healthInsuranceResult || careInsuranceResult || pensionInsuranceResult"><span class="calc-label">会社負担合計</span><span class="calc-value">{{ totalInsuranceAmountCompany }}円</span></div>
       <div class="calc-row" *ngIf="healthInsuranceResult || careInsuranceResult || pensionInsuranceResult"><span class="calc-label">従業員負担合計</span><span class="calc-value">{{ totalInsuranceAmountEmployee }}円</span></div>

@@ -28,7 +28,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">生年月日</span>
-        <span class="info-value">{{ employee?.birthdate || '---' }}</span>
+        <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.birthdate || '---' }}</span>
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.birthdate" class="info-value" type="date" [ngClass]="{'input-error': isEditPersonal && !employee.birthdate}" />
       </div>
       <div class="info-row">
         <span class="info-label">年齢</span>
@@ -221,7 +222,7 @@
         </span>
       </div>
       <ng-container *ngIf="employee">
-        <div *ngIf="insurancesLoaded && isSocialInsuranceExcludedByInsurance" style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
+        <div *ngIf="insurancesLoaded && latestInsurance?.isInsuranceTarget === false" style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
           社会保険加入対象外です
         </div>
         <ng-container *ngIf="insurancesList.length > 0">
@@ -267,9 +268,6 @@
             <div>insurancesLoaded: {{ insurancesLoaded }}</div>
             <div>isSocialInsuranceExcludedByInsurance: {{ isSocialInsuranceExcludedByInsurance }}</div>
             <div>insurancesList: {{ insurancesList | json }}</div>
-            <div *ngIf="insurancesLoaded && isSocialInsuranceExcludedByInsurance" style="margin: 24px 0; color: #d32f2f; font-weight: bold; text-align: center; font-size: 1.1em;">
-              社会保険加入対象外です
-            </div>
           </div>
         </ng-container>
         <div class="insurance-action-buttons">
@@ -278,8 +276,8 @@
             class="maternity-leave-btn"
             (click)="onMaternityLeave()"
             *ngIf="!employee.onMaternityLeave"
-            [disabled]="insurancesList.length === 0 || (insurancesLoaded && isSocialInsuranceExcludedByInsurance)"
-            [ngClass]="{'disabled-btn': insurancesList.length === 0 || (insurancesLoaded && isSocialInsuranceExcludedByInsurance)}"
+            [disabled]="latestInsurance?.isInsuranceTarget === false"
+            [ngClass]="{'disabled-btn': latestInsurance?.isInsuranceTarget === false}"
           >育休・産休</button>
           <button class="history-btn" (click)="goToHistory()">履歴</button>
         </div>

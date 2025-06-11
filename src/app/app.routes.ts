@@ -19,4 +19,5 @@ export const routes: Routes = [
   { path: 'insurance-history/:id', loadComponent: () => import('./insurance-history/insurance-history.component').then(m => m.InsuranceHistoryComponent) },
   { path: 'bonus-calculate/:id', loadComponent: () => import('./bonus-calculate/bonus-calculate.component').then(m => m.BonusCalculateComponent) },
   { path: 'bonus-history/:id', loadComponent: () => import('./bonus-history/bonus-history.component').then(m => m.BonusHistoryComponent) },
+  { path: 'recalculate', loadComponent: () => import('./recalculate/recalculate.component').then(m => m.RecalculateComponent) },
 ];
