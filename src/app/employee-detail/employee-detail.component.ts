@@ -218,7 +218,6 @@ export class EmployeeDetailComponent implements OnInit {
           }
         }
       }
-      console.log('該当従業員が見つかりませんでした');
     }
   }
 
@@ -230,7 +229,6 @@ export class EmployeeDetailComponent implements OnInit {
     );
     const insurancesSnap = await getDocs(insurancesCol);
     this.insurancesList = insurancesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    console.log('[DEBUG] insurancesList:', this.insurancesList);
     this.insurancesLoaded = true;
     this.cdr.detectChanges();
   }
@@ -362,7 +360,8 @@ export class EmployeeDetailComponent implements OnInit {
         lastName: this.employee.lastName,
         firstName: this.employee.firstName,
         nationality: this.employee.nationality,
-        officeName: this.employee.officeName
+        officeName: this.employee.officeName,
+        birthdate: this.employee.birthdate
       };
     }
   }
@@ -396,7 +395,7 @@ export class EmployeeDetailComponent implements OnInit {
           await addDoc(standardsCol, {
             ...copyFields,
             createdAt: new Date(),
-            memo: '年齢変更'
+            memo: '生年月日変更'
           });
         }
         // employees上書き
@@ -471,6 +470,7 @@ export class EmployeeDetailComponent implements OnInit {
         employmentPeriodType: this.employee.employmentPeriodType,
         employmentPeriodStart: this.employee.employmentPeriodStart,
         employmentPeriodEnd: this.employee.employmentPeriodEnd,
+        employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
         workDays: this.employee.workDays,
         workHours: this.employee.workHours,
         salaryCash: this.employee.salaryCash,
@@ -487,6 +487,7 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.employmentPeriodType = this.originalContractInfo.employmentPeriodType;
       this.employee.employmentPeriodStart = this.originalContractInfo.employmentPeriodStart;
       this.employee.employmentPeriodEnd = this.originalContractInfo.employmentPeriodEnd;
+      this.employee.employmentPeriodRenewal = this.originalContractInfo.employmentPeriodRenewal;
       this.employee.workDays = this.originalContractInfo.workDays;
       this.employee.workHours = this.originalContractInfo.workHours;
       this.employee.salaryCash = this.originalContractInfo.salaryCash;
@@ -505,14 +506,15 @@ export class EmployeeDetailComponent implements OnInit {
     if (!this.employeeId || !this.employee.companyId) return;
     const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
     try {
-      // 差分チェック
       let contractChanged = false;
+      let onlyBaseSalaryChanged = false;
       if (this.originalContractInfo) {
         const keys = [
           'employmentType',
           'employmentPeriodType',
           'employmentPeriodStart',
           'employmentPeriodEnd',
+          'employmentPeriodRenewal',
           'workDays',
           'workHours',
           'salaryCash',
@@ -520,12 +522,34 @@ export class EmployeeDetailComponent implements OnInit {
           'salaryTotal',
           'baseSalary'
         ];
+        let changedKeys = [];
         for (const key of keys) {
           if (this.employee[key] !== this.originalContractInfo[key]) {
             contractChanged = true;
-            break;
+            changedKeys.push(key);
           }
         }
+        if (contractChanged && changedKeys.length === 1 && changedKeys[0] === 'baseSalary') {
+          onlyBaseSalaryChanged = true;
+        }
+      }
+      if (onlyBaseSalaryChanged) {
+        alert('標準報酬月額に変動がないか確認してください');
+        await updateDoc(employeeRef, {
+          employmentType: this.employee.employmentType,
+          employmentPeriodType: this.employee.employmentPeriodType,
+          employmentPeriodStart: this.employee.employmentPeriodStart,
+          employmentPeriodEnd: this.employee.employmentPeriodEnd,
+          employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
+          workDays: this.employee.workDays,
+          workHours: this.employee.workHours,
+          salaryCash: this.employee.salaryCash,
+          salaryInKind: this.employee.salaryInKind,
+          salaryTotal: this.employee.salaryTotal,
+          baseSalary: this.employee.baseSalary
+        });
+        this.isEditContract = false;
+        return;
       }
       if (contractChanged) {
         const confirmed = window.confirm('雇用契約情報を変更しますか？社会保険料が変更になる可能性があります。');
@@ -547,6 +571,7 @@ export class EmployeeDetailComponent implements OnInit {
           employmentPeriodType: this.employee.employmentPeriodType,
           employmentPeriodStart: this.employee.employmentPeriodStart,
           employmentPeriodEnd: this.employee.employmentPeriodEnd,
+          employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
           workDays: this.employee.workDays,
           workHours: this.employee.workHours,
           salaryCash: this.employee.salaryCash,
@@ -563,6 +588,7 @@ export class EmployeeDetailComponent implements OnInit {
         employmentPeriodType: this.employee.employmentPeriodType,
         employmentPeriodStart: this.employee.employmentPeriodStart,
         employmentPeriodEnd: this.employee.employmentPeriodEnd,
+        employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
         workDays: this.employee.workDays,
         workHours: this.employee.workHours,
         salaryCash: this.employee.salaryCash,
@@ -830,13 +856,6 @@ export class EmployeeDetailComponent implements OnInit {
     this.isEditInsurance = false;
     if (!this.employeeId || !this.employee.companyId) return;
     const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
-    // デバッグ出力
-    console.log('[DEBUG] updateDoc path:', `companies/${this.employee.companyId}/employees/${this.employeeId}`);
-    console.log('[DEBUG] updateDoc values:', {
-      salaryCash: this.employee.salaryCash,
-      salaryInKind: this.employee.salaryInKind,
-      salaryTotal: this.employee.salaryTotal
-    });
     try {
       await updateDoc(employeeRef, {
         salaryCash: this.employee.salaryCash,
@@ -854,9 +873,10 @@ export class EmployeeDetailComponent implements OnInit {
         nenkinStandardMonthly: this.employee.stdSalaryPension || null,
         revisionType: this.employee.updatedRevisionType || null,
         lastRevisionMonth: this.employee.updatedStdSalaryMonth || null,
+        joinDate: this.latestStandard?.joinDate || '',
+        leaveDate: this.latestStandard?.leaveDate || '',
         memo: ''
       });
-      // 保存成功後にcalculate画面へ遷移
       this.router.navigate(['/calculate', this.employeeId]);
     } catch (e) {
       alert('標準報酬月額情報の保存に失敗しました');
@@ -1066,6 +1086,7 @@ export class EmployeeDetailComponent implements OnInit {
     this.maternityLeaveStart = this.employee.maternityLeaveStartDate || '';
     this.maternityLeaveEnd = this.employee.maternityLeaveEndDate || '';
     this.showMaternityLeaveInputs = true;
+    this.cdr.detectChanges();
   }
 
   public onCancelMaternityLeaveInput() {
@@ -1206,6 +1227,12 @@ export class EmployeeDetailComponent implements OnInit {
     const nowMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
     // 「誕生日の前日が含まれる月」が今月以前か
     return monthStart <= nowMonthStart;
+  }
+
+  get isMaternityLeaveButtonDisabled(): boolean {
+    if (!this.latestInsurance) return false;
+    if (!('isInsuranceTarget' in this.latestInsurance)) return false;
+    return this.latestInsurance.isInsuranceTarget === false;
   }
 
 }

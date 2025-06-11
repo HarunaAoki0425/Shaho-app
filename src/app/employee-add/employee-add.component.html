@@ -300,6 +300,15 @@
         <label>終了年月日</label>
         <input type="date" name="employmentPeriodEnd" [(ngModel)]="employmentPeriodEnd">
       </div>
+      <div *ngIf="employmentPeriodType === '有期'" class="employment-period-renewal-row">
+        <label></label>
+        <label style="margin-right: 1.5em;">
+          <input type="radio" name="employmentPeriodRenewal" [(ngModel)]="employmentPeriodRenewal" value="更新あり"> 更新あり
+        </label>
+        <label>
+          <input type="radio" name="employmentPeriodRenewal" [(ngModel)]="employmentPeriodRenewal" value="更新なし"> 更新なし
+        </label>
+      </div>
     </div>
     <div>
       <label style="display: flex; align-items: center; gap: 6px;">
@@ -379,12 +388,12 @@
       </select>
     </div>
     <div>
-      <label>資格取得年月日（入社日）</label>
-      <input type="date" name="joinDate" [(ngModel)]="joinDate">
+      <label>入社日</label>
+      <input type="date" name="joinDate" [(ngModel)]="joinDate" class="info-value" />
     </div>
     <div>
-      <label>資格喪失年月日（退職日）</label>
-      <input type="date" name="leaveDate">
+      <label>退社日</label>
+      <input type="date" name="leaveDate" [(ngModel)]="leaveDate" class="info-value" />
     </div>
     <div>
       <label>外国派遣労働者区分</label>

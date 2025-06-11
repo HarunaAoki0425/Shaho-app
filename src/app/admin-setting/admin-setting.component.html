@@ -1,0 +1,24 @@
+<div class="admin-setting-container">
+  <h1>管理者設定</h1>
+
+  <div class="user-info" *ngIf="user" style="position: relative; padding-right: 48px;">
+    <ng-container>
+      <div><strong>メールアドレス:</strong> {{ user.email }}</div>
+    </ng-container>
+  </div>
+
+  <div class="button-row">
+    <button class="reset-password-btn" (click)="onResetPassword()" *ngIf="!showPasswordForm">パスワード再設定</button>
+    <button class="delete-account-btn" (click)="onDeleteAccount()">アカウント削除</button>
+  </div>
+
+  <div *ngIf="showPasswordForm" class="password-reset-form" style="margin-top: 16px; max-width: 340px;">
+    <div *ngIf="passwordError" style="color: #d32f2f; margin-bottom: 8px;">{{ passwordError }}</div>
+    <div *ngIf="passwordSuccess && !showPasswordForm" style="color: #388e3c; margin-top: 16px; font-weight: bold;">{{ passwordSuccess }}</div>
+    <div style="margin-bottom: 10px;"><label>現在のパスワード<br><input type="password" [(ngModel)]="currentPassword" style="width: 100%; padding: 6px;" /></label></div>
+    <div style="margin-bottom: 10px;"><label>新しいパスワード<br><input type="password" [(ngModel)]="newPassword" style="width: 100%; padding: 6px;" /></label></div>
+    <div style="margin-bottom: 16px;"><label>新しいパスワード（確認）<br><input type="password" [(ngModel)]="confirmPassword" style="width: 100%; padding: 6px;" /></label></div>
+    <button class="edit-user-btn" style="margin-right: 8px;" (click)="onSubmitPasswordReset()" [disabled]="!canSavePassword">保存</button>
+    <button class="edit-user-btn" style="background:#eee; color:#555;" (click)="showPasswordForm=false">キャンセル</button>
+  </div>
+</div>

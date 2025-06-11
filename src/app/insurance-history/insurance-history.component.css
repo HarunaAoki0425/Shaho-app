@@ -32,10 +32,9 @@ body, .history-header, .history-header-title, .pair-block, .insurance-grid, .ins
 
 .insurance-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px 16px;
-  margin-top: 8px;
-  margin-bottom: 8px;
+  margin: 12px 0;
 }
 
 .insurance-grid > div {

@@ -107,14 +107,18 @@
 /* 雇用契約期間の有期選択時の開始・終了日入力欄の余白 */
 .employment-period-range {
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 16px;
+  gap: 1em;
 }
 .employment-period-range label {
   margin-bottom: 0;
+  white-space: nowrap;
 }
-.employment-period-range input[type="date"] {
-  margin-right: 8px;
+.employment-period-range input,
+.employment-period-range select {
+  margin-right: 1em;
+  margin-bottom: 0;
 }
 
 /* 二以上事業所勤務者入力欄のスタイル */
@@ -604,4 +608,19 @@ input[type='month'].info-value {
   box-sizing: border-box;
   margin-top: 4px;
   margin-bottom: 16px;
+}
+
+.employment-period-renewal-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  margin-top: 0.5em;
+  gap: 1em;
+}
+.employment-period-renewal-row label {
+  margin-bottom: 0;
+  white-space: nowrap;
+}
+.employment-period-renewal-row select {
+  margin-bottom: 0;
 }

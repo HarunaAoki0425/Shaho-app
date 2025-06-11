@@ -91,6 +91,18 @@
         <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentPeriodEnd || '---' }}</span>
         <input *ngIf="isEditContract" [(ngModel)]="employee.employmentPeriodEnd" class="info-value" type="date" [required]="employee.employmentPeriodType === '有期'" [ngClass]="{'input-error': isEditContract && employee.employmentPeriodType === '有期' && !employee.employmentPeriodEnd}" />
       </div>
+      <div class="info-row" *ngIf="employee?.employmentPeriodType === '有期'">
+        <span class="info-label">契約更新</span>
+        <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentPeriodRenewal || '---' }}</span>
+        <span class="info-value" *ngIf="isEditContract">
+          <label style="margin-right: 1.5em;">
+            <input type="radio" name="employmentPeriodRenewal" [(ngModel)]="employee.employmentPeriodRenewal" value="更新あり"> 更新あり
+          </label>
+          <label>
+            <input type="radio" name="employmentPeriodRenewal" [(ngModel)]="employee.employmentPeriodRenewal" value="更新なし"> 更新なし
+          </label>
+        </span>
+      </div>
       <div class="info-row">
         <span class="info-label">所定労働日数（月）</span>
         <span class="info-value" *ngIf="!isEditContract">{{ employee?.workDays !== undefined && employee?.workDays !== null && employee?.workDays !== '' ? (employee?.workDays + '日') : '---' }}</span>
@@ -270,23 +282,25 @@
             <div>insurancesList: {{ insurancesList | json }}</div>
           </div>
         </ng-container>
+        <span *ngIf="showMaternityLeaveInputs" style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+          <label>開始年月日 <input type="date" [(ngModel)]="maternityLeaveStart" style="margin-right: 8px; color:#333" /></label>
+          <label>終了年月日 <input type="date" [(ngModel)]="maternityLeaveEnd" style="color:#333" /></label>
+          <button class="save-maternity-leave-btn" (click)="onSaveMaternityLeave()">保存</button>
+          <button class="cancel-maternity-leave-btn" (click)="onCancelMaternityLeaveInput()">キャンセル</button>
+        </span>
         <div class="insurance-action-buttons">
-          <button class="calc-insurance-btn" (click)="goToCalculate()">社会保険料を算出する</button>
+          <button class="calc-insurance-btn" (click)="goToCalculate()">計算結果詳細</button>
           <button
             class="maternity-leave-btn"
             (click)="onMaternityLeave()"
             *ngIf="!employee.onMaternityLeave"
-            [disabled]="latestInsurance?.isInsuranceTarget === false"
-            [ngClass]="{'disabled-btn': latestInsurance?.isInsuranceTarget === false}"
-          >育休・産休</button>
+            [disabled]="isMaternityLeaveButtonDisabled"
+            [ngClass]="{'disabled-btn': isMaternityLeaveButtonDisabled}"
+          >育休・産休
+          </button>
           <button class="history-btn" (click)="goToHistory()">履歴</button>
         </div>
-        <span *ngIf="showMaternityLeaveInputs" style="display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; margin-bottom: 8px;">
-          <label>開始年月日 <input type="date" [(ngModel)]="maternityLeaveStart" style="margin-right: 8px;" /></label>
-          <label>終了年月日 <input type="date" [(ngModel)]="maternityLeaveEnd" /></label>
-          <button class="save-maternity-leave-btn" (click)="onSaveMaternityLeave()">保存</button>
-          <button class="cancel-maternity-leave-btn" (click)="onCancelMaternityLeaveInput()">キャンセル</button>
-        </span>
+
       </ng-container>
     </div>
     <div class="detail-container detail-container-5">
@@ -300,9 +314,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">標準報酬月額（健康保険・介護保険）</span>
-        <span class="info-value">
-          {{ latestStandard?.kenpoStandardMonthly ? (latestStandard.kenpoStandardMonthly | number:'1.0-0') + '円' : '---' }}
-        </span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.kenpoStandardMonthly ? (latestStandard.kenpoStandardMonthly | number:'1.0-0') + '円' : '---') }}</span>
+        <span class="info-value" *ngIf="isEditInsurance">{{ latestStandard?.kenpoStandardMonthly ? (latestStandard.kenpoStandardMonthly | number:'1.0-0') + '円' : '---' }}</span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
         <span class="info-label">変更後の標準報酬月額（健康保険・介護保険）</span>
@@ -310,9 +323,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">等級（健康保険・介護保険）</span>
-        <span class="info-value">
-          {{ latestStandard?.kenpoGrade || '---' }}
-        </span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.kenpoGrade || '---') }}</span>
+        <span class="info-value" *ngIf="isEditInsurance">{{ latestStandard?.kenpoGrade || '---' }}</span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
         <span class="info-label">変更後の等級（健康保険・介護保険）</span>
@@ -320,9 +332,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">標準報酬月額（厚生年金）</span>
-        <span class="info-value">
-          {{ latestStandard?.nenkinStandardMonthly ? (latestStandard.nenkinStandardMonthly | number:'1.0-0') + '円' : '---' }}
-        </span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.nenkinStandardMonthly ? (latestStandard.nenkinStandardMonthly | number:'1.0-0') + '円' : '---') }}</span>
+        <span class="info-value" *ngIf="isEditInsurance">{{ latestStandard?.nenkinStandardMonthly ? (latestStandard.nenkinStandardMonthly | number:'1.0-0') + '円' : '---' }}</span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
         <span class="info-label">変更後の標準報酬月額（厚生年金）</span>
@@ -330,9 +341,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">等級（厚生年金）</span>
-        <span class="info-value">
-          {{ latestStandard?.nenkinGrade || '---' }}
-        </span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.nenkinGrade || '---') }}</span>
+        <span class="info-value" *ngIf="isEditInsurance">{{ latestStandard?.nenkinGrade || '---' }}</span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
         <span class="info-label">変更後の等級（厚生年金）</span>
@@ -340,9 +350,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">標準報酬月額最終改定月</span>
-        <span class="info-value">
-          {{ latestStandard?.lastRevisionMonth ? (latestStandard.lastRevisionMonth | date:'yyyy-MM') : '---' }}
-        </span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.lastRevisionMonth ? (latestStandard.lastRevisionMonth | date:'yyyy-MM') : '---') }}</span>
+        <span class="info-value" *ngIf="isEditInsurance">{{ latestStandard?.lastRevisionMonth ? (latestStandard.lastRevisionMonth | date:'yyyy-MM') : '---' }}</span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
         <span class="info-label">変更後の標準報酬月額最終改定月<span style="color: red;">*</span></span>
@@ -350,9 +359,8 @@
       </div>
       <div class="info-row">
         <span class="info-label">改定種別</span>
-        <span class="info-value">
-          {{ latestStandard?.revisionType || '---' }}
-        </span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.revisionType || '---') }}</span>
+        <span class="info-value" *ngIf="isEditInsurance">{{ latestStandard?.revisionType || '---' }}</span>
       </div>
       <div class="info-row" *ngIf="isEditInsurance">
         <span class="info-label">変更後の改定種別<span style="color: red;">*</span></span>
@@ -366,26 +374,40 @@
       </div>
       <div class="info-row">
         <span class="info-label">報酬月額（通貨）<span *ngIf="isEditInsurance" style="color: red;">*</span></span>
-        <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryCash ? (employee?.salaryCash | number:'1.0-0') + '円' : '0円' }}</span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (employee?.salaryCash ? (employee?.salaryCash | number:'1.0-0') + '円' : '0円') }}</span>
         <input *ngIf="isEditInsurance" [(ngModel)]="employee.salaryCash" class="info-value" type="number" min="0" style="width: 6em;" [ngClass]="{'input-error': isEditInsurance && !hasAnySalary() && !employee.salaryInKind}" (ngModelChange)="updateSalaryTotal()" required />
       </div>
       <div class="info-row">
         <span class="info-label">報酬月額（現物）</span>
-        <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryInKind ? (employee?.salaryInKind | number:'1.0-0') + '円' : '0円' }}</span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (employee?.salaryInKind ? (employee?.salaryInKind | number:'1.0-0') + '円' : '0円') }}</span>
         <input *ngIf="isEditInsurance" [(ngModel)]="employee.salaryInKind" class="info-value" type="number" min="0" style="width: 6em;" [ngClass]="{'input-error': isEditInsurance && !hasAnySalary() && !employee.salaryCash}" (ngModelChange)="updateSalaryTotal()" />
       </div>
       <div class="info-row">
         <span class="info-label">報酬月額（合計）</span>
-        <span class="info-value" *ngIf="!isEditInsurance">{{ employee?.salaryTotal ? (employee?.salaryTotal | number:'1.0-0') + '円' : '---' }}</span>
+        <span class="info-value" *ngIf="!isEditInsurance">{{ latestInsurance?.isInsuranceTarget === false ? '---' : (employee?.salaryTotal ? (employee?.salaryTotal | number:'1.0-0') + '円' : '---') }}</span>
         <input *ngIf="isEditInsurance" [ngModel]="employee.salaryTotal" class="info-value" type="number" min="0" style="width: 6em;" [readonly]="true" [ngClass]="{'input-error': isEditInsurance && isEmptyOrZero(employee.salaryTotal)}" />
       </div>
       <div class="info-row">
         <span class="info-label">資格取得日</span>
-        <span class="info-value">{{ employee?.joinDate ? (employee.joinDate | date:'yyyy-MM-dd') : '---' }}</span>
+        <span class="info-value">
+          <ng-container *ngIf="isEditInsurance; else showJoinDate">
+            <input type="date" [(ngModel)]="latestStandard.joinDate" class="info-value" />
+          </ng-container>
+          <ng-template #showJoinDate>
+            {{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.joinDate ? (latestStandard.joinDate | date:'yyyy-MM-dd') : '---') }}
+          </ng-template>
+        </span>
       </div>
       <div class="info-row">
         <span class="info-label">資格喪失日</span>
-        <span class="info-value">{{ employee?.leaveDate ? (employee.leaveDate | date:'yyyy-MM-dd') : '---' }}</span>
+        <span class="info-value">
+          <ng-container *ngIf="isEditInsurance; else showLeaveDate">
+            <input type="date" [(ngModel)]="latestStandard.leaveDate" class="info-value" />
+          </ng-container>
+          <ng-template #showLeaveDate>
+            {{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.leaveDate ? (latestStandard.leaveDate | date:'yyyy-MM-dd') : '---') }}
+          </ng-template>
+        </span>
       </div>
       <!-- 高齢任意加入選択欄 -->
       <div class="info-row" *ngIf="isAfterMonthBeforeSeventyBirthdayEve">

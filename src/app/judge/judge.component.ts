@@ -13,6 +13,21 @@ export class JudgeComponent {
   private firestore = inject(Firestore);
 
   static judgeSocialInsuranceRequired({ employee, office, company }: { employee: any, office: any, company: any }): boolean {
+    // 有期契約で2か月以内かつ更新なしの場合は社会保険加入不要（最優先で判定）
+    if (
+      employee?.employmentPeriodType === '有期' &&
+      employee?.employmentPeriodStart &&
+      employee?.employmentPeriodEnd &&
+      employee?.employmentPeriodRenewal === '更新なし'
+    ) {
+      const start = new Date(employee.employmentPeriodStart);
+      const end = new Date(employee.employmentPeriodEnd);
+      const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+      if (diffDays <= 62) { // 2か月以内（厳密に2か月=62日で判定）
+        console.log('[DEBUG] 判定結果: false (有期2か月以内・更新なし)');
+        return false;
+      }
+    }
     // 事業所が非適用なら即false
     if (office?.applicableOffice === false) {
       console.log('[DEBUG] 判定結果: false (事業所が非適用)');
@@ -53,7 +68,7 @@ export class JudgeComponent {
       const start = new Date(employee.employmentPeriodStart);
       const end = new Date(employee.employmentPeriodEnd);
       const diffDays = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
-      periodOk = diffDays >= 59; // 2か月以上
+      periodOk = diffDays >= 60; // 2か月以上
     }
     const allExtra = (
       officeEmployeeCount >= 51 &&

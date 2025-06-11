@@ -26,3 +26,36 @@
   margin-top: 70px;
 }
 
+.batch-recalc-history-list {
+  margin: 24px auto 0 auto;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.batch-recalc-history-list > div {
+  background: #f5f7fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  padding: 16px 20px 12px 20px;
+  border-left: 5px solid #1976d2;
+  font-size: 1.08em;
+  transition: box-shadow 0.2s;
+}
+
+.batch-recalc-history-list > div:hover {
+  box-shadow: 0 4px 16px rgba(25, 118, 210, 0.16);
+}
+
+.batch-recalc-history-list .history-title {
+  font-weight: bold;
+  color: #1976d2;
+  margin-bottom: 4px;
+}
+
+.batch-recalc-history-list .history-info {
+  color: #333;
+  font-size: 0.98em;
+}
+

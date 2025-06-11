@@ -20,6 +20,7 @@ export class RecalculateComponent implements OnInit {
   insurances: any[] = [];
   standards: any[] = [];
   bonuses: any[] = [];
+  batchRecalculateHistories: any[] = [];
   private firestore = inject(Firestore);
   private auth = inject(Auth);
   isCalculating = false;
@@ -75,8 +76,32 @@ export class RecalculateComponent implements OnInit {
     console.log('insurances:', this.insurances);
     console.log('standards:', this.standards);
     console.log('bonuses:', this.bonuses);
+    await this.fetchBatchRecalculateHistories();
     this.isLoading = false;
     this.loadingMessage = '';
+  }
+
+  async fetchBatchRecalculateHistories() {
+    this.batchRecalculateHistories = [];
+    for (const company of this.companies) {
+      const batchHistoryCol = collection(this.firestore, 'companies', company.id, 'batchRecalculateHistory');
+      const batchHistorySnap = await getDocs(batchHistoryCol);
+      const histories = batchHistorySnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any, companyName: company.companyName || company.name || '' }));
+      // 最新順にソート
+      histories.sort((a, b) => {
+        const aTime = a.executedAt?.toDate ? a.executedAt.toDate().getTime() : (a.executedAt ? new Date(a.executedAt).getTime() : 0);
+        const bTime = b.executedAt?.toDate ? b.executedAt.toDate().getTime() : (b.executedAt ? new Date(b.executedAt).getTime() : 0);
+        return bTime - aTime;
+      });
+      // 全履歴をpush
+      this.batchRecalculateHistories.push(...histories);
+    }
+    // 全会社分まとめて最新順にソート
+    this.batchRecalculateHistories.sort((a, b) => {
+      const aTime = a.executedAt?.toDate ? a.executedAt.toDate().getTime() : (a.executedAt ? new Date(a.executedAt).getTime() : 0);
+      const bTime = b.executedAt?.toDate ? b.executedAt.toDate().getTime() : (b.executedAt ? new Date(b.executedAt).getTime() : 0);
+      return bTime - aTime;
+    });
   }
 
   async onBatchRecalculate() {
@@ -90,6 +115,7 @@ export class RecalculateComponent implements OnInit {
     for (const company of this.companies) {
       const employees = this.employees.filter(e => e.companyId === company.id);
       const offices = this.offices.filter(o => o.companyId === company.id);
+      let companyProcessed = 0;
       for (const emp of employees) {
         const office = offices.find(o => o.id === emp.officesId);
         // 判定
@@ -157,10 +183,23 @@ export class RecalculateComponent implements OnInit {
         const insurancesCol = collection(this.firestore, 'companies', company.id, 'employees', emp.id, 'insurances');
         await addDoc(insurancesCol, result);
         processed++;
+        companyProcessed++;
       }
+      // 会社ごとに一斉算出履歴を保存
+      const now = new Date();
+      const batchHistoryCol = collection(this.firestore, 'companies', company.id, 'batchRecalculateHistory');
+      await addDoc(batchHistoryCol, {
+        companyId: company.id,
+        processed: companyProcessed,
+        executedAt: new Date()
+      });
     }
     this.isCalculating = false;
     this.calcMessage = '計算が完了しました。';
+    await this.fetchBatchRecalculateHistories();
     alert(`一斉計算が完了しました（${processed}件保存）`);
+    setTimeout(() => {
+      window.location.href = '/employee-list';
+    }, 100);
   }
 }

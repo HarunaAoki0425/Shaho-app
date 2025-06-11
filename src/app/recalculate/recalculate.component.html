@@ -1,5 +1,11 @@
 <div *ngIf="isLoading" class="loading-message">{{ loadingMessage }}</div>
 <div *ngIf="!isLoading">
-  <button type="button" class="recalc-btn" (click)="onBatchRecalculate()" [disabled]="isCalculating">料率変更時計算</button>
+  <button type="button" class="recalc-btn" (click)="onBatchRecalculate()" [disabled]="isCalculating">一斉算出実行</button>
   <div *ngIf="calcMessage" class="calc-message">{{ calcMessage }}</div>
+  <div *ngIf="batchRecalculateHistories.length > 0" class="batch-recalc-history-list">
+    <div *ngFor="let history of batchRecalculateHistories">
+      <div class="history-title">算出実行日: {{ history.executedAt?.toDate ? (history.executedAt.toDate() | date:'yyyy/MM/dd HH:mm') : (history.executedAt | date:'yyyy/MM/dd HH:mm') }}</div>
+      <div class="history-info">社会保険対象従業員人数：{{ history.processed }}</div>
+    </div>
+  </div>
 </div>

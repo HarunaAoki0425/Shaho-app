@@ -69,6 +69,7 @@ export class EmployeeAddComponent implements OnInit {
   public revisionType: string = '';
   employeeNumber: string = '';
   public todayString: string = new Date().toISOString().slice(0, 10);
+  employmentPeriodRenewal: string = '更新あり';
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -533,6 +534,7 @@ export class EmployeeAddComponent implements OnInit {
       employmentPeriodType: this.employmentPeriodType,
       employmentPeriodStart: this.employmentPeriodStart,
       employmentPeriodEnd: this.employmentPeriodEnd,
+      employmentPeriodRenewal: this.employmentPeriodRenewal,
       workDays: String(this.workDays) === '' ? null : Number(this.workDays),
       workHours: String(this.workHours) === '' ? null : Number(this.workHours),
       salaryCash: (this.salaryCash === null || this.salaryCash === '' || isNaN(Number(this.salaryCash))) ? 0 : parseNumber(this.salaryCash),
@@ -587,7 +589,9 @@ export class EmployeeAddComponent implements OnInit {
         updatedAt: serverTimestamp(),
         revisionType: this.employeeAddType === '既存社員追加' ? this.revisionType : '資格取得時',
         createdBy: this.currentUser?.uid || '',
-        lastRevisionMonth: this.employeeAddType === '既存社員追加' ? this.lastRevisionMonth : (this.joinDate || null)
+        lastRevisionMonth: this.employeeAddType === '既存社員追加' ? this.lastRevisionMonth : (this.joinDate || null),
+        joinDate: this.joinDate || '',
+        leaveDate: this.leaveDate || ''
       });
       // 追加: 登録後にcalculate画面へ遷移
       this.router.navigate(['/calculate', docRef.id]);

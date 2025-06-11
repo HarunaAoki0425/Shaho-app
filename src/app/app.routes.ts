@@ -20,4 +20,5 @@ export const routes: Routes = [
   { path: 'bonus-calculate/:id', loadComponent: () => import('./bonus-calculate/bonus-calculate.component').then(m => m.BonusCalculateComponent) },
   { path: 'bonus-history/:id', loadComponent: () => import('./bonus-history/bonus-history.component').then(m => m.BonusHistoryComponent) },
   { path: 'recalculate', loadComponent: () => import('./recalculate/recalculate.component').then(m => m.RecalculateComponent) },
+  { path: 'admin-setting', loadComponent: () => import('./admin-setting/admin-setting.component').then(m => m.AdminSettingComponent) },
 ];

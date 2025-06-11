@@ -8,18 +8,18 @@
     <div>{{ pair.insurance.memo || '' }}</div>
     <div>{{ pair.insurance.createdAt | date:'yyyy-MM-dd' }}</div>
     <div class="insurance-grid">
-      <div>健康保険全額: {{ pair.insurance.healthInsuranceTotal != null ? (pair.insurance.healthInsuranceTotal | number:'1.0-0') : '---' }}円</div>
-      <div>健康保険会社負担額: {{ pair.insurance.healthInsuranceCompany != null ? (pair.insurance.healthInsuranceCompany | number:'1.0-0') : '---' }}円</div>
-      <div>健康保険従業員負担額: {{ pair.insurance.healthInsuranceEmployee != null ? (pair.insurance.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</div>
-      <div>介護保険全額: {{ pair.insurance.careInsuranceTotal != null ? (pair.insurance.careInsuranceTotal | number:'1.0-0') : '---' }}円</div>
-      <div>介護保険会社負担額: {{ pair.insurance.careInsuranceCompany != null ? (pair.insurance.careInsuranceCompany | number:'1.0-0') : '---' }}円</div>
-      <div>介護保険従業員負担額: {{ pair.insurance.careInsuranceEmployee != null ? (pair.insurance.careInsuranceEmployee | number:'1.0-0') : '---' }}円</div>
-      <div>厚生年金全額: {{ pair.insurance.pensionInsuranceTotal != null ? (pair.insurance.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</div>
-      <div>厚生年金会社負担額: {{ pair.insurance.pensionInsuranceCompany != null ? (pair.insurance.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</div>
-      <div>厚生年金従業員負担額: {{ pair.insurance.pensionInsuranceEmployee != null ? (pair.insurance.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</div>
-      <div>合計: {{ pair.insurance.total != null ? (pair.insurance.total | number:'1.0-0') : '---' }}円</div>
-      <div>合計会社: {{ pair.insurance.totalCompany != null ? (pair.insurance.totalCompany | number:'1.0-0') : '---' }}円</div>
-      <div>合計従業員: {{ pair.insurance.totalEmployee != null ? (pair.insurance.totalEmployee | number:'1.0-0') : '---' }}円</div>
+      <div>健康保険全額: {{ pair.insurance.healthInsuranceTotal != null ? (pair.insurance.healthInsuranceTotal | number:'1.0-0') : ' ' }}円</div>
+      <div>健康保険会社負担額: {{ pair.insurance.healthInsuranceCompany != null ? (pair.insurance.healthInsuranceCompany | number:'1.0-0') : ' ' }}円</div>
+      <div>健康保険従業員負担額: {{ pair.insurance.healthInsuranceEmployee != null ? (pair.insurance.healthInsuranceEmployee | number:'1.0-0') : ' ' }}円</div>
+      <div>介護保険全額: {{ pair.insurance.careInsuranceTotal != null ? (pair.insurance.careInsuranceTotal | number:'1.0-0') : ' ' }}円</div>
+      <div>介護保険会社負担額: {{ pair.insurance.careInsuranceCompany != null ? (pair.insurance.careInsuranceCompany | number:'1.0-0') : ' ' }}円</div>
+      <div>介護保険従業員負担額: {{ pair.insurance.careInsuranceEmployee != null ? (pair.insurance.careInsuranceEmployee | number:'1.0-0') : ' ' }}円</div>
+      <div>厚生年金全額: {{ pair.insurance.pensionInsuranceTotal != null ? (pair.insurance.pensionInsuranceTotal | number:'1.0-0') : ' ' }}円</div>
+      <div>厚生年金会社負担額: {{ pair.insurance.pensionInsuranceCompany != null ? (pair.insurance.pensionInsuranceCompany | number:'1.0-0') : ' ' }}円</div>
+      <div>厚生年金従業員負担額: {{ pair.insurance.pensionInsuranceEmployee != null ? (pair.insurance.pensionInsuranceEmployee | number:'1.0-0') : ' ' }}円</div>
+      <div>合計: {{ pair.insurance.total != null ? (pair.insurance.total | number:'1.0-0') : ' ' }}円</div>
+      <div>合計会社負担額: {{ pair.insurance.totalCompany != null ? (pair.insurance.totalCompany | number:'1.0-0') : ' ' }}円</div>
+      <div>合計従業員負担額: {{ pair.insurance.totalEmployee != null ? (pair.insurance.totalEmployee | number:'1.0-0') : ' ' }}円</div>
     </div>
     <div *ngIf="pair.standard; else noStandard">
       <div>改定月: {{ pair.standard.lastRevisionMonth ? (pair.standard.lastRevisionMonth | date:'yyyy-MM') : '---' }}</div>

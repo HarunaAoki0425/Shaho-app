@@ -391,6 +391,13 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
       employeeId: this.employeesId,
       createdAt: new Date(),
     };
+    // もしinsurancesListが空ならmemoを追加
+    if (insurancesList.length === 0) {
+      saveData.memo = '登録時算出';
+    }
+    if (insurancesList.length > 0) {
+      saveData.memo = '情報更新時算出';
+    }
     if (this.healthInsuranceResult) {
       saveData.healthInsuranceTotal = this.healthInsuranceAmount.replace(/,/g, '');
       saveData.healthInsuranceCompany = this.healthInsuranceAmountCompany.replace(/,/g, '');

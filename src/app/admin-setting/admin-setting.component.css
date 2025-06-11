@@ -1,0 +1,137 @@
+.admin-setting-container {
+  max-width: 600px;
+  margin: 40px auto;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.08);
+  padding: 32px 28px 24px 28px;
+}
+.admin-setting-container h1 {
+  color: #1976d2;
+  font-size: 2em;
+  margin-bottom: 12px;
+}
+.admin-setting-container p {
+  color: #444;
+  margin-bottom: 24px;
+}
+.setting-section h2 {
+  font-size: 1.2em;
+  margin-bottom: 8px;
+  color: #333;
+}
+.setting-section ul {
+  padding-left: 20px;
+  color: #555;
+}
+
+.edit-user-btn {
+  background: #e3f0fd;
+  color: #1976d2;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 18px 6px 18px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(25, 118, 210, 0.08);
+  outline: none;
+}
+.edit-user-btn:hover {
+  background: #1976d2;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.18);
+}
+
+.button-row {
+  display: flex;
+  gap: 18px;
+  margin-top: 12px;
+}
+
+.reset-password-btn {
+  background: #fff3e0;
+  color: #f57c00;
+  border: 1px solid #ffe0b2;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(245, 124, 0, 0.08);
+}
+.reset-password-btn:hover {
+  background: #ffe0b2;
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(245, 124, 0, 0.18);
+}
+
+.password-reset-form {
+  background: #f5f7fa;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.08);
+  padding: 20px 20px 12px 20px;
+  margin-top: 16px;
+  max-width: 340px;
+}
+.password-reset-form label {
+  font-weight: bold;
+  color: #1976d2;
+}
+.password-reset-form input[type="password"] {
+  border: 1px solid #b0bec5;
+  border-radius: 5px;
+  font-size: 1em;
+  margin-top: 4px;
+  margin-bottom: 2px;
+  padding: 6px 8px;
+  width: 100%;
+  background: #fff;
+  transition: border 0.2s;
+}
+.password-reset-form input[type="password"]:focus {
+  border: 1.5px solid #1976d2;
+  outline: none;
+}
+.password-reset-form .edit-user-btn {
+  margin-top: 8px;
+}
+.password-reset-form .edit-user-btn:last-child {
+  margin-left: 8px;
+}
+.password-reset-form .error-message {
+  color: #d32f2f;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+.password-reset-form .success-message {
+  color: #388e3c;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.user-info {
+  font-size: 1.2em;
+}
+
+.delete-account-btn {
+  background: rgb(252, 219, 219);
+  color: #d32f2f;
+  border: 1px solid #ec7575;
+  border-radius: 6px;
+  padding: 6px 18px;
+  font-size: 1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+  box-shadow: 0 1px 4px rgba(245, 124, 0, 0.08);
+}
+.delete-account-btn:hover {
+  background: #d32f2f;
+  color: #fff;
+  border: 1.5px solid #b71c1c;
+  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.18);
+}
+

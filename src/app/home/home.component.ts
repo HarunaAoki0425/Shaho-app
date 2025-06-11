@@ -45,6 +45,31 @@ export class HomeComponent implements OnDestroy {
                 });
               } else {
                 this.notificationMessage = null;
+                // ここから今月の一斉算出履歴チェック
+                snap.docs.forEach(async (companyDoc) => {
+                  const companyId = companyDoc.id;
+                  const batchHistoryCol = collection(this.firestore, 'companies', companyId, 'batchRecalculateHistory');
+                  const batchSnap = await getDocs(batchHistoryCol);
+                  const now = new Date();
+                  const currentYear = now.getFullYear();
+                  const currentMonth = now.getMonth() + 1;
+                  const found = batchSnap.docs.some(doc => {
+                    const executedAt = doc.data()['executedAt'];
+                    if (!executedAt) return false;
+                    const date = executedAt.toDate ? executedAt.toDate() : new Date(executedAt);
+                    return date.getFullYear() === currentYear && (date.getMonth() + 1) === currentMonth;
+                  });
+                  if (!found) {
+                    // Firestoreのnotificationsから該当メッセージを取得して表示
+                    const notificationsCol = collection(this.firestore, 'notifications');
+                    const nq = query(
+                      notificationsCol,
+                      where('message', '==', '最新の社会保険料を反映するため、今月分の一斉算出を実行してください。')
+                    );
+                    const nsnap = await getDocs(nq);
+                    this.notificationMessage = !nsnap.empty ? nsnap.docs[0].data()['message'] : null;
+                  }
+                });
               }
             });
           });
