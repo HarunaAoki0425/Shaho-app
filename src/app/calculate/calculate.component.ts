@@ -116,6 +116,10 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
           this.eligibilityResult = JudgeComponent.judgeEligibility(this.employeeData);
           this.isLoading = false;
           await this.checkUnsavedCalc();
+          // 自動保存処理
+          if (this.hasUnsavedCalc) {
+            await this.onSaveCalc(true); // true: 自動保存
+          }
           return;
         }
       }
@@ -368,7 +372,7 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const usedStandardId = this.latestStandard?.id;
     this.hasUnsavedCalc = !(latestInsurance && latestInsurance.standardId === usedStandardId);
   }
-  onSaveCalc = async () => {
+  onSaveCalc = async (autoSave: boolean = false) => {
     if (!this.companyId || !this.employeesId || !this.latestStandard) return;
     const insurancesCol = collection(this.firestore, `companies/${this.companyId}/employees/${this.employeesId}/insurances`);
     const insurancesSnap = await getDocs(insurancesCol);
@@ -382,7 +386,7 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const latestInsurance = insurancesList[0];
     const usedStandardId = this.latestStandard?.id;
     if (latestInsurance && latestInsurance.standardId === usedStandardId) {
-      alert('すでにこの標準報酬月額・等級で計算結果が保存されています。');
+      if (!autoSave) alert('すでにこの標準報酬月額・等級で計算結果が保存されています。');
       return;
     }
     // 計算結果を保存（standardIdも含める）
@@ -418,8 +422,9 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     saveData.totalCompany = this.totalInsuranceAmountCompany.replace(/,/g, '');
     saveData.totalEmployee = this.totalInsuranceAmountEmployee.replace(/,/g, '');
     await addDoc(insurancesCol, saveData);
-    alert('計算結果を保存しました。');
-    this.router.navigate(['/employee-detail', this.employeesId]);
+    if (!autoSave) {
+      alert('計算結果を保存しました。');
+    }
   };
   onNavigateToDetail = async () => {
     await this.checkUnsavedCalc();

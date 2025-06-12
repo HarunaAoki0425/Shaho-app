@@ -1,6 +1,7 @@
 <div class="detail-header">
   <span class="detail-header-title">従業員詳細</span>
 </div>
+<div *ngIf="employee?.isLostQualification" class="qualification-lost-banner" style="background:#d32f2f;color:#fff;padding:8px 0;text-align:center;font-weight:bold;">社会保険資格喪失済み</div>
 <div class="detail-main-wrapper">
   <div class="detail-row detail-row-top">
     <div class="detail-container detail-container-1">
@@ -19,8 +20,8 @@
       <div class="info-row">
         <span class="info-label">氏名</span>
         <span class="info-value" *ngIf="!isEditPersonal">{{ (employee?.lastName || employee?.firstName) ? (employee?.lastName + ' ' + employee?.firstName) : '---' }}</span>
-        <input *ngIf="isEditPersonal" [(ngModel)]="employee.lastName" class="info-value" placeholder="姓" style="width: 4em; margin-right: 0.5em;" [ngClass]="{'input-error': isEditPersonal && !employee.lastName}" />
-        <input *ngIf="isEditPersonal" [(ngModel)]="employee.firstName" class="info-value" placeholder="名" style="width: 4em;" [ngClass]="{'input-error': isEditPersonal && !employee.firstName}" />
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.lastName" class="info-value" placeholder="姓" style="width: 4em; margin-right: 0.5em;" [ngClass]="{'input-error': isEditPersonal && !employee.lastName}" [disabled]="employee?.isLostQualification" />
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.firstName" class="info-value" placeholder="名" style="width: 4em;" [ngClass]="{'input-error': isEditPersonal && !employee.firstName}" [disabled]="employee?.isLostQualification" />
       </div>
       <div class="info-row">
         <span class="info-label">性別</span>
@@ -29,7 +30,7 @@
       <div class="info-row">
         <span class="info-label">生年月日</span>
         <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.birthdate || '---' }}</span>
-        <input *ngIf="isEditPersonal" [(ngModel)]="employee.birthdate" class="info-value" type="date" [ngClass]="{'input-error': isEditPersonal && !employee.birthdate}" />
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.birthdate" class="info-value" type="date" [ngClass]="{'input-error': isEditPersonal && !employee.birthdate}" [disabled]="employee?.isLostQualification" />
       </div>
       <div class="info-row">
         <span class="info-label">年齢</span>
@@ -38,16 +39,12 @@
       <div class="info-row">
         <span class="info-label">国籍</span>
         <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.nationality || '---' }}</span>
-        <input *ngIf="isEditPersonal" [(ngModel)]="employee.nationality" class="info-value" style="width: 4em;" [ngClass]="{'input-error': isEditPersonal && !employee.nationality}" />
-      </div>
-      <div class="info-row">
-        <span class="info-label">入社日</span>
-        <span class="info-value">{{ employee?.joinDate ? (employee.joinDate | date:'yyyy-MM-dd') : '---' }}</span>
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.nationality" class="info-value" style="width: 4em;" [ngClass]="{'input-error': isEditPersonal && !employee.nationality}" [disabled]="employee?.isLostQualification" />
       </div>
       <div class="info-row">
         <span class="info-label">所属事業所</span>
         <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.officeName || '---' }}</span>
-        <select *ngIf="isEditPersonal" [(ngModel)]="employee.officeName" class="info-value" [ngClass]="{'input-error': isEditPersonal && !employee.officeName}" (change)="onOfficeNameChange()">
+        <select *ngIf="isEditPersonal" [(ngModel)]="employee.officeName" class="info-value" [ngClass]="{'input-error': isEditPersonal && !employee.officeName}" (change)="onOfficeNameChange()" [disabled]="employee?.isLostQualification">
           <option value="">選択してください</option>
           <option *ngFor="let office of companyOffices" [value]="office.officeName">{{ office.officeName }}</option>
         </select>
@@ -56,11 +53,20 @@
         <span class="info-label">社員番号</span>
         <span class="info-value">{{ employee?.employeeNumber || '---' }}</span>
       </div>
+      <div class="info-row">
+        <span class="info-label">入社日</span>
+        <span class="info-value">{{ employee?.joinDate ? (employee.joinDate | date:'yyyy-MM-dd') : '---' }}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">退職日</span>
+        <span class="info-value" *ngIf="!isEditPersonal">{{ employee?.leaveDate || '---' }}</span>
+        <input *ngIf="isEditPersonal" [(ngModel)]="employee.leaveDate" class="info-value" type="date" [disabled]="false" />
+      </div>
     </div>
     <div class="detail-container detail-container-2">
       <div class="container-title-row">
         <span class="container-title">雇用契約情報</span>
-        <button class="edit-btn inline-edit-btn" *ngIf="!isEditContract" (click)="toggleEditContract()">編集</button>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditContract" (click)="toggleEditContract()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">編集</button>
         <ng-container *ngIf="isEditContract">
           <button class="edit-btn inline-edit-btn" (click)="saveContractInfo()" [disabled]="!isContractValid()">保存</button>
           <button class="edit-btn inline-edit-btn" (click)="cancelEditContract()">キャンセル</button>
@@ -69,7 +75,7 @@
       <div class="info-row">
         <span class="info-label">雇用形態</span>
         <span class="info-value" *ngIf="!isEditContract">{{ employee?.employmentType || '---' }}</span>
-        <select *ngIf="isEditContract" [(ngModel)]="employee.employmentType" class="info-value" [ngClass]="{'input-error': isEditContract && !employee.employmentType}">
+        <select *ngIf="isEditContract" [(ngModel)]="employee.employmentType" class="info-value" [ngClass]="{'input-error': isEditContract && !employee.employmentType}" (ngModelChange)="onEmploymentTypeChange($event)">
           <option *ngFor="let type of companyEmploymentTypes" [value]="type">{{ type }}</option>
         </select>
       </div>
@@ -106,12 +112,12 @@
       <div class="info-row">
         <span class="info-label">所定労働日数（月）</span>
         <span class="info-value" *ngIf="!isEditContract">{{ employee?.workDays !== undefined && employee?.workDays !== null && employee?.workDays !== '' ? (employee?.workDays + '日') : '---' }}</span>
-        <input *ngIf="isEditContract" [(ngModel)]="employee.workDays" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workDays === undefined || employee.workDays === null || employee.workDays === '')}" />
+        <input *ngIf="isEditContract" [(ngModel)]="employee.workDays" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workDays === undefined || employee.workDays === null || employee.workDays === '')}" [disabled]="isSeishain" />
       </div>
       <div class="info-row">
         <span class="info-label">所定労働時間（週）</span>
         <span class="info-value" *ngIf="!isEditContract">{{ employee?.workHours !== undefined && employee?.workHours !== null && employee?.workHours !== '' ? (employee?.workHours + '時間') : '---' }}</span>
-        <input *ngIf="isEditContract" [(ngModel)]="employee.workHours" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workHours === undefined || employee.workHours === null || employee.workHours === '')}" />
+        <input *ngIf="isEditContract" [(ngModel)]="employee.workHours" class="info-value" type="number" min="0" style="width: 4em;" [ngClass]="{'input-error': isEditContract && (employee.workHours === undefined || employee.workHours === null || employee.workHours === '')}" [disabled]="isSeishain" />
       </div>
       <div class="info-row">
         <span class="info-label">固定給</span>
@@ -122,7 +128,7 @@
     <div class="detail-container detail-container-3">
       <div class="container-title-row">
         <span class="container-title">その他</span>
-        <button class="edit-btn inline-edit-btn" *ngIf="!isEditOther" (click)="toggleEditOther()">編集</button>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditOther" (click)="toggleEditOther()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">編集</button>
         <ng-container *ngIf="isEditOther">
           <button class="edit-btn inline-edit-btn" (click)="saveOtherInfo()" [disabled]="!isOtherValid()">保存</button>
           <button class="edit-btn inline-edit-btn" (click)="cancelEditOther()">キャンセル</button>
@@ -225,7 +231,7 @@
   </div>
   <div class="detail-row detail-row-bottom">
     <div class="detail-container detail-container-4">
-      <span class="container-title">現在の社会保険料</span>
+      <span class="container-title">最新の社会保険料</span>
       <div *ngIf="employee && employee.onMaternityLeave" style="margin-top: 12px; color: #d32f2f; font-weight: bold;">
         ※育休・産休中のため、社会保険免除※<br>
         <span style="font-weight: normal; color: #333;">
@@ -289,13 +295,13 @@
           <button class="cancel-maternity-leave-btn" (click)="onCancelMaternityLeaveInput()">キャンセル</button>
         </span>
         <div class="insurance-action-buttons">
-          <button class="calc-insurance-btn" (click)="goToCalculate()">計算結果詳細</button>
+          <button class="calc-insurance-btn" (click)="goToCalculate()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">計算結果詳細</button>
           <button
             class="maternity-leave-btn"
             (click)="onMaternityLeave()"
             *ngIf="!employee.onMaternityLeave"
-            [disabled]="isMaternityLeaveButtonDisabled"
-            [ngClass]="{'disabled-btn': isMaternityLeaveButtonDisabled}"
+            [disabled]="isMaternityLeaveButtonDisabled || employee?.isLostQualification"
+            [ngClass]="{'disabled-btn': isMaternityLeaveButtonDisabled || employee?.isLostQualification}"
           >育休・産休
           </button>
           <button class="history-btn" (click)="goToHistory()">履歴</button>
@@ -306,7 +312,7 @@
     <div class="detail-container detail-container-5">
       <div class="container-title-row">
         <span class="container-title">社会保険情報</span>
-        <button class="edit-btn inline-edit-btn" *ngIf="!isEditInsurance" (click)="toggleEditInsurance()">編集</button>
+        <button class="edit-btn inline-edit-btn" *ngIf="!isEditInsurance" (click)="toggleEditInsurance()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">編集</button>
         <ng-container *ngIf="isEditInsurance">
           <button class="edit-btn inline-edit-btn" (click)="saveInsuranceInfo()" [disabled]="!isInsuranceValid()">保存</button>
           <button class="edit-btn inline-edit-btn" (click)="cancelEditInsurance()">キャンセル</button>
@@ -402,7 +408,6 @@
         <span class="info-label">資格喪失日</span>
         <span class="info-value">
           <ng-container *ngIf="isEditInsurance; else showLeaveDate">
-            <input type="date" [(ngModel)]="latestStandard.leaveDate" class="info-value" />
           </ng-container>
           <ng-template #showLeaveDate>
             {{ latestInsurance?.isInsuranceTarget === false ? '---' : (latestStandard?.leaveDate ? (latestStandard.leaveDate | date:'yyyy-MM-dd') : '---') }}
@@ -461,21 +466,38 @@
           <span class="info-label">変更後の合算等級（厚生年金）</span>
           <span class="info-value" style="color: #d32f2f;">{{ tempCombinedNenkinGrade || '---' }}</span>
         </div>
-        <button type="button" class="edit-btn combined-edit-btn" style="float: right;" (click)="toggleEditCombined()">{{ isEditCombined ? '✖' : '編集' }}</button>
+        <button type="button" class="edit-btn combined-edit-btn" style="float: right;" (click)="toggleEditCombined()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">{{ isEditCombined ? '✖' : '編集' }}</button>
         <span *ngIf="isEditCombined" style="text-align: right; margin-top: 4px;">
-          <button type="button" class="edit-btn" style="padding: 2px 12px; font-size: 0.95em;" (click)="saveCombinedSalary()">保存</button>
+          <button type="button" class="edit-btn" style="padding: 2px 12px; font-size: 0.95em;" (click)="saveCombinedSalary()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">保存</button>
         </span>
       </div>
     </div>
   </div>
   <!-- 賞与情報（コンテナ6） -->
-  <div class="detail-row detail-row-bonus" *ngIf="!isSocialInsuranceExcludedByInsurance">
+  <div class="detail-row detail-row-bonus" *ngIf="!latestInsurance?.hasOwnProperty('isInsuranceTarget')">
     <div class="detail-container detail-container-6">
-      <span class="container-title">賞与情報</span>
-      <app-bonus [employeeId]="employeeId" [companyId]="employee?.companyId"></app-bonus>
+      <span class="container-title">賞与情報
+        <button type="button" class="info-btn" aria-label="賞与の説明" style="border: none; background: none; padding: 0;" (click)="openBonusInfoPopup()">
+          <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
+        </button>
+      </span>
+      <div *ngIf="showBonusInfoPopup" class="bonus-info-popup-backdrop">
+        <div class="bonus-info-popup">
+          <div class="bonus-info-popup-title">賞与情報について</div>
+          <div class="bonus-info-popup-content">
+            賞与支払届の提出対象となる賞与に対して社会保険料を算出します。<br>
+            年4回以上支給されるために報酬に含まれる賞与や、<br>
+            労働の対価として支払われたものではない手当等は、<br>
+            賞与支払届の提出対象には含まれませんのでご注意ください。
+          </div>
+          <button class="bonus-info-popup-close" (click)="closeBonusInfoPopup()">閉じる</button>
+        </div>
+      </div>
+      <app-bonus [employeeId]="employeeId" [companyId]="employee?.companyId" [isLostQualification]="employee?.isLostQualification"></app-bonus>
     </div>
   </div>
 </div>
 <div style="display: flex; justify-content: center; margin-top: 48px; margin-bottom: 32px;">
   <button type="button" class="delete-employee-btn" (click)="deleteEmployee()">従業員を削除</button>
 </div>
+

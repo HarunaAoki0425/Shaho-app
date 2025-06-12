@@ -94,3 +94,8 @@
   text-align: left;
 }
 
+.strikethrough td {
+  text-decoration: line-through;
+  color: #bdbdbd !important;
+}
+

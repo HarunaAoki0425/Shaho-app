@@ -6,18 +6,18 @@
     </div>
     <div class="bonus-row">
       <label for="bonus-amount">賞与額</label>
-      <input id="bonus-amount" type="number" placeholder="金額を入力" [(ngModel)]="bonusAmount" (input)="onBonusAmountChange($event)" />
+      <input id="bonus-amount" type="number" placeholder="金額を入力" [(ngModel)]="bonusAmount" (input)="onBonusAmountInput($event)" step="1" pattern="\\d*" />
     </div>
     <div class="bonus-row">
         <label>標準賞与額</label>
         <span>{{ standardBonusAmount !== null ? (standardBonusAmount | number:'1.0-0') : '---' }}</span>
       </div>
-      <button type="button" class="bonus-save-btn" (click)="saveBonus()">保存</button>
+      <button type="button" class="bonus-save-btn" (click)="saveBonus()" [disabled]="isLostQualification" [ngClass]="{'disabled-btn': isLostQualification}">保存</button>
   </div>
   <div class="bonus-container-center" style="flex: 1;">
     <div class="bonus-btn-row" style="display: flex; gap: 12px; align-items: center; margin-bottom: 12px;">
-      <button type="button" class="bonus-calc-btn" (click)="goToBonusCalculate()">賞与の社会保険料を算出する</button>
-      <button type="button" class="history-btn" (click)="goToBonusHistory()">履歴</button>
+      <button type="button" class="bonus-calc-btn" (click)="goToBonusCalculate()" [disabled]="isLostQualification || allBonuses.length === 0" [ngClass]="{'disabled-btn': isLostQualification || allBonuses.length === 0}">計算結果詳細</button>
+      <button type="button" class="history-btn" (click)="goToBonusHistory()" [disabled]="allBonuses.length === 0" [ngClass]="{'disabled-btn': allBonuses.length === 0}">履歴</button>
     </div>
     <div class="insurance-table-wrapper">
       <table class="insurance-table">
@@ -32,39 +32,51 @@
         <tbody>
           <tr>
             <th>健康保険</th>
-            <td>{{ latestBonus?.healthInsuranceTotal ? (latestBonus.healthInsuranceTotal | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.healthInsuranceCompany ? (latestBonus.healthInsuranceCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.healthInsuranceEmployee ? (latestBonus.healthInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+            <td>円</td>
+            <td>円</td>
+            <td>円</td>
           </tr>
           <tr>
             <th>介護保険</th>
-            <td>{{ latestBonus?.careInsuranceTotal ? (latestBonus.careInsuranceTotal | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.careInsuranceCompany ? (latestBonus.careInsuranceCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.careInsuranceEmployee ? (latestBonus.careInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+            <td>円</td>
+            <td>円</td>
+            <td>円</td>
           </tr>
           <tr>
             <th>厚生年金</th>
-            <td>{{ latestBonus?.pensionInsuranceTotal ? (latestBonus.pensionInsuranceTotal | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.pensionInsuranceCompany ? (latestBonus.pensionInsuranceCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.pensionInsuranceEmployee ? (latestBonus.pensionInsuranceEmployee | number:'1.0-0') : '---' }}円</td>
+            <td>円</td>
+            <td>円</td>
+            <td>円</td>
           </tr>
           <tr>
             <th>合計</th>
-            <td>{{ latestBonus?.total ? (latestBonus.total | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.totalCompany ? (latestBonus.totalCompany | number:'1.0-0') : '---' }}円</td>
-            <td>{{ latestBonus?.totalEmployee ? (latestBonus.totalEmployee | number:'1.0-0') : '---' }}円</td>
+            <td>円</td>
+            <td>円</td>
+            <td>円</td>
           </tr>
         </tbody>
       </table>
     </div>
-    <div class="bonus-date">{{ latestBonus?.bonusDate | date:'yyyy/MM/dd' }}支給分（{{ latestBonus?.bonusAmount | number:'1.0-0' }}円）</div>
+    <!-- 複数月賞与表示 -->
+    <div *ngIf="allBonuses && allBonuses.length > 0">
+      <ng-container *ngIf="latestBonus">
+        <ng-container>
+          <div class="bonus-date">
+            支給分
+          </div>
+        </ng-container>
+        <ng-template #singleBonus>
+          <div class="bonus-date">支給分</div>
+        </ng-template>
+      </ng-container>
+    </div>
   </div>
   <div class="bonus-container-right" style="flex: 1;">
     <div class="bonus-total">{{ currentNendo }}年度標準賞与額合計</div>
-    <div class="bonus-total-amount">{{ currentNendoLatestBonusNendoBonusTotal !== null ? (currentNendoLatestBonusNendoBonusTotal | number:'1.0-0') + '円' : '---' }}</div>
+    <div class="bonus-total-amount"></div>
     <div style="font-size: 12px; color: #666;">健康保険・介護保険の年間累計標準賞与額の上限は573万円です。それ以降標準賞与額は0円として保険者が決定することとなります。</div>
     <div class="bonus-total">{{ currentYearMonthLabel }}標準賞与合計</div>
-    <div class="bonus-total-amount">{{ currentMonthLatestBonusMonthBonusTotal !== null ? (currentMonthLatestBonusMonthBonusTotal | number:'1.0-0') + '円' : '---' }}</div>
+    <div class="bonus-total-amount"></div>
     <div style="font-size: 12px; color: #666;">厚生年金の月間累計標準賞与額の上限は150万円です。それ以降標準賞与額は0円として保険者が決定することとなります。</div>
   </div>
 </div>

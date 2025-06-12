@@ -113,7 +113,8 @@ export class RecalculateComponent implements OnInit {
     this.calcMessage = '計算中・・・';
     let processed = 0;
     for (const company of this.companies) {
-      const employees = this.employees.filter(e => e.companyId === company.id);
+      // isLostQualification: true の従業員は除外
+      const employees = this.employees.filter(e => e.companyId === company.id && !e.isLostQualification);
       const offices = this.offices.filter(o => o.companyId === company.id);
       let companyProcessed = 0;
       for (const emp of employees) {

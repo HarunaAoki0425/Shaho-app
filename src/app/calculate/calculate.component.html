@@ -1,7 +1,6 @@
 <div class="calculate-header">
   <span class="calculate-header-title">計算結果表示画面</span>
   <button class="to-detail-btn" (click)="onNavigateToDetail()">従業員詳細画面へ</button>
-  <div *ngIf="hasUnsavedCalc" class="unsaved-warning">※画面から離れる前に必ず計算結果を保存してください※</div>
 </div>
 <div class="info-calc-flex" style="margin-top: 0;">
   <div>
@@ -28,7 +27,6 @@
     </div>
   </div>
   <div class="calculate-container">
-    <button type="button" class="save-calc-btn" (click)="onSaveCalc()" *ngIf="!isSocialInsuranceExcluded">計算結果を保存</button>
     <div *ngIf="isLoading" class="loading-message">計算中・・・</div>
     <div *ngIf="isSocialInsuranceExcluded" class="excluded-message">
       社会保険加入対象外です

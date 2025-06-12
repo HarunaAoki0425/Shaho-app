@@ -52,6 +52,10 @@ export class CompanySettingComponent implements OnInit {
   showCustomTypeInput: boolean = false;
 
   async ngOnInit() {
+    // 正社員を初期選択
+    if (!this.employmentTypes.includes('正社員')) {
+      this.employmentTypes.push('正社員');
+    }
     runInInjectionContext(this.injector, () => {
       onAuthStateChanged(this.auth, async (user) => {
         this.user = user;
@@ -275,5 +279,18 @@ export class CompanySettingComponent implements OnInit {
 
   logDebug(...args: any[]) {
     console.log('[TEMPLATE DEBUG]', ...args);
+  }
+
+  onNumberInput(event: any, obj: any, field: string) {
+    let value = event.target.value;
+    // 半角数字以外を除去
+    let onlyNum = value.replace(/[^0-9]/g, '');
+    // 先頭の0を除去（0単体はOK、全て0なら0）
+    if (onlyNum.length > 1) {
+      onlyNum = onlyNum.replace(/^0+/, '');
+      if (onlyNum === '') onlyNum = '0';
+    }
+    event.target.value = onlyNum;
+    obj[field] = onlyNum === '' ? null : Number(onlyNum);
   }
 }

@@ -248,12 +248,8 @@
       </select>
     </div>
     <div>
-      <label>学生区分</label>
-      <select name="isStudent" [(ngModel)]="isStudent">
-        <option value="" disabled selected>選択してください</option>
-        <option value="学生">学生</option>
-        <option value="学生ではない">学生ではない</option>
-      </select>
+      <label>入社日</label>
+      <input type="date" name="joinDate" [(ngModel)]="joinDate" class="info-value" />
     </div>
     <div>
       <label>被扶養者の有無</label>
@@ -343,7 +339,7 @@
           <span style="display: inline-block; width: 1.2em; height: 1.2em; border-radius: 50%; background: #1976d2; color: #fff; text-align: center; font-weight: bold; font-size: 1em; line-height: 1.2em;">i</span>
         </button>
       </label>
-      <input id="salaryCash" name="salaryCash" type="text" [value]="formatWithComma(salaryCash)" (input)="onSalaryInput($event, 'salaryCash')" autocomplete="off" />
+      <input id="salaryCash" name="salaryCash" type="text" [value]="formatWithComma(salaryCash)" (input)="onSalaryInput($event, 'salaryCash')" autocomplete="off" inputmode="numeric" pattern="[0-9]*" />
     </div>
     <div>
       <label style="display: flex; align-items: center; gap: 6px;">
@@ -388,12 +384,12 @@
       </select>
     </div>
     <div>
-      <label>入社日</label>
-      <input type="date" name="joinDate" [(ngModel)]="joinDate" class="info-value" />
-    </div>
-    <div>
-      <label>退社日</label>
-      <input type="date" name="leaveDate" [(ngModel)]="leaveDate" class="info-value" />
+      <label>学生区分</label>
+      <select name="isStudent" [(ngModel)]="isStudent">
+        <option value="" disabled selected>選択してください</option>
+        <option value="学生">学生</option>
+        <option value="学生ではない">学生ではない</option>
+      </select>
     </div>
     <div>
       <label>外国派遣労働者区分</label>
@@ -498,12 +494,9 @@
   <div *ngIf="showSalaryCashInfoPopup" class="info-popup-backdrop">
     <div class="info-popup-modal">
       <div class="info-popup-content">
-        標準報酬月額算出のための月額（通貨）を入力してください。<br>
-        対象となる報酬は、基本給のほか、役付手当、<br>
-        勤務地手当、家族手当、通勤手当、住宅手当、残業手当等、<br>
-        労働の対償として事業所から現金で支給されるものを指します。<br>
-        なお、年4回以上の支給される賞与についても<br>
-        標準報酬月額の対象となる報酬に含まれます。
+        基本給、役付手当、勤務地手当、家族手当、通勤手当、住宅手当、残業手当等<br>
+        労働の対償として事業所から通貨で支給されるものの月額を入力してください。<br>
+        なお、年4回以上の支給される賞与についても報酬に含まれます。
       </div>
       <button type="button" class="info-popup-close" (click)="closeSalaryCashInfoPopup()">閉じる</button>
     </div>

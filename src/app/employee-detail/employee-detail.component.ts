@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Firestore, collection, getDocs, updateDoc, doc, addDoc, query, where, setDoc, deleteDoc } from '@angular/fire/firestore';
+import { Firestore, collection, getDocs, updateDoc, doc, addDoc, query, where, setDoc, deleteDoc, deleteField } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -100,6 +100,7 @@ export class EmployeeDetailComponent implements OnInit {
   public tempCombinedNenkinStandardMonthly: number | null = null;
   public tempCombinedNenkinGrade: string | null = null;
   public insurancesLoaded = false;
+  showBonusInfoPopup = false;
 
   constructor() {}
 
@@ -129,6 +130,17 @@ export class EmployeeDetailComponent implements OnInit {
         if (empDoc) {
           this.employee = empDoc.data();
           this.employee.companyId = companyDoc.id;
+          // leaveDateが今月を過ぎていたら資格喪失済みフラグを保存
+          if (this.employee.leaveDate) {
+            const leave = new Date(this.employee.leaveDate);
+            const now = new Date();
+            // 今日が資格喪失日より後なら資格喪失済み
+            if (now > leave) {
+              const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${id}`);
+              await updateDoc(employeeRef, { isLostQualification: true });
+              this.employee.isLostQualification = true;
+            }
+          }
           // 会社の事業所一覧を取得
           const officesCol = collection(this.firestore, 'companies', companyDoc.id, 'offices');
           const officesSnap = await getDocs(officesCol);
@@ -374,6 +386,7 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.officeName = this.originalPersonalInfo.officeName;
     }
     this.isEditPersonal = false;
+    window.location.reload();
   }
 
   public async savePersonalInfo() {
@@ -386,6 +399,7 @@ export class EmployeeDetailComponent implements OnInit {
         const confirmed = window.confirm('生年月日を変更しますか？社会保険料が変更される可能性があります。');
         if (!confirmed) {
           this.isEditPersonal = false;
+          window.location.reload();
           return;
         }
         // standards新規作成
@@ -405,7 +419,9 @@ export class EmployeeDetailComponent implements OnInit {
           gender: this.employee.gender,
           nationality: this.employee.nationality,
           officeName: this.employee.officeName,
-          birthdate: this.employee.birthdate
+          officesId: this.employee.officesId,
+          birthdate: this.employee.birthdate,
+          leaveDate: this.employee.leaveDate
         });
         this.router.navigate(['/calculate', this.employeeId]);
         return;
@@ -416,6 +432,7 @@ export class EmployeeDetailComponent implements OnInit {
         const confirmed = window.confirm('所属事業所を変更しますか？社会保険料が変更されます。');
         if (!confirmed) {
           this.isEditPersonal = false;
+          window.location.reload();
           return;
         }
         // 事業所IDも更新
@@ -441,7 +458,8 @@ export class EmployeeDetailComponent implements OnInit {
           nationality: this.employee.nationality,
           officeName: this.employee.officeName,
           officesId: this.employee.officesId,
-          birthdate: this.employee.birthdate
+          birthdate: this.employee.birthdate,
+          leaveDate: this.employee.leaveDate
         });
         // calculate画面へ遷移
         this.router.navigate(['/calculate', this.employeeId]);
@@ -454,9 +472,39 @@ export class EmployeeDetailComponent implements OnInit {
         gender: this.employee.gender,
         nationality: this.employee.nationality,
         officeName: this.employee.officeName,
-        birthdate: this.employee.birthdate
+        birthdate: this.employee.birthdate,
+        leaveDate: this.employee.leaveDate
       });
+      // leaveDateのロジック分岐
+      if (!this.employee.leaveDate && this.latestStandard && this.latestStandard.id) {
+        // 1. leaveDate未入力: standards.leaveDateを空、isLostQualification削除
+        const standardRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards/${this.latestStandard.id}`);
+        await updateDoc(standardRef, { leaveDate: '' });
+        await updateDoc(employeeRef, { isLostQualification: deleteField() });
+        this.employee.isLostQualification = undefined;
+      } else if (this.employee.leaveDate && this.latestStandard && this.latestStandard.id) {
+        // 2. leaveDateが未来日: standards.leaveDateを次の日にセット
+        const leaveDateObj = new Date(this.employee.leaveDate);
+        leaveDateObj.setDate(leaveDateObj.getDate() + 1);
+        const nextDay = leaveDateObj.toISOString().slice(0, 10);
+        const standardRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards/${this.latestStandard.id}`);
+        await updateDoc(standardRef, { leaveDate: nextDay });
+        // leaveDate+1日の月が今月以前なら isLostQualification: true, まだなら削除
+        const now = new Date();
+        const leaveYear = leaveDateObj.getFullYear();
+        const leaveMonth = leaveDateObj.getMonth();
+        const nowYear = now.getFullYear();
+        const nowMonth = now.getMonth();
+        if (leaveYear < nowYear || (leaveYear === nowYear && leaveMonth <= nowMonth)) {
+          await updateDoc(employeeRef, { isLostQualification: true });
+          this.employee.isLostQualification = true;
+        } else {
+          await updateDoc(employeeRef, { isLostQualification: deleteField() });
+          this.employee.isLostQualification = undefined;
+        }
+      }
       this.isEditPersonal = false;
+      window.location.reload();
     } catch (e) {
       alert('保存に失敗しました');
     }
@@ -496,6 +544,7 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.baseSalary = this.originalContractInfo.baseSalary;
     }
     this.isEditContract = false;
+    window.location.reload();
   }
 
   public async saveContractInfo() {
@@ -555,6 +604,7 @@ export class EmployeeDetailComponent implements OnInit {
         const confirmed = window.confirm('雇用契約情報を変更しますか？社会保険料が変更になる可能性があります。');
         if (!confirmed) {
           this.isEditContract = false;
+          window.location.reload();
           return;
         }
         if (this.latestStandard) {
@@ -603,11 +653,11 @@ export class EmployeeDetailComponent implements OnInit {
   }
 
   public isContractValid(): boolean {
-    const hasWorkDays = this.employee.workDays !== undefined && this.employee.workDays !== null && this.employee.workDays !== '';
-    const hasWorkHours = this.employee.workHours !== undefined && this.employee.workHours !== null && this.employee.workHours !== '';
-    const hasSalary = this.hasAnySalary();
-    const hasSalaryTotal = this.employee.salaryTotal !== undefined && this.employee.salaryTotal !== null && this.employee.salaryTotal !== '' && Number(this.employee.salaryTotal) !== 0;
-    return !!(this.employee.employmentType && this.employee.employmentPeriodType && hasWorkDays && hasWorkHours && hasSalary && hasSalaryTotal);
+    return (
+      this.employee.baseSalary !== undefined && this.employee.baseSalary !== null && this.employee.baseSalary !== '' && Number(this.employee.baseSalary) !== 0 &&
+      this.employee.workDays !== undefined && this.employee.workDays !== null && this.employee.workDays !== '' && Number(this.employee.workDays) !== 0 &&
+      this.employee.workHours !== undefined && this.employee.workHours !== null && this.employee.workHours !== '' && Number(this.employee.workHours) !== 0
+    );
   }
 
   public hasAnySalary(): boolean {
@@ -654,6 +704,7 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.multiOffice = this.originalOtherInfo.multiOffice;
     }
     this.isEditOther = false;
+    window.location.reload();
   }
 
   public async saveOtherInfo() {
@@ -685,6 +736,7 @@ export class EmployeeDetailComponent implements OnInit {
         const confirmed = window.confirm('その他情報を変更しますか？社会保険料が変更になる可能性があります。');
         if (!confirmed) {
           this.isEditOther = false;
+          window.location.reload();
           return;
         }
         if (this.latestStandard) {
@@ -847,10 +899,12 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.salaryInKind = this.originalInsuranceInfo.salaryInKind;
       this.employee.salaryTotal = this.originalInsuranceInfo.salaryTotal;
     }
+    window.location.reload();
   }
 
   public async saveInsuranceInfo() {
     if (!window.confirm('標準報酬月額と等級を変更し社会保険料を再算出しますか？')) {
+      window.location.reload();
       return;
     }
     this.isEditInsurance = false;
@@ -1233,6 +1287,49 @@ export class EmployeeDetailComponent implements OnInit {
     if (!this.latestInsurance) return false;
     if (!('isInsuranceTarget' in this.latestInsurance)) return false;
     return this.latestInsurance.isInsuranceTarget === false;
+  }
+
+  openBonusInfoPopup() { this.showBonusInfoPopup = true; }
+  closeBonusInfoPopup() { this.showBonusInfoPopup = false; }
+
+  get isSeishain(): boolean {
+    return this.employee?.employmentType === '正社員';
+  }
+
+  async onEmploymentTypeChange(newType: string) {
+    this.employee.employmentType = newType;
+    // officeIdまたはofficesIdのどちらかがあれば使う
+    const officeId = this.employee.officeId || this.employee.officesId;
+    if (newType === '正社員' && officeId && this.employee.companyId) {
+      try {
+        const officeDocRef = doc(this.firestore, `companies/${this.employee.companyId}/offices/${officeId}`);
+        const officeSnap = await getDocs(collection(this.firestore, `companies/${this.employee.companyId}/offices`));
+        const officeDoc = officeSnap.docs.find(doc => doc.id === officeId);
+        if (officeDoc) {
+          const officeData = officeDoc.data();
+          if (officeData['monthlyDays'] !== undefined) {
+            this.employee.workDays = officeData['monthlyDays'];
+          }
+          if (officeData['weeklyHours'] !== undefined) {
+            this.employee.workHours = officeData['weeklyHours'];
+          }
+        }
+      } catch (e) {
+        // エラー時は何もしない
+      }
+    } else if (newType === '正社員' && this.employee.officeName && this.companyOffices.length > 0) {
+      // officeIdが未設定だがofficeNameが選択されている場合
+      const office = this.companyOffices.find(o => o.officeName === this.employee.officeName);
+      if (office) {
+        this.employee.officeId = office.id;
+        if (office['monthlyDays'] !== undefined) {
+          this.employee.workDays = office['monthlyDays'];
+        }
+        if (office['weeklyHours'] !== undefined) {
+          this.employee.workHours = office['weeklyHours'];
+        }
+      }
+    }
   }
 
 }

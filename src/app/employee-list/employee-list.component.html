@@ -11,6 +11,9 @@
       <option value="">すべて</option>
       <option *ngFor="let type of employmentTypes" [value]="type">{{ type }}</option>
     </select>
+    <label style="margin-left: 18px;">
+      <input type="checkbox" [(ngModel)]="showLostQualification" /> 社会保険資格喪失済みも表示
+    </label>
   </div>
   <table class="employee-list-table">
     <thead>
@@ -35,7 +38,8 @@
       </tr>
     </thead>
     <tbody>
-      <tr *ngFor="let emp of filteredEmployees">
+      <tr *ngFor="let emp of filteredEmployees" [ngClass]="{'strikethrough': emp.isLostQualification}" 
+          [style.display]="emp.isLostQualification && !showLostQualification ? 'none' : ''">
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.managementNumber }}</td>
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.lastName }} {{ emp.firstName }}</td>
         <td (click)="goToDetail(emp)" style="cursor:pointer;">{{ emp.employmentType }}</td>

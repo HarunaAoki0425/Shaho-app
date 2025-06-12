@@ -20,6 +20,7 @@ export class EmployeeListComponent implements OnInit {
   selectedOfficeName: string = '';
   sortKey: 'managementNumber' | 'joinDate' | null = 'managementNumber';
   sortDirection: 'asc' | 'desc' | 'none' = 'asc';
+  showLostQualification: boolean = false;
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);

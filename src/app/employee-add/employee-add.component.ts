@@ -29,7 +29,7 @@ export class EmployeeAddComponent implements OnInit {
   workDays: number | null = null;
   workHours: number | null = null;
   salaryCash: string | number | null = null;
-  salaryInKind: string | number | null = null;
+  salaryInKind: string | number | null = 0;
   isStudent: string = '';
   multiOffice: string = '';
   selectedOfficeType: string = '';
@@ -346,7 +346,16 @@ export class EmployeeAddComponent implements OnInit {
   }
 
   onSalaryInput(event: any, field: 'salaryCash' | 'salaryInKind' | 'combinedSalary' | 'combinedStdSalary') {
-    const value = event.target.value.replace(/,/g, '');
+    let value = event.target.value.replace(/,/g, '');
+    // 半角数字以外を除去
+    let onlyNum = value.replace(/[^0-9]/g, '');
+    // 先頭の0を除去（0単体はOK、全て0なら0）
+    if (onlyNum.length > 1) {
+      onlyNum = onlyNum.replace(/^0+/, '');
+      if (onlyNum === '') onlyNum = '0';
+    }
+    event.target.value = this.formatWithComma(onlyNum);
+    value = onlyNum;
     if (value === '' || value === null) {
       switch (field) {
         case 'salaryCash': this.salaryCash = null; break;
@@ -363,9 +372,7 @@ export class EmployeeAddComponent implements OnInit {
         case 'combinedStdSalary': this.combinedStdSalary = isNaN(num) ? '' : num; break;
       }
     }
-    // 合計金額の再計算はgetterで自動なので不要
     this.onSalaryTotalChanged();
-    // 合算報酬月額が入力された場合は標準報酬月額も自動取得
     if (field === 'combinedSalary') {
       this.updateCombinedStdSalary();
     }
@@ -413,8 +420,8 @@ export class EmployeeAddComponent implements OnInit {
       alert('所定労働時間は必須です');
       return;
     }
-    if ((this.salaryCash === null || this.salaryCash === '' || isNaN(Number(this.salaryCash))) && (this.salaryInKind === null || this.salaryInKind === '' || isNaN(Number(this.salaryInKind)))) {
-      alert('報酬月額（通貨・現物）のいずれかは必須です');
+    if (this.salaryCash === null || this.salaryCash === '' || isNaN(Number(this.salaryCash)) || Number(this.salaryCash) < 1) {
+      alert('報酬月額（通貨）は以上を入力してください必須です');
       return;
     }
     if (!this.joinDate) {
@@ -638,7 +645,9 @@ export class EmployeeAddComponent implements OnInit {
   }
 
   onBaseSalaryInput(event: any) {
-    const value = event.target.value.replace(/,/g, '');
+    let value = event.target.value.replace(/,/g, '');
+    // 半角数字以外を除去
+    value = value.replace(/[^0-9]/g, '');
     if (value === '' || value === null) {
       this.baseSalary = null;
     } else {

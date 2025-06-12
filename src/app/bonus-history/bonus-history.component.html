@@ -20,7 +20,7 @@
     </div>
     <div>支給年月日: {{ b.bonusDate | date:'yyyy/MM/dd' }}</div>
     <div>賞与額: {{ b.bonusAmount | number:'1.0-0' }}円</div>
-    <div>標準賞与額: {{ b.standardBonusAmount | number:'1.0-0' }}円</div>
+    <div>月間合計標準賞与額: {{ b.monthStandardBonusTotal | number:'1.0-0' }}円</div>
   </div>
 </div>
 
