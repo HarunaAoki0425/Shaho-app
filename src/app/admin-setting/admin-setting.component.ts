@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Firestore, collection, getDocs, query, where, doc, deleteDoc } from '@angular/fire/firestore';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-admin-setting',
@@ -24,6 +25,7 @@ export class AdminSettingComponent implements OnInit {
   passwordSuccess: string = '';
   isSavingPassword = false;
   private firestore = inject(Firestore);
+  private router = inject(Router);
 
   constructor() { }
   ngOnInit(): void {
@@ -33,6 +35,9 @@ export class AdminSettingComponent implements OnInit {
       this.userName = user?.displayName || '';
       this.userEmail = user?.email || '';
       console.log('[admin-setting] ログインユーザー:', this.user);
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
     });
   }
 

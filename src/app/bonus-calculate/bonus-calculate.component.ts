@@ -4,6 +4,7 @@ import { Firestore, collection, getDocs, doc, getDoc, query, orderBy, limit } fr
 import Decimal from 'decimal.js';
 import { JudgeComponent } from '../judge/judge.component';
 import { CommonModule } from '@angular/common';
+import { getAuth, onAuthStateChanged } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-bonus-calculate',
@@ -30,6 +31,13 @@ export class BonusCalculateComponent implements OnInit {
   public router = inject(Router);
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     this.isLoading = true;
     this.employeeId = this.route.snapshot.paramMap.get('id') || '';
     // companiesコレクションを全件取得
@@ -60,11 +68,26 @@ export class BonusCalculateComponent implements OnInit {
                 .find(row => row['prefecture'] === this.officeData.officePrefecture && String(row['year']) === String(new Date().getFullYear()));
             }
           }
-          // 最新のbonusを取得（createdAt降順で1件）
-          const bonusCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeeId, 'bonus');
-          const bonusQuery = query(bonusCol, orderBy('createdAt', 'desc'), limit(1));
-          const bonusSnap = await getDocs(bonusQuery);
-          this.latestBonus = bonusSnap.docs.length > 0 ? bonusSnap.docs[0].data() : null;
+          // すべての年度のmonthBonusサブコレクションを横断し、createdAtが最新のものを取得
+          const bonusRootCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeeId, 'bonus');
+          const bonusRootSnap = await getDocs(bonusRootCol);
+          let allMonthBonuses: any[] = [];
+          for (const nendoDoc of bonusRootSnap.docs) {
+            const nendoId = nendoDoc.id;
+            const monthBonusCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeeId, 'bonus', nendoId, 'monthBonus');
+            const monthBonusSnap = await getDocs(monthBonusCol);
+            allMonthBonuses.push(...monthBonusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any })));
+          }
+          // createdAtが最新のものを取得
+          allMonthBonuses = allMonthBonuses.filter(b => b.createdAt);
+          allMonthBonuses.sort((a, b) => (b.createdAt?.toDate?.() ?? new Date(0)) - (a.createdAt?.toDate?.() ?? new Date(0)));
+          this.latestBonus = allMonthBonuses.length > 0 ? allMonthBonuses[0] : null;
+          // 計算結果を次のtickで保存
+          if (this.latestBonus && this.latestBonus.id) {
+            setTimeout(() => {
+              this.saveCalculationResults();
+            });
+          }
           // 判定ロジック呼び出し
           const socialInsuranceRequired = JudgeComponent.judgeSocialInsuranceRequired({
             employee: this.employeeData,
@@ -119,6 +142,117 @@ export class BonusCalculateComponent implements OnInit {
       return '';
     }
   }
-  
-  
+
+  // 健康保険計算用getter
+  get healthInsuranceBase(): number {
+    if (!this.latestBonus) return 0;
+    return this.latestBonus.isKenpoBonusLimitNotReached ? this.latestBonus.kenpoStandardBonusAmount : this.latestBonus.kenpoStandardBonusAmountAdjusted;
   }
+  get healthInsuranceTotal(): number {
+    if (!this.healthInsuranceResult || !this.insuranceRateData) return 0;
+    const base = new Decimal(this.healthInsuranceBase);
+    const rate = new Decimal(this.insuranceRateData.health_insurance);
+    return Number(base.times(rate).toDecimalPlaces(0, Decimal.ROUND_HALF_UP));
+  }
+  get healthInsuranceCompany(): number {
+    const half = new Decimal(this.healthInsuranceTotal).div(2);
+    return Number(half.toDecimalPlaces(0, Decimal.ROUND_HALF_UP)); // 四捨五入
+  }
+  get healthInsuranceEmployee(): number {
+    const half = new Decimal(this.healthInsuranceTotal).div(2);
+    const decimalPart = half.minus(half.floor()).times(10).toNumber();
+    if (decimalPart <= 5) {
+      return Number(half.floor()); // 五捨
+    } else {
+      return Number(half.ceil()); // 六入
+    }
+  }
+
+  // 介護保険計算用getter
+  get careInsuranceBase(): number {
+    if (!this.latestBonus) return 0;
+    return this.latestBonus.isKenpoBonusLimitNotReached ? this.latestBonus.kenpoStandardBonusAmount : this.latestBonus.kenpoStandardBonusAmountAdjusted;
+  }
+  get careInsuranceTotal(): number {
+    if (!this.careInsuranceResult || !this.insuranceRateData) return 0;
+    const base = new Decimal(this.careInsuranceBase);
+    const rate = new Decimal(this.insuranceRateData.care_insurance);
+    return Number(base.times(rate).toDecimalPlaces(0, Decimal.ROUND_HALF_UP));
+  }
+  get careInsuranceCompany(): number {
+    const half = new Decimal(this.careInsuranceTotal).div(2);
+    return Number(half.toDecimalPlaces(0, Decimal.ROUND_HALF_UP)); // 四捨五入
+  }
+  get careInsuranceEmployee(): number {
+    const half = new Decimal(this.careInsuranceTotal).div(2);
+    const decimalPart = half.minus(half.floor()).times(10).toNumber();
+    if (decimalPart <= 5) {
+      return Number(half.floor()); // 五捨
+    } else {
+      return Number(half.ceil()); // 六入
+    }
+  }
+
+  // 厚生年金計算用getter
+  get nenkinBase(): number {
+    if (!this.latestBonus) return 0;
+    return this.latestBonus.nenkinStandardBonusAmount || 0;
+  }
+  get nenkinTotal(): number {
+    if (!this.pensionInsuranceResult || !this.insuranceRateData) return 0;
+    const base = new Decimal(this.nenkinBase);
+    const rate = new Decimal(this.insuranceRateData.pension_insurance);
+    return Number(base.times(rate).toDecimalPlaces(0, Decimal.ROUND_HALF_UP));
+  }
+  get nenkinCompany(): number {
+    const half = new Decimal(this.nenkinTotal).div(2);
+    return Number(half.toDecimalPlaces(0, Decimal.ROUND_HALF_UP)); // 四捨五入
+  }
+  get nenkinEmployee(): number {
+    const half = new Decimal(this.nenkinTotal).div(2);
+    const decimalPart = half.minus(half.floor()).times(10).toNumber();
+    if (decimalPart <= 5) {
+      return Number(half.floor()); // 五捨
+    } else {
+      return Number(half.ceil()); // 六入
+    }
+  }
+
+  // 合計getter
+  get totalInsurance(): number {
+    return this.healthInsuranceTotal + this.careInsuranceTotal + this.nenkinTotal;
+  }
+  get totalInsuranceCompany(): number {
+    return this.healthInsuranceCompany + this.careInsuranceCompany + this.nenkinCompany;
+  }
+  get totalInsuranceEmployee(): number {
+    return this.healthInsuranceEmployee + this.careInsuranceEmployee + this.nenkinEmployee;
+  }
+
+  async saveCalculationResults() {
+    if (!this.latestBonus || !this.latestBonus.id) return;
+    const nendo = this.latestBonus.nendo || this.latestBonus.nendoYear || '';
+    const monthBonusDocRef = doc(this.firestore, 'companies', this.companyId, 'employees', this.employeeId, 'bonus', String(nendo), 'monthBonus', this.latestBonus.id);
+    const saveData = {
+      healthInsuranceTotal: this.healthInsuranceTotal,
+      healthInsuranceCompany: this.healthInsuranceCompany,
+      healthInsuranceEmployee: this.healthInsuranceEmployee,
+      careInsuranceTotal: this.careInsuranceTotal,
+      careInsuranceCompany: this.careInsuranceCompany,
+      careInsuranceEmployee: this.careInsuranceEmployee,
+      nenkinTotal: this.nenkinTotal,
+      nenkinCompany: this.nenkinCompany,
+      nenkinEmployee: this.nenkinEmployee,
+      totalInsurance: this.totalInsurance,
+      totalInsuranceCompany: this.totalInsuranceCompany,
+      totalInsuranceEmployee: this.totalInsuranceEmployee,
+      calcAt: new Date(),
+    };
+    await import('@angular/fire/firestore').then(m => m.updateDoc(monthBonusDocRef, saveData));
+  }
+
+  goToEmployeeDetail() {
+    if (!this.employeeId) return;
+    this.router.navigate([`/employee-detail/${this.employeeId}`]);
+  }
+}

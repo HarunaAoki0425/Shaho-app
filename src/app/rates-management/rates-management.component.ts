@@ -1,7 +1,7 @@
 import { Component, OnInit, inject, runInInjectionContext, Injector } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterModule } from '@angular/router';
-import { Auth, onAuthStateChanged } from '@angular/fire/auth';
+import { RouterModule, Router } from '@angular/router';
+import { Auth, onAuthStateChanged, getAuth } from '@angular/fire/auth';
 import { Firestore, collection, getDocs, query, where } from '@angular/fire/firestore';
 import Decimal from 'decimal.js';
 
@@ -16,6 +16,7 @@ export class RatesManagementComponent implements OnInit {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private injector = inject(Injector);
+  private router = inject(Router);
   prefectures: any[] = [];
   columns: any[][] = [[], [], [], []];
   companies: any[] = [];
@@ -41,7 +42,14 @@ export class RatesManagementComponent implements OnInit {
     ];
   }
 
-  ngOnInit() {
+  ngOnInit(): void {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     runInInjectionContext(this.injector, () => {
       onAuthStateChanged(this.auth, async (user) => {
         if (user) {

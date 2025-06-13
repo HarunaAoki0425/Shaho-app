@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { Firestore, collection, getDocs, query, where, addDoc, serverTimestamp } from '@angular/fire/firestore';
 import { Router } from '@angular/router';
+import { getAuth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-employee-add',
@@ -76,6 +77,13 @@ export class EmployeeAddComponent implements OnInit {
   private router = inject(Router);
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     onAuthStateChanged(this.auth, async (user) => {
       if (user) {
         this.currentUser = user;

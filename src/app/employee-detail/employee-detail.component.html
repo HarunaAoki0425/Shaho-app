@@ -283,9 +283,6 @@
         </ng-container>
         <ng-container *ngIf="insurancesList.length === 0">
           <div>
-            <div>insurancesLoaded: {{ insurancesLoaded }}</div>
-            <div>isSocialInsuranceExcludedByInsurance: {{ isSocialInsuranceExcludedByInsurance }}</div>
-            <div>insurancesList: {{ insurancesList | json }}</div>
           </div>
         </ng-container>
         <span *ngIf="showMaternityLeaveInputs" style="display: inline-flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -309,7 +306,7 @@
 
       </ng-container>
     </div>
-    <div class="detail-container detail-container-5">
+    <div class="detail-container detail-container-5" id="insurance-container">
       <div class="container-title-row">
         <span class="container-title">社会保険情報</span>
         <button class="edit-btn inline-edit-btn" *ngIf="!isEditInsurance" (click)="toggleEditInsurance()" [disabled]="employee?.isLostQualification" [ngClass]="{'disabled-btn': employee?.isLostQualification}">編集</button>

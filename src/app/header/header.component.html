@@ -3,10 +3,10 @@
   <nav class="header-nav">
     <a routerLink="/employee-list" class="header-link" matTooltip="従業員一覧" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">people</mat-icon></a>
     <a routerLink="/employee-add" class="header-link" matTooltip="従業員登録" matTooltipClass="header-tooltip"> <mat-icon class="home-btn-icon">person_add</mat-icon></a>
-    <a routerLink="/admin-setting" class="header-link" matTooltip="管理者設定" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">admin_panel_settings</mat-icon></a>
-    <a routerLink="/company-setting" class="header-link" matTooltip="会社・事業所情報" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">business</mat-icon></a>
-    <a routerLink="/rates-management" class="header-link" matTooltip="保険料率管理" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">percent</mat-icon></a>
     <a routerLink="/recalculate" class="header-link" matTooltip="一斉算出" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">calculate</mat-icon></a>
+    <a routerLink="/company-setting" class="header-link" matTooltip="会社・事業所情報" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">business</mat-icon></a>
+    <a routerLink="/rates-management" class="header-link" matTooltip="保険料率確認" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">percent</mat-icon></a>
+    <a routerLink="/admin-setting" class="header-link" matTooltip="ユーザー設定" matTooltipClass="header-tooltip"><mat-icon class="home-btn-icon">settings</mat-icon></a>
   </nav>
   <button class="logout-btn" (click)="logout()" aria-label="ログアウト">
     <mat-icon>logout</mat-icon>

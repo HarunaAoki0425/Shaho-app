@@ -6,6 +6,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { BonusComponent } from '../bonus/bonus.component';
+import { getAuth } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-employee-detail',
@@ -101,10 +102,18 @@ export class EmployeeDetailComponent implements OnInit {
   public tempCombinedNenkinGrade: string | null = null;
   public insurancesLoaded = false;
   showBonusInfoPopup = false;
+  private prevSeniorVoluntaryEnrollment: string | null = null;
 
   constructor() {}
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     // 年度（4月始まり）を自動計算
     const today = new Date();
     const year = today.getFullYear();
@@ -216,18 +225,12 @@ export class EmployeeDetailComponent implements OnInit {
           }
           // リロード後のアラート表示
           if (localStorage.getItem('showSeniorVoluntaryEnrollmentAlert') === '1') {
-            const confirmed = window.confirm('厚生年金の算出をします');
+            window.alert('厚生年金の再算出をします');
             localStorage.removeItem('showSeniorVoluntaryEnrollmentAlert');
-            if (confirmed) {
-              this.router.navigate(['/calculate', this.employeeId]);
-            } else {
-              this.employee.seniorVoluntaryEnrollment = 'しない';
-              if (this.employeeId && this.employee.companyId) {
-                const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
-                updateDoc(employeeRef, { seniorVoluntaryEnrollment: 'しない' });
-              }
-            }
+            this.router.navigate(['/calculate', this.employeeId]);
           }
+          // 初期値を保持
+          this.prevSeniorVoluntaryEnrollment = this.employee?.seniorVoluntaryEnrollment ?? null;
         }
       }
     }
@@ -396,7 +399,7 @@ export class EmployeeDetailComponent implements OnInit {
       // 生年月日が変更されているか判定
       const birthdateChanged = this.originalPersonalInfo && this.originalPersonalInfo.birthdate !== this.employee.birthdate;
       if (birthdateChanged) {
-        const confirmed = window.confirm('生年月日を変更しますか？社会保険料が変更される可能性があります。');
+        const confirmed = window.confirm('生年月日を変更しますか？社会保険料が変更される可能性があるため再度判定・算出します。');
         if (!confirmed) {
           this.isEditPersonal = false;
           window.location.reload();
@@ -429,7 +432,7 @@ export class EmployeeDetailComponent implements OnInit {
       // 所属事業所が変更されているか判定
       const officeChanged = this.originalPersonalInfo && this.originalPersonalInfo.officeName !== this.employee.officeName;
       if (officeChanged) {
-        const confirmed = window.confirm('所属事業所を変更しますか？社会保険料が変更されます。');
+        const confirmed = window.confirm('所属事業所を変更しますか？社会保険料が変更されるので再度判定・算出します。');
         if (!confirmed) {
           this.isEditPersonal = false;
           window.location.reload();
@@ -544,6 +547,14 @@ export class EmployeeDetailComponent implements OnInit {
       this.employee.baseSalary = this.originalContractInfo.baseSalary;
     }
     this.isEditContract = false;
+    this.isEditInsurance = true;
+    // 社会保険情報コンテナへスクロール
+    setTimeout(() => {
+      const container = document.getElementById('insurance-container');
+      if (container) {
+        container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 0);
     window.location.reload();
   }
 
@@ -583,53 +594,39 @@ export class EmployeeDetailComponent implements OnInit {
         }
       }
       if (onlyBaseSalaryChanged) {
-        alert('標準報酬月額に変動がないか確認してください');
-        await updateDoc(employeeRef, {
-          employmentType: this.employee.employmentType,
-          employmentPeriodType: this.employee.employmentPeriodType,
-          employmentPeriodStart: this.employee.employmentPeriodStart,
-          employmentPeriodEnd: this.employee.employmentPeriodEnd,
-          employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
-          workDays: this.employee.workDays,
-          workHours: this.employee.workHours,
-          salaryCash: this.employee.salaryCash,
-          salaryInKind: this.employee.salaryInKind,
-          salaryTotal: this.employee.salaryTotal,
-          baseSalary: this.employee.baseSalary
-        });
-        this.isEditContract = false;
+        const confirmed = window.confirm('標準報酬月額は変更せず固定給のみ変更する場合は「OK」を押してください。\n標準報酬月額も変更する場合は「キャンセル」を押してください。');
+        if (!confirmed) {
+          // キャンセル時: baseSalaryのみ更新し、社会保険情報編集モードへ
+          await updateDoc(employeeRef, {
+            baseSalary: this.employee.baseSalary
+          });
+          this.isEditContract = false;
+          // 社会保険情報コンテナへスクロール
+          setTimeout(() => {
+            const container = document.getElementById('insurance-container');
+            if (container) {
+              container.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+          }, 0);
+          return;
+        }
+        // OKが押された場合、さらに雇用契約情報変更の確認
+        const contractConfirmed = window.confirm('雇用契約情報を変更しますか？社会保険料が変更になる可能性があるため再度判定・算出します。');
+        if (!contractConfirmed) {
+          this.isEditContract = false;
+          return;
+        }
+        await this.handleContractChange(employeeRef, '雇用契約情報更新');
         return;
       }
       if (contractChanged) {
-        const confirmed = window.confirm('雇用契約情報を変更しますか？社会保険料が変更になる可能性があります。');
+        const confirmed = window.confirm('雇用契約情報を変更しますか？社会保険料が変更になる可能性があるため再度判定・算出します。');
         if (!confirmed) {
           this.isEditContract = false;
-          window.location.reload();
+            window.location.reload();
           return;
         }
-        if (this.latestStandard) {
-          const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
-          const { id, createdAt, ...copyFields } = this.latestStandard;
-          await addDoc(standardsCol, {
-            ...copyFields,
-            createdAt: new Date(),
-            memo: '雇用契約情報更新'
-          });
-        }
-        await updateDoc(employeeRef, {
-          employmentType: this.employee.employmentType,
-          employmentPeriodType: this.employee.employmentPeriodType,
-          employmentPeriodStart: this.employee.employmentPeriodStart,
-          employmentPeriodEnd: this.employee.employmentPeriodEnd,
-          employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
-          workDays: this.employee.workDays,
-          workHours: this.employee.workHours,
-          salaryCash: this.employee.salaryCash,
-          salaryInKind: this.employee.salaryInKind,
-          salaryTotal: this.employee.salaryTotal,
-          baseSalary: this.employee.baseSalary
-        });
-        this.router.navigate(['/calculate', this.employeeId]);
+        await this.handleContractChange(employeeRef, '雇用契約情報更新');
         return;
       }
       // 差分がない場合は通常保存
@@ -733,7 +730,7 @@ export class EmployeeDetailComponent implements OnInit {
         }
       }
       if (otherChanged) {
-        const confirmed = window.confirm('その他情報を変更しますか？社会保険料が変更になる可能性があります。');
+        const confirmed = window.confirm('その他情報を変更しますか？社会保険料が変更になる可能性があるため再度判定・算出します。');
         if (!confirmed) {
           this.isEditOther = false;
           window.location.reload();
@@ -1074,6 +1071,11 @@ export class EmployeeDetailComponent implements OnInit {
   }
 
   public async confirmSeniorVoluntaryEnrollment() {
+    // 前回値がnullの場合は必ず発動、それ以外は前回値と現在値が同じなら何もしない
+    if (this.prevSeniorVoluntaryEnrollment !== null && this.prevSeniorVoluntaryEnrollment === this.employee.seniorVoluntaryEnrollment) {
+      return;
+    }
+    // 以降は既存の処理
     if (!this.employeeId || !this.employee.companyId) return;
     const employeeRef = doc(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}`);
     try {
@@ -1094,10 +1096,10 @@ export class EmployeeDetailComponent implements OnInit {
       }
       // 画面上も即時反映
       this.employee.seniorVoluntaryEnrollment = this.employee.seniorVoluntaryEnrollment;
-      // 「する」の場合はリロード後にアラートを出すフラグをセット
-      if (this.employee.seniorVoluntaryEnrollment === 'する') {
-        localStorage.setItem('showSeniorVoluntaryEnrollmentAlert', '1');
-      }
+      // 「する」「しない」どちらでもリロード後にアラートを出す
+      localStorage.setItem('showSeniorVoluntaryEnrollmentAlert', '1');
+      // 前回値を更新
+      this.prevSeniorVoluntaryEnrollment = this.employee.seniorVoluntaryEnrollment;
       window.location.reload();
     } catch (e) {
       alert('高齢任意加入の保存に失敗しました');
@@ -1330,6 +1332,33 @@ export class EmployeeDetailComponent implements OnInit {
         }
       }
     }
+  }
+
+  // 共通処理を関数化
+  private async handleContractChange(employeeRef: any, memo: string) {
+    if (this.latestStandard) {
+      const standardsCol = collection(this.firestore, `companies/${this.employee.companyId}/employees/${this.employeeId}/standards`);
+      const { id, createdAt, ...copyFields } = this.latestStandard;
+      await addDoc(standardsCol, {
+        ...copyFields,
+        createdAt: new Date(),
+        memo:'雇用契約情報更新'
+      });
+    }
+    await updateDoc(employeeRef, {
+      employmentType: this.employee.employmentType,
+      employmentPeriodType: this.employee.employmentPeriodType,
+      employmentPeriodStart: this.employee.employmentPeriodStart,
+      employmentPeriodEnd: this.employee.employmentPeriodEnd,
+      employmentPeriodRenewal: this.employee.employmentPeriodRenewal,
+      workDays: this.employee.workDays,
+      workHours: this.employee.workHours,
+      salaryCash: this.employee.salaryCash,
+      salaryInKind: this.employee.salaryInKind,
+      salaryTotal: this.employee.salaryTotal,
+      baseSalary: this.employee.baseSalary
+    });
+    this.router.navigate(['/calculate', this.employeeId]);
   }
 
 }

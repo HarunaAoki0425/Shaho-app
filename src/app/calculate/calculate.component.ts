@@ -4,6 +4,7 @@ import { Firestore, collection, getDocs, doc, getDoc, addDoc, serverTimestamp } 
 import { CommonModule } from '@angular/common';
 import Decimal from 'decimal.js';
 import { JudgeComponent } from '../judge/judge.component';
+import { getAuth, onAuthStateChanged } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-calculate',
@@ -36,6 +37,13 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
   private triedSaveExcluded: boolean = false;
   constructor(private route: ActivatedRoute, private firestore: Firestore, public router: Router) {}
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     this.isLoading = true;
     this.employeesId = this.route.snapshot.paramMap.get('id') || '';
     // companiesコレクションを全件取得

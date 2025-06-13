@@ -1,7 +1,7 @@
 <div class="calculate-header">
   <span class="calculate-header-title">賞与の社会保険料計算結果</span>
   <br>
-  <button class="to-detail-btn" >従業員詳細画面へ</button>
+  <button class="to-detail-btn" (click)="goToEmployeeDetail()" >従業員詳細画面へ</button>
 </div>
 <div class="info-calc-flex" style="margin-top: 0;">
   <div>
@@ -38,60 +38,60 @@
       <div class="calc-row" *ngIf="healthInsuranceResult">
         <span class="calc-label">健康保険（全額）</span>
         <span class="calc-value">
-          ×{{ healthInsuranceRate100 }}％＝円
+          {{ healthInsuranceBase | number:'1.0-0' }}×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceTotal | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="healthInsuranceResult">
         <span class="calc-label">健康保険（会社負担）</span>
         <span class="calc-value">
-          ×{{ healthInsuranceRate100 }}％÷2＝円
+          {{ healthInsuranceBase | number:'1.0-0' }}×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceCompany | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="healthInsuranceResult">
         <span class="calc-label">健康保険（従業員負担）</span>
         <span class="calc-value">
-          ×{{ healthInsuranceRate100 }}％÷2＝円
+          {{ healthInsuranceBase | number:'1.0-0' }}×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceEmployee | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="careInsuranceResult">
         <span class="calc-label">介護保険（全額）</span>
         <span class="calc-value">
-          ×{{ careInsuranceRate100 }}％＝円
+          {{ careInsuranceBase | number:'1.0-0' }}×{{ careInsuranceRate100 }}％＝{{ careInsuranceTotal | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="careInsuranceResult">
         <span class="calc-label">介護保険（会社負担）</span>
         <span class="calc-value">
-          ×{{ careInsuranceRate100 }}％÷2＝円
+          {{ careInsuranceBase | number:'1.0-0' }}×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceCompany | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="careInsuranceResult">
         <span class="calc-label">介護保険（従業員負担）</span>
         <span class="calc-value">
-          ×{{ careInsuranceRate100 }}％÷2＝円
+          {{ careInsuranceBase | number:'1.0-0' }}×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceEmployee | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="pensionInsuranceResult">
         <span class="calc-label">厚生年金（全額）</span>
         <span class="calc-value">
-          ×{{ pensionInsuranceRate100 }}％＝円
+          {{ nenkinBase | number:'1.0-0' }}×{{ pensionInsuranceRate100 }}％＝{{ nenkinTotal | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="pensionInsuranceResult">
         <span class="calc-label">厚生年金（会社負担）</span>
         <span class="calc-value">
-          ×{{ pensionInsuranceRate100 }}％÷2＝円
+          {{ nenkinBase | number:'1.0-0' }}×{{ pensionInsuranceRate100 }}％÷2＝{{ nenkinCompany | number:'1.0-0' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="pensionInsuranceResult">
         <span class="calc-label">厚生年金（従業員負担）</span>
         <span class="calc-value">
-          ×{{ pensionInsuranceRate100 }}％÷2＝円
+          {{ nenkinBase | number:'1.0-0' }}×{{ pensionInsuranceRate100 }}％÷2＝{{ nenkinEmployee | number:'1.0-0' }}円
         </span>
       </div>
-      <div><span class="calc-label">全額合計</span><span class="calc-value">円</span></div>
-      <div ><span class="calc-label">会社負担合計</span><span class="calc-value">円</span></div>
-      <div ><span class="calc-label">従業員負担合計</span><span class="calc-value">円</span></div>
+      <div><span class="calc-label">全額合計</span><span class="calc-value">{{ totalInsurance | number:'1.0-0' }}円</span></div>
+      <div ><span class="calc-label">会社負担合計</span><span class="calc-value">{{ totalInsuranceCompany | number:'1.0-0' }}円</span></div>
+      <div ><span class="calc-label">従業員負担合計</span><span class="calc-value">{{ totalInsuranceEmployee | number:'1.0-0' }}円</span></div>
     </div>
   </div>
 </div>

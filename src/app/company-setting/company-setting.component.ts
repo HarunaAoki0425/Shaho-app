@@ -1,8 +1,9 @@
 import { Component, OnInit, inject, Injector, runInInjectionContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
+import { Auth, onAuthStateChanged, User, getAuth } from '@angular/fire/auth';
 import { Firestore, collection, addDoc, serverTimestamp, doc, query, where, getDocs, deleteDoc, updateDoc } from '@angular/fire/firestore';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-company-setting',
@@ -15,6 +16,7 @@ export class CompanySettingComponent implements OnInit {
   private auth = inject(Auth);
   private firestore = inject(Firestore);
   private injector = inject(Injector);
+  private router = inject(Router);
   user: User | null = null;
 
   companyName: string = '';
@@ -51,7 +53,16 @@ export class CompanySettingComponent implements OnInit {
   customEmploymentTypeInput: string = '';
   showCustomTypeInput: boolean = false;
 
+  constructor() {}
+
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     // 正社員を初期選択
     if (!this.employmentTypes.includes('正社員')) {
       this.employmentTypes.push('正社員');

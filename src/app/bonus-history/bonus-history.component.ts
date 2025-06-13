@@ -1,7 +1,8 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Firestore, collection, getDocs, doc, getDoc } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
+import { getAuth, onAuthStateChanged } from '@angular/fire/auth';
 
 @Component({
   selector: 'app-bonus-history',
@@ -16,8 +17,16 @@ export class BonusHistoryComponent implements OnInit {
   bonuses: any[] = [];
   private firestore = inject(Firestore);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     this.employeeId = this.route.snapshot.paramMap.get('id') || '';
     // companyIdを取得するために全companiesを検索
     const companiesCol = collection(this.firestore, 'companies');
@@ -28,14 +37,21 @@ export class BonusHistoryComponent implements OnInit {
       for (const empDoc of employeesSnap.docs) {
         if (empDoc.id === this.employeeId) {
           this.companyId = companyDoc.id;
-          // bonusコレクション全件取得
+          // bonusコレクション全年度のmonthBonusサブコレクションを横断して取得
           const bonusCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeeId, 'bonus');
           const bonusSnap = await getDocs(bonusCol);
-          this.bonuses = bonusSnap.docs.map(doc => ({ id: doc.id, ...doc.data() as any }));
+          let allMonthBonuses: any[] = [];
+          for (const nendoDoc of bonusSnap.docs) {
+            const nendoId = nendoDoc.id;
+            const monthBonusCol = collection(this.firestore, 'companies', this.companyId, 'employees', this.employeeId, 'bonus', nendoId, 'monthBonus');
+            const monthBonusSnap = await getDocs(monthBonusCol);
+            allMonthBonuses.push(...monthBonusSnap.docs.map(doc => ({ id: doc.id, nendo: nendoId, ...doc.data() as any })));
+          }
+          this.bonuses = allMonthBonuses;
           // 支給日降順でソート（nullや不正値は一番下）
           this.bonuses.sort((a, b) => {
-            const dateA = a.bonusDate ? new Date(a.bonusDate).getTime() : 0;
-            const dateB = b.bonusDate ? new Date(b.bonusDate).getTime() : 0;
+            const dateA = a.bonusDateList && a.bonusDateList[0] ? new Date(a.bonusDateList[0]).getTime() : 0;
+            const dateB = b.bonusDateList && b.bonusDateList[0] ? new Date(b.bonusDateList[0]).getTime() : 0;
             return dateB - dateA;
           });
           return;

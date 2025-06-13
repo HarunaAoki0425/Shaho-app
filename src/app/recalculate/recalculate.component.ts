@@ -1,7 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { Firestore, collection, getDocs, query, where, doc, addDoc } from '@angular/fire/firestore';
-import { Auth, getAuth } from '@angular/fire/auth';
-import { RouterModule } from '@angular/router';
+import { Auth, getAuth, onAuthStateChanged } from '@angular/fire/auth';
+import { RouterModule, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { JudgeComponent } from '../judge/judge.component';
 
@@ -23,16 +23,23 @@ export class RecalculateComponent implements OnInit {
   batchRecalculateHistories: any[] = [];
   private firestore = inject(Firestore);
   private auth = inject(Auth);
+  private router = inject(Router);
   isCalculating = false;
   calcMessage = '';
   isLoading = true;
   loadingMessage = '従業員情報取得中・・・';
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     this.isLoading = true;
     this.loadingMessage = '従業員情報取得中・・・';
     // ログインユーザー取得
-    const auth = getAuth();
     this.user = auth.currentUser;
     if (!this.user) return;
     // createdByが自分のcompanies取得

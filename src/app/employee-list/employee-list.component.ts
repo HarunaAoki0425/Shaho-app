@@ -1,5 +1,5 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
+import { Auth, onAuthStateChanged, User, getAuth } from '@angular/fire/auth';
 import { Firestore, collection, getDocs, query, where } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -27,6 +27,13 @@ export class EmployeeListComponent implements OnInit {
   private router = inject(Router);
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     onAuthStateChanged(this.auth, async (user) => {
       this.currentUser = user;
       if (user) {

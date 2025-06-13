@@ -2,7 +2,7 @@ import { Component, OnDestroy, inject, Injector, runInInjectionContext } from '@
 import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
 import { HeaderComponent } from '../header/header.component';
 import { MatIconModule } from '@angular/material/icon';
-import { RouterModule } from '@angular/router';
+import { RouterModule, Router } from '@angular/router';
 import { Firestore, collection, query, where, getDocs } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 
@@ -20,6 +20,7 @@ export class HomeComponent implements OnDestroy {
   hasCompany: boolean = false;
   private firestore = inject(Firestore);
   private injector = inject(Injector);
+  private router = inject(Router);
 
   constructor(private auth: Auth) {
     this.unsubscribe = onAuthStateChanged(this.auth, (user) => {
@@ -77,6 +78,7 @@ export class HomeComponent implements OnDestroy {
       } else {
         this.hasCompany = false;
         this.notificationMessage = null;
+        this.router.navigate(['/login']);
       }
     });
   }

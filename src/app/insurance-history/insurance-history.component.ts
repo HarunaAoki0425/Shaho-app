@@ -1,6 +1,6 @@
 import { Component, OnInit, inject } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
-import { Auth, onAuthStateChanged, User } from '@angular/fire/auth';
+import { ActivatedRoute, Router } from '@angular/router';
+import { Auth, onAuthStateChanged, User, getAuth } from '@angular/fire/auth';
 import { Firestore, doc, getDoc, collection, getDocs } from '@angular/fire/firestore';
 import { CommonModule } from '@angular/common';
 
@@ -19,15 +19,19 @@ export class InsuranceHistoryComponent implements OnInit {
   public insuranceStandardPairs: { insurance: any, standard: any | null }[] = [];
   private auth = inject(Auth);
   private firestore = inject(Firestore);
+  private router = inject(Router);
 
   constructor(private route: ActivatedRoute) {
     this.employeeId = this.route.snapshot.paramMap.get('id');
   }
 
   async ngOnInit() {
-    // ログインユーザー取得
-    onAuthStateChanged(this.auth, async (user) => {
-      this.currentUser = user;
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
     });
     if (!this.employeeId) return;
     // employees情報取得

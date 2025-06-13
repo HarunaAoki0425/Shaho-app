@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { Firestore, collection, getDocs, query, where } from '@angular/fire/firestore';
 import { FormsModule } from '@angular/forms';
 import Decimal from 'decimal.js';
+import { getAuth } from '@angular/fire/auth';
+import { onAuthStateChanged } from '@angular/fire/auth';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-kenpo-rates',
@@ -14,6 +17,7 @@ import Decimal from 'decimal.js';
 export class KenpoRatesComponent implements OnInit {
   private firestore = inject(Firestore);
   private injector = inject(Injector);
+  private router = inject(Router);
   allRates: any[] = [];
   years: number[] = [];
   selectedYear: number = 2025;
@@ -39,6 +43,13 @@ export class KenpoRatesComponent implements OnInit {
   }
 
   async ngOnInit() {
+    // ログインユーザーがいなければ/loginに遷移
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        this.router.navigate(['/login']);
+      }
+    });
     await runInInjectionContext(this.injector, async () => {
       await this.getAllRates();
       this.selectedYear = this.years[0];
