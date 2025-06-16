@@ -1,6 +1,6 @@
 .calculate-container {
   padding-top: 4rem;
-  max-width: 600px;
+  max-width: 800px;
   margin: 0 auto;
   background: #f8fafc;
   border-radius: 12px;
@@ -167,13 +167,19 @@
   color: #222;
 }
 .extra-info-box {
-  min-width: 260px;
-  max-width: 340px;
-  background: #e3f2fd;
-  border-radius: 14px;
-  margin-top: 1.2rem;
-  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.06);
-  padding: 1.1rem 1.2rem 1.1rem 1.2rem;
+  width: 100%;
+  max-width: 800px;
+  margin: 24px auto 0 auto;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 0.95em;
+  color: #555;
+  line-height: 1.7;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.04);
+  padding: 0 auto;
 }
 
 .excluded-message {
@@ -241,3 +247,5 @@
   margin-right: auto;
   max-width: 100%;
 }
+
+

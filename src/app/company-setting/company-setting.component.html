@@ -1,8 +1,5 @@
 <div class="container">
   <form class="company-form" *ngIf="!isLoading && showForm">
-    <div class="save-company-btn-outer">
-      <button type="button" class="save-company-btn" (click)="saveCompany()">保存</button>
-    </div>
     <div class="company-name-row">
       <label>会社名
         <span class="required-mark">※</span>
@@ -46,7 +43,6 @@
       </div>
     </div>
     <!-- 雇用形態種別設定枠 ここまで -->
-    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
 
     <ng-container *ngFor="let office of offices; let i = index">
       <fieldset class="office-info-group">
@@ -76,7 +72,7 @@
           </label>
           <input type="number" [(ngModel)]="office.employeeCount" name="employeeCount{{i}}" [required]="i === 0" (input)="onNumberInput($event, office, 'employeeCount')" />
         </div>
-        <div *ngIf="office.employeeCount !== null && office.employeeCount <= 50">
+        <div *ngIf="office.employeeCount !== null && office.employeeCount <= 4">
           <label>任意適用事業所
             <span *ngIf="i === 0" class="required-mark">※</span>
           </label>
@@ -102,6 +98,11 @@
       </fieldset>
     </ng-container>
 
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
+    <div class="save-company-btn-outer">
+      <button type="button" class="save-company-btn" (click)="saveCompany()">保存</button>
+    </div>
     <button type="button" class="add-office-btn" (click)="addOffice()">事業所を追加</button>
   </form>
 

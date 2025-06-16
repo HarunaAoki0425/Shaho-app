@@ -197,7 +197,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     if (value === null || value === undefined || value === '') return '';
     const num = typeof value === 'number' ? value : Number(value);
     if (isNaN(num)) return '';
-    return num.toLocaleString();
+    // 小数点以下も表示
+    return num.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 6 });
   }
   get latestStandard() {
     if (!this.standardsList || this.standardsList.length === 0) return null;
@@ -216,7 +217,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const rate = this.insuranceRateData.health_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
-      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toString());
     } catch {
       return '';
     }
@@ -226,7 +228,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const total = this.healthInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
-      return this.formatWithComma(new Decimal(total).div(2).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(total).div(2).toString());
     } catch {
       return '';
     }
@@ -236,13 +239,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const total = this.healthInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
-      const half = new Decimal(total).div(2);
-      const decimalPart = half.minus(half.floor()).times(10).toNumber();
-      if (decimalPart <= 5) {
-        return this.formatWithComma(half.floor().toString());
-      } else {
-        return this.formatWithComma(half.ceil().toString());
-      }
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(total).div(2).toString());
     } catch {
       return '';
     }
@@ -253,7 +251,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const rate = this.insuranceRateData.pension_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
-      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toFixed(0));
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toString());
     } catch {
       return '';
     }
@@ -263,7 +262,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const total = this.pensionInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
-      return this.formatWithComma(new Decimal(total).div(2).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(total).div(2).toString());
     } catch {
       return '';
     }
@@ -273,13 +273,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const total = this.pensionInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
-      const half = new Decimal(total).div(2);
-      const decimalPart = half.minus(half.floor()).times(10).toNumber();
-      if (decimalPart <= 5) {
-        return this.formatWithComma(half.floor().toString());
-      } else {
-        return this.formatWithComma(half.ceil().toString());
-      }
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(total).div(2).toString());
     } catch {
       return '';
     }
@@ -290,7 +285,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const rate = this.insuranceRateData.care_insurance;
     if (stdSalary == null || rate == null) return '';
     try {
-      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(stdSalary).times(new Decimal(rate)).toString());
     } catch {
       return '';
     }
@@ -300,7 +296,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const total = this.careInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
-      return this.formatWithComma(new Decimal(total).div(2).toDecimalPlaces(0, Decimal.ROUND_HALF_UP).toString());
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(total).div(2).toString());
     } catch {
       return '';
     }
@@ -310,13 +307,8 @@ export class CalculateComponent implements OnInit, AfterViewChecked {
     const total = this.careInsuranceAmount.replace(/,/g, '');
     if (!total) return '';
     try {
-      const half = new Decimal(total).div(2);
-      const decimalPart = half.minus(half.floor()).times(10).toNumber();
-      if (decimalPart <= 5) {
-        return this.formatWithComma(half.floor().toString());
-      } else {
-        return this.formatWithComma(half.ceil().toString());
-      }
+      // 四捨五入せず小数点も表示
+      return this.formatWithComma(new Decimal(total).div(2).toString());
     } catch {
       return '';
     }

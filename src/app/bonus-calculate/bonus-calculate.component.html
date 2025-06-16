@@ -38,60 +38,72 @@
       <div class="calc-row" *ngIf="healthInsuranceResult">
         <span class="calc-label">健康保険（全額）</span>
         <span class="calc-value">
-          {{ healthInsuranceBase | number:'1.0-0' }}×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceTotal | number:'1.0-0' }}円
+          {{ healthInsuranceBase | number:'1.2-6' }}×{{ healthInsuranceRate100 }}％＝{{ healthInsuranceTotal | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="healthInsuranceResult">
         <span class="calc-label">健康保険（会社負担）</span>
         <span class="calc-value">
-          {{ healthInsuranceBase | number:'1.0-0' }}×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceCompany | number:'1.0-0' }}円
+          {{ healthInsuranceBase | number:'1.2-6' }}×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceCompany | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="healthInsuranceResult">
         <span class="calc-label">健康保険（従業員負担）</span>
         <span class="calc-value">
-          {{ healthInsuranceBase | number:'1.0-0' }}×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceEmployee | number:'1.0-0' }}円
+          {{ healthInsuranceBase | number:'1.2-6' }}×{{ healthInsuranceRate100 }}％÷2＝{{ healthInsuranceEmployee | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="careInsuranceResult">
         <span class="calc-label">介護保険（全額）</span>
         <span class="calc-value">
-          {{ careInsuranceBase | number:'1.0-0' }}×{{ careInsuranceRate100 }}％＝{{ careInsuranceTotal | number:'1.0-0' }}円
+          {{ careInsuranceBase | number:'1.2-6' }}×{{ careInsuranceRate100 }}％＝{{ careInsuranceTotal | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="careInsuranceResult">
         <span class="calc-label">介護保険（会社負担）</span>
         <span class="calc-value">
-          {{ careInsuranceBase | number:'1.0-0' }}×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceCompany | number:'1.0-0' }}円
+          {{ careInsuranceBase | number:'1.2-6' }}×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceCompany | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="careInsuranceResult">
         <span class="calc-label">介護保険（従業員負担）</span>
         <span class="calc-value">
-          {{ careInsuranceBase | number:'1.0-0' }}×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceEmployee | number:'1.0-0' }}円
+          {{ careInsuranceBase | number:'1.2-6' }}×{{ careInsuranceRate100 }}％÷2＝{{ careInsuranceEmployee | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="pensionInsuranceResult">
         <span class="calc-label">厚生年金（全額）</span>
         <span class="calc-value">
-          {{ nenkinBase | number:'1.0-0' }}×{{ pensionInsuranceRate100 }}％＝{{ nenkinTotal | number:'1.0-0' }}円
+          {{ nenkinBase | number:'1.2-6' }}×{{ pensionInsuranceRate100 }}％＝{{ nenkinTotal | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="pensionInsuranceResult">
         <span class="calc-label">厚生年金（会社負担）</span>
         <span class="calc-value">
-          {{ nenkinBase | number:'1.0-0' }}×{{ pensionInsuranceRate100 }}％÷2＝{{ nenkinCompany | number:'1.0-0' }}円
+          {{ nenkinBase | number:'1.2-6' }}×{{ pensionInsuranceRate100 }}％÷2＝{{ nenkinCompany | number:'1.2-6' }}円
         </span>
       </div>
       <div class="calc-row" *ngIf="pensionInsuranceResult">
         <span class="calc-label">厚生年金（従業員負担）</span>
         <span class="calc-value">
-          {{ nenkinBase | number:'1.0-0' }}×{{ pensionInsuranceRate100 }}％÷2＝{{ nenkinEmployee | number:'1.0-0' }}円
+          {{ nenkinBase | number:'1.2-6' }}×{{ pensionInsuranceRate100 }}％÷2＝{{ nenkinEmployee | number:'1.2-6' }}円
         </span>
       </div>
-      <div><span class="calc-label">全額合計</span><span class="calc-value">{{ totalInsurance | number:'1.0-0' }}円</span></div>
-      <div ><span class="calc-label">会社負担合計</span><span class="calc-value">{{ totalInsuranceCompany | number:'1.0-0' }}円</span></div>
-      <div ><span class="calc-label">従業員負担合計</span><span class="calc-value">{{ totalInsuranceEmployee | number:'1.0-0' }}円</span></div>
+      <div><span class="calc-label">全額合計</span><span class="calc-value">{{ totalInsurance | number:'1.2-6' }}円</span></div>
+      <div ><span class="calc-label">会社負担合計</span><span class="calc-value">{{ totalInsuranceCompany | number:'1.2-6' }}円</span></div>
+      <div ><span class="calc-label">従業員負担合計</span><span class="calc-value">{{ totalInsuranceEmployee | number:'1.2-6' }}円</span></div>
     </div>
   </div>
+</div>
+<div class="extra-info-box" style="font-size: 0.5em;">
+  ※端数について※<br>
+  〇従業員負担分<br>
+  ①事業主（会社）が給与から従業員負担分を控除する場合、従業員負担分の端数が50銭以下の場合は切り捨て、50銭超えの場合は切り上げて1円となります。<br>
+  ②従業員が、従業員負担分を事業主（会社）に現金で支払う場合、従業員負担分の端数が50銭未満の場合は切り捨て、50銭以上の場合は切り上げて1円となります。<br>
+  （注）①、②にかかわらず、事業主（会社）と従業員間で特約がある場合には特約に基づき端数処理をすることができます。<br>
+  〇会社負担分<br>
+  「納入告知額」から「すべての従業員負担額の合計」を引いた額が会社負担分となります。<br>
+  「納入告知額」は、月毎の各保険料の合計額の端数を切り捨てた金額が事業所に通知されます。<br>
+  端数処理の関係で、会社負担分は必ずしも合計額の半額にはなりません。
+  詳しくは、<a href="https://www.nenkin.go.jp/service/kounen/hokenryo/nofu/20121026.html" target="_blank">日本年金機構の公式HP</a>を確認してください。
 </div>

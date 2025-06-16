@@ -138,3 +138,38 @@
   color: #b71c1c;
   border-radius: 8px;
 }
+
+/* 読み込み中オーバーレイ */
+.loading-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(255,255,255,0.85);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-message {
+  font-size: 2.2rem;
+  color: #1976d2;
+  font-weight: bold;
+  letter-spacing: 0.08em;
+}
+
+/* グレーアウト＆クリック不可ボタン */
+.home-btn-disabled {
+  pointer-events: none;
+  background: #f3f3f3 !important;
+  color: #b0b0b0 !important;
+  border: 1.5px solid #e0e0e0 !important;
+  box-shadow: none !important;
+  cursor: not-allowed !important;
+}
+
+.home-btn-disabled .home-btn-icon {
+  color: #e0e0e0 !important;
+}

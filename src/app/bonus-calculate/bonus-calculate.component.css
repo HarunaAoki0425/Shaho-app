@@ -259,3 +259,19 @@
   border-radius: 16px;
   box-shadow: 0 4px 24px rgba(25, 118, 210, 0.12);
 }
+
+.extra-info-box {
+  width: 100%;
+  max-width: 800px;
+  margin: 24px auto 0 auto;
+  background: #f8f9fa;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  padding: 16px 20px;
+  font-size: 0.95em;
+  color: #555;
+  line-height: 1.7;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(25, 118, 210, 0.04);
+  padding: 0 auto;
+}

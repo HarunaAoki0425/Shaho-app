@@ -5,18 +5,18 @@
 <div>
   <div *ngFor="let b of bonuses" class="pair-block" style="border:1px solid #aaa; margin-bottom: 24px; padding: 12px;">
     <div class="bonus-grid">
-      <div>健康保険全額: {{ b.healthInsuranceTotal != null ? (b.healthInsuranceTotal | number:'1.0-0') : ' ' }}円</div>
-      <div>健康保険会社負担額: {{ b.healthInsuranceCompany != null ? (b.healthInsuranceCompany | number:'1.0-0') : ' ' }}円</div>
-      <div>健康保険従業員負担額: {{ b.healthInsuranceEmployee != null ? (b.healthInsuranceEmployee | number:'1.0-0') : ' ' }}円</div>
-      <div>介護保険全額: {{ b.careInsuranceTotal != null ? (b.careInsuranceTotal | number:'1.0-0') : ' ' }}円</div>
-      <div>介護保険会社負担額: {{ b.careInsuranceCompany != null ? (b.careInsuranceCompany | number:'1.0-0') : ' ' }}円</div>
-      <div>介護保険従業員負担額: {{ b.careInsuranceEmployee != null ? (b.careInsuranceEmployee | number:'1.0-0') : ' ' }}円</div>
-      <div>厚生年金全額: {{ b.nenkinTotal != null ? (b.nenkinTotal | number:'1.0-0') : ' ' }}円</div>
-      <div>厚生年金会社負担額: {{ b.nenkinCompany != null ? (b.nenkinCompany | number:'1.0-0') : ' ' }}円</div>
-      <div>厚生年金従業員負担額: {{ b.nenkinEmployee != null ? (b.nenkinEmployee | number:'1.0-0') : ' ' }}円</div>
-      <div>合計: {{ b.totalInsurance != null ? (b.totalInsurance | number:'1.0-0') : ' ' }}円</div>
-      <div>合計会社負担額: {{ b.totalInsuranceCompany != null ? (b.totalInsuranceCompany | number:'1.0-0') : ' ' }}円</div>
-      <div>合計従業員負担額: {{ b.totalInsuranceEmployee != null ? (b.totalInsuranceEmployee | number:'1.0-0') : ' ' }}円</div>
+      <div>健康保険全額: {{ b.healthInsuranceTotal != null ? (b.healthInsuranceTotal | number:'1.2-6') : ' ' }}円</div>
+      <div>健康保険会社負担額: {{ b.healthInsuranceCompany != null ? (b.healthInsuranceCompany | number:'1.2-6') : ' ' }}円</div>
+      <div>健康保険従業員負担額: {{ b.healthInsuranceEmployee != null ? (b.healthInsuranceEmployee | number:'1.2-6') : ' ' }}円</div>
+      <div>介護保険全額: {{ b.careInsuranceTotal != null ? (b.careInsuranceTotal | number:'1.2-6') : ' ' }}円</div>
+      <div>介護保険会社負担額: {{ b.careInsuranceCompany != null ? (b.careInsuranceCompany | number:'1.2-6') : ' ' }}円</div>
+      <div>介護保険従業員負担額: {{ b.careInsuranceEmployee != null ? (b.careInsuranceEmployee | number:'1.2-6') : ' ' }}円</div>
+      <div>厚生年金全額: {{ b.nenkinTotal != null ? (b.nenkinTotal | number:'1.2-6') : ' ' }}円</div>
+      <div>厚生年金会社負担額: {{ b.nenkinCompany != null ? (b.nenkinCompany | number:'1.2-6') : ' ' }}円</div>
+      <div>厚生年金従業員負担額: {{ b.nenkinEmployee != null ? (b.nenkinEmployee | number:'1.2-6') : ' ' }}円</div>
+      <div>合計: {{ b.totalInsurance != null ? (b.totalInsurance | number:'1.2-6') : ' ' }}円</div>
+      <div>合計会社負担額: {{ b.totalInsuranceCompany != null ? (b.totalInsuranceCompany | number:'1.2-6') : ' ' }}円</div>
+      <div>合計従業員負担額: {{ b.totalInsuranceEmployee != null ? (b.totalInsuranceEmployee | number:'1.2-6') : ' ' }}円</div>
     </div>
     <div *ngIf="b.bonusDateList && b.bonusAmountList">
       <div *ngFor="let date of b.bonusDateList; let i = index">

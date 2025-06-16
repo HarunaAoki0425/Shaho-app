@@ -32,27 +32,27 @@
         <tbody>
           <tr>
             <th>健康保険</th>
-            <td>{{ latestMonthBonus?.healthInsuranceTotal | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.healthInsuranceCompany | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.healthInsuranceEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestMonthBonus?.healthInsuranceTotal | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.healthInsuranceCompany | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.healthInsuranceEmployee | number:'1.2-6' }}円</td>
           </tr>
           <tr>
             <th>介護保険</th>
-            <td>{{ latestMonthBonus?.careInsuranceTotal | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.careInsuranceCompany | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.careInsuranceEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestMonthBonus?.careInsuranceTotal | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.careInsuranceCompany | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.careInsuranceEmployee | number:'1.2-6' }}円</td>
           </tr>
           <tr>
             <th>厚生年金</th>
-            <td>{{ latestMonthBonus?.nenkinTotal | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.nenkinCompany | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.nenkinEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestMonthBonus?.nenkinTotal | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.nenkinCompany | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.nenkinEmployee | number:'1.2-6' }}円</td>
           </tr>
           <tr>
             <th>合計</th>
-            <td>{{ latestMonthBonus?.totalInsurance | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.totalInsuranceCompany | number:'1.0-0' }}円</td>
-            <td>{{ latestMonthBonus?.totalInsuranceEmployee | number:'1.0-0' }}円</td>
+            <td>{{ latestMonthBonus?.totalInsurance | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.totalInsuranceCompany | number:'1.2-6' }}円</td>
+            <td>{{ latestMonthBonus?.totalInsuranceEmployee | number:'1.2-6' }}円</td>
           </tr>
         </tbody>
       </table>
@@ -69,14 +69,20 @@
   <div class="bonus-container-right" style="flex: 1;">
     <div class="bonus-total">{{ currentNendo }}年度賞与額合計</div>
     <div class="bonus-total-amount">
-      {{ getNendoTotal(currentNendo) | number:'1.0-0' }}円
+      <ng-container *ngIf="getNendoTotal(currentNendo) && (getNendoTotal(currentNendo) | number:'1.2-6') !== '0.00'; else emptyTotal">
+        {{ getNendoTotal(currentNendo) | number:'1.0-0' }}円
+      </ng-container>
+      <ng-template #emptyTotal></ng-template>
     </div>
     <div style="font-size: 12px; color: #666;">健康保険・介護保険の年間累計標準賞与額の上限は573万円です。それ以降標準賞与額は0円として算出します。</div>
     <div class="bonus-total">
       {{ latestMonthBonus?.bonusDateList && latestMonthBonus?.bonusDateList[0] ? (latestMonthBonus.bonusDateList[0] | date:'yyyy年MM月') : '' }}賞与合計
     </div>
     <div class="bonus-total-amount">
-      {{ latestMonthBonus?.monthTotal | number:'1.0-0' }}円
+      <ng-container *ngIf="latestMonthBonus?.monthTotal && (latestMonthBonus.monthTotal | number:'1.2-6') !== '0.00'; else emptyMonthTotal">
+        {{ latestMonthBonus?.monthTotal | number:'1.0-0' }}円
+      </ng-container>
+      <ng-template #emptyMonthTotal></ng-template>
     </div>
     <div style="font-size: 12px; color: #666;">厚生年金の月間累計標準賞与額の上限は150万円です。それ以降標準賞与額は0円として算出します。</div>
   </div>

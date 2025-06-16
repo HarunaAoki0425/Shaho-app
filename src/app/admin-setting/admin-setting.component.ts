@@ -96,10 +96,19 @@ export class AdminSettingComponent implements OnInit {
   }
 
   async onDeleteAccount(): Promise<void> {
-    if (!this.user) return;
+    if (!this.user || !this.user.email) return;
     const confirmed = confirm('本当にアカウントを削除しますか？\n\nこの操作は取り消せません。\n\n会社情報・従業員情報など、あなたが作成した全てのデータが完全に削除されます。\n\nよろしければOKを押してください。');
     if (!confirmed) return;
+    // パスワード入力を促す
+    const password = prompt('アカウント削除のため、パスワードを入力してください。');
+    if (!password) {
+      alert('パスワードが入力されませんでした。アカウント削除を中止します。');
+      return;
+    }
     try {
+      // 再認証
+      const credential = EmailAuthProvider.credential(this.user.email, password);
+      await reauthenticateWithCredential(this.user, credential);
       // 1. ユーザーが作成したcompaniesを取得
       const companiesCol = collection(this.firestore, 'companies');
       const companiesQuery = query(companiesCol, where('createdBy', '==', this.user.uid));
@@ -135,7 +144,13 @@ export class AdminSettingComponent implements OnInit {
       alert('アカウントと関連データが全て削除されました。ご利用ありがとうございました。');
       window.location.href = '/';
     } catch (err: any) {
-      alert('アカウント削除に失敗しました: ' + (err.message || err.code));
+      if (err.code === 'auth/wrong-password') {
+        alert('パスワードが正しくありません。アカウント削除を中止します。');
+      } else if (err.code === 'auth/too-many-requests') {
+        alert('リクエストが多すぎます。しばらくしてから再度お試しください。');
+      } else {
+        alert('アカウント削除に失敗しました: ' + (err.message || err.code));
+      }
     }
   }
 }

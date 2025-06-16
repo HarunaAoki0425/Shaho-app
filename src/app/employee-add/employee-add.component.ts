@@ -71,6 +71,7 @@ export class EmployeeAddComponent implements OnInit {
   employeeNumber: string = '';
   public todayString: string = new Date().toISOString().slice(0, 10);
   employmentPeriodRenewal: string = '更新あり';
+  salaryCashBelowBaseSalaryWarning: boolean = false;
 
   private auth = inject(Auth);
   private firestore = inject(Firestore);
@@ -373,6 +374,12 @@ export class EmployeeAddComponent implements OnInit {
       }
     } else {
       const num = Number(value);
+      // 固定給より小さい場合は警告フラグON
+      if (field === 'salaryCash' && this.baseSalary !== null && this.baseSalary !== '' && !isNaN(Number(this.baseSalary)) && num < Number(this.baseSalary)) {
+        this.salaryCashBelowBaseSalaryWarning = true;
+      } else if (field === 'salaryCash') {
+        this.salaryCashBelowBaseSalaryWarning = false;
+      }
       switch (field) {
         case 'salaryCash': this.salaryCash = isNaN(num) ? '' : num; break;
         case 'salaryInKind': this.salaryInKind = isNaN(num) ? '' : num; break;
@@ -429,7 +436,7 @@ export class EmployeeAddComponent implements OnInit {
       return;
     }
     if (this.salaryCash === null || this.salaryCash === '' || isNaN(Number(this.salaryCash)) || Number(this.salaryCash) < 1) {
-      alert('報酬月額（通貨）は以上を入力してください必須です');
+      alert('報酬月額（通貨）は1円以上を入力してください');
       return;
     }
     if (!this.joinDate) {
@@ -490,8 +497,8 @@ export class EmployeeAddComponent implements OnInit {
         return;
       }
     }
-    if (this.baseSalary === null || this.baseSalary === '' || isNaN(Number(this.baseSalary))) {
-      alert('固定給は必須です。');
+    if (this.baseSalary === null || this.baseSalary === '' || isNaN(Number(this.baseSalary)) || Number(this.baseSalary) < 1) {
+      alert('固定給は1円以上を入力してください');
       return;
     }
     if (this.employeeAddType === '既存社員追加') {

@@ -1,17 +1,42 @@
+<div *ngIf="isLoading" class="loading-overlay">
+  <div class="loading-message">読み込み中・・・</div>
+</div>
+<ng-container *ngIf="!isLoading">
 <app-header></app-header>
 <div class="home-header" [ngClass]="{'home-header-alert': notificationMessage}">
   {{ notificationMessage ? notificationMessage : '通知はありません' }}
 </div>
 <div class="home-btn-container">
-  <a class="home-btn" routerLink="/employee-list">
+  <a class="home-btn"
+     routerLink="/employee-list"
+     [ngClass]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'home-btn-disabled' : ''"
+     [class.home-btn-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。'"
+     [attr.tabindex]="notificationMessage === '会社情報・事業所情報を登録してください。' ? -1 : null"
+     [attr.aria-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'true' : null"
+     (click)="notificationMessage === '会社情報・事業所情報を登録してください。' ? $event.preventDefault() : null"
+  >
     従業員一覧
     <mat-icon class="home-btn-icon">people</mat-icon>
   </a>
-  <a class="home-btn" routerLink="/employee-add">
+  <a class="home-btn"
+     routerLink="/employee-add"
+     [ngClass]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'home-btn-disabled' : ''"
+     [class.home-btn-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。'"
+     [attr.tabindex]="notificationMessage === '会社情報・事業所情報を登録してください。' ? -1 : null"
+     [attr.aria-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'true' : null"
+     (click)="notificationMessage === '会社情報・事業所情報を登録してください。' ? $event.preventDefault() : null"
+  >
     従業員登録
     <mat-icon class="home-btn-icon">person_add</mat-icon>
   </a>
-  <a class="home-btn" routerLink="/recalculate">
+  <a class="home-btn"
+     routerLink="/recalculate"
+     [ngClass]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'home-btn-disabled' : ''"
+     [class.home-btn-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。'"
+     [attr.tabindex]="notificationMessage === '会社情報・事業所情報を登録してください。' ? -1 : null"
+     [attr.aria-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'true' : null"
+     (click)="notificationMessage === '会社情報・事業所情報を登録してください。' ? $event.preventDefault() : null"
+  >
     一斉算出
     <mat-icon class="home-btn-icon">calculate</mat-icon>
   </a>
@@ -19,7 +44,14 @@
     会社・事業所情報
     <mat-icon class="home-btn-icon">business</mat-icon>
   </a>
-  <a class="home-btn" routerLink="/rates-management">
+  <a class="home-btn"
+     routerLink="/rates-management"
+     [ngClass]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'home-btn-disabled' : ''"
+     [class.home-btn-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。'"
+     [attr.tabindex]="notificationMessage === '会社情報・事業所情報を登録してください。' ? -1 : null"
+     [attr.aria-disabled]="notificationMessage === '会社情報・事業所情報を登録してください。' ? 'true' : null"
+     (click)="notificationMessage === '会社情報・事業所情報を登録してください。' ? $event.preventDefault() : null"
+  >
     保険料率確認
     <mat-icon class="home-btn-icon">percent</mat-icon>
   </a>
@@ -28,3 +60,4 @@
     <mat-icon class="home-btn-icon">settings</mat-icon>
   </a>
 </div>
+</ng-container>

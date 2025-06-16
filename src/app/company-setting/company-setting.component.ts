@@ -53,6 +53,8 @@ export class CompanySettingComponent implements OnInit {
   customEmploymentTypeInput: string = '';
   showCustomTypeInput: boolean = false;
 
+  isSaving: boolean = false;
+
   constructor() {}
 
   async ngOnInit() {
@@ -94,56 +96,82 @@ export class CompanySettingComponent implements OnInit {
   }
 
   async saveCompany() {
-    if (!this.companyName) {
-      this.errorMessage = '会社名を入力してください';
-      return;
-    }
-    const first = this.offices[0];
-    if (
-      !first.officeName ||
-      !first.officePrefecture ||
-      !first.employeeCount ||
-      !first.weeklyHours ||
-      !first.monthlyDays
-    ) {
-      this.errorMessage = '1つ目の事業所情報はすべて入力してください';
-      return;
-    }
-    if (!this.user) return;
-    this.errorMessage = '';
-    await runInInjectionContext(this.injector, async () => {
+    if (this.isSaving) return;
+    this.isSaving = true;
+    try {
       const companiesCol = collection(this.firestore, 'companies');
-      const companyDocRef = await addDoc(companiesCol, {
-        companyName: this.companyName,
-        createdBy: this.user!.uid,
-        createdAt: serverTimestamp(),
-        updatedBy: null,
-        updatedAt: null,
-        employmentType: this.employmentTypes
-      });
-      const companyId = companyDocRef.id;
+      // すでに同じユーザーの会社が存在するかチェック
+      const q = query(companiesCol, where('createdBy', '==', this.user!.uid));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        this.errorMessage = 'すでに会社が登録されています';
+        this.isSaving = false;
+        return;
+      }
+      if (!this.companyName) {
+        this.errorMessage = '会社名を入力してください';
+        this.isSaving = false;
+        return;
+      }
+      // すべての事業所情報が埋まっているかチェック
       for (let i = 0; i < this.offices.length; i++) {
         const office = this.offices[i];
-        let applicableOffice: boolean;
-        if (office.employeeCount !== null && office.employeeCount <= 4) {
-          applicableOffice = office.isVoluntaryApplicable === true;
-        } else {
-          applicableOffice = true;
+        if (
+          !office.officeName ||
+          !office.officePrefecture ||
+          !office.employeeCount ||
+          !office.weeklyHours ||
+          !office.monthlyDays ||
+          (office.employeeCount !== null && office.employeeCount <= 4 && office.isVoluntaryApplicable === null)
+        ) {
+          this.errorMessage = `${i + 1}つ目の事業所情報はすべて入力してください`;
+          this.isSaving = false;
+          return;
         }
-        const officesCol = collection(companyDocRef, 'offices');
-        await addDoc(officesCol, {
-          ...office,
-          applicableOffice,
-          officeNumber: i + 1,
-          companyId,
+      }
+          // 確認ダイアログを表示
+    const confirmed = window.confirm('会社情報・従業員情報を保存しますか？');
+    if (!confirmed) {
+      this.isSaving = false;
+      return;
+    }
+      if (!this.user) return;
+      this.errorMessage = '';
+      await runInInjectionContext(this.injector, async () => {
+        const companyDocRef = await addDoc(companiesCol, {
+          companyName: this.companyName,
           createdBy: this.user!.uid,
           createdAt: serverTimestamp(),
           updatedBy: null,
-          updatedAt: null
+          updatedAt: null,
+          employmentType: this.employmentTypes
         });
-      }
-    });
-    window.location.reload();
+        const companyId = companyDocRef.id;
+        for (let i = 0; i < this.offices.length; i++) {
+          const office = this.offices[i];
+          let applicableOffice: boolean;
+          if (office.employeeCount !== null && office.employeeCount <= 4) {
+            applicableOffice = office.isVoluntaryApplicable === true;
+          } else {
+            applicableOffice = true;
+          }
+          const officesCol = collection(companyDocRef, 'offices');
+          await addDoc(officesCol, {
+            ...office,
+            applicableOffice,
+            officeNumber: i + 1,
+            companyId,
+            createdBy: this.user!.uid,
+            createdAt: serverTimestamp(),
+            updatedBy: null,
+            updatedAt: null
+          });
+        }
+      });
+      window.location.reload();
+    } finally {
+      this.isSaving = false;
+    }
   }
 
   addOffice() {

@@ -21,9 +21,11 @@ export class HomeComponent implements OnDestroy {
   private firestore = inject(Firestore);
   private injector = inject(Injector);
   private router = inject(Router);
+  isLoading: boolean = true;
 
   constructor(private auth: Auth) {
     this.unsubscribe = onAuthStateChanged(this.auth, (user) => {
+      this.isLoading = true;
       this.currentUser = user;
       if (user) {
         runInInjectionContext(this.injector, () => {
@@ -42,12 +44,13 @@ export class HomeComponent implements OnDestroy {
                 runInInjectionContext(this.injector, () => {
                   getDocs(nq).then(nsnap => {
                     this.notificationMessage = !nsnap.empty ? nsnap.docs[0].data()['message'] : null;
+                    this.isLoading = false;
                   });
                 });
               } else {
                 this.notificationMessage = null;
                 // ここから今月の一斉算出履歴チェック
-                snap.docs.forEach(async (companyDoc) => {
+                Promise.all(snap.docs.map(async (companyDoc) => {
                   const companyId = companyDoc.id;
                   const batchHistoryCol = collection(this.firestore, 'companies', companyId, 'batchRecalculateHistory');
                   const batchSnap = await getDocs(batchHistoryCol);
@@ -61,6 +64,13 @@ export class HomeComponent implements OnDestroy {
                     return date.getFullYear() === currentYear && (date.getMonth() + 1) === currentMonth;
                   });
                   if (!found) {
+                    // employeesが1件もなければ通知を出さない
+                    const employeesCol = collection(this.firestore, 'companies', companyId, 'employees');
+                    const employeesSnap = await getDocs(employeesCol);
+                    if (employeesSnap.empty) {
+                      this.notificationMessage = null;
+                      return;
+                    }
                     // Firestoreのnotificationsから該当メッセージを取得して表示
                     const notificationsCol = collection(this.firestore, 'notifications');
                     const nq = query(
@@ -70,6 +80,8 @@ export class HomeComponent implements OnDestroy {
                     const nsnap = await getDocs(nq);
                     this.notificationMessage = !nsnap.empty ? nsnap.docs[0].data()['message'] : null;
                   }
+                })).then(() => {
+                  this.isLoading = false;
                 });
               }
             });
@@ -79,6 +91,7 @@ export class HomeComponent implements OnDestroy {
         this.hasCompany = false;
         this.notificationMessage = null;
         this.router.navigate(['/login']);
+        this.isLoading = false;
       }
     });
   }
